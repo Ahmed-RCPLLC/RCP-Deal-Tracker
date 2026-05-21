@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RCP NNN Deal Tracker — Red Cedar Partners</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -468,14 +469,6 @@ tbody tr:hover td{background:#F8FAFF}
   <div class="mfoot"><button class="btn" onclick="cm('mo-equity')">Cancel</button><button class="btn btn-p" onclick="submitEquity()">✓ Log Funding</button></div>
 </div></div>
 
-<div id="mo-apikey" class="ov" style="display:none">
-<div class="modal" style="max-width:420px">
-  <div class="mtitle">🔑 Anthropic API Key Required</div>
-  <p style="font-size:12.5px;color:var(--g6);margin-bottom:14px;line-height:1.6">PSA extraction uses Claude AI to read your PDF and auto-fill all dates and terms. Enter your Anthropic API key below — it's stored only in this browser and never sent anywhere except Anthropic's API.</p>
-  <div class="fr"><div class="fl">Anthropic API Key</div><input class="inp" id="apikey-input" type="password" placeholder="sk-ant-..."></div>
-  <div style="font-size:11px;color:var(--g4);margin-bottom:4px">Get your key at console.anthropic.com → API Keys</div>
-  <div class="mfoot"><button class="btn" onclick="cm('mo-apikey')">Cancel</button><button class="btn btn-p" onclick="saveAPIKey()">✓ Save & Extract</button></div>
-</div></div>
 
 <div id="mo-psa-amend" class="ov" style="display:none">
 <div class="modal">
@@ -2482,122 +2475,143 @@ function rPSA(p){
 function show(id,vis){const el=$(id);if(el)el.style.display=vis?'block':'none';}
 
 function handlePSAUpload(input){
-  const file=input.files[0];
-  if(!file)return;
-  input.value='';
-  extractPSA(file);
+  const file=input.files[0];if(!file)return;input.value='';
+  extractPSALocal(file);
 }
 
-async function extractPSA(file){
-  let key=localStorage.getItem('rcp_anthropic_key');
-  if(!key){
-    window._pendingPSAFile=file;
-    om('mo-apikey');
-    return;
+async function extractPSALocal(file){
+  const statusEl=$('psa-status-msg'),statusTxt=$('psa-status-text');
+  function setStatus(bg,bc,col,html){
+    if(!statusEl)return;
+    statusEl.style.display='flex';statusEl.style.background=bg;statusEl.style.borderColor=bc;statusEl.style.color=col;
+    if(statusTxt)statusTxt.innerHTML=html;
   }
-  await runPSAExtraction(file,key);
-}
+  function showErr(msg){setStatus('var(--red-light)','var(--red-mid)','var(--red)',`<i class="ti ti-alert-circle"></i> &nbsp;${msg}`);}
 
-async function runPSAExtraction(file,key){
-  const statusEl=$('psa-status-msg');
-  const statusTxt=$('psa-status-text');
-  if(statusEl){statusEl.style.display='flex';statusEl.style.background='var(--blue-light)';statusEl.style.borderColor='var(--blue-mid)';statusEl.style.color='var(--blue)';}
-  if(statusTxt)statusTxt.innerHTML='<span class="spin"><i class="ti ti-loader"></i></span> &nbsp;Reading PDF...';
+  setStatus('var(--blue-light)','var(--blue-mid)','var(--blue)','<span class="spin"><i class="ti ti-loader"></i></span> &nbsp;Reading PDF...');
 
-  let base64;
+  // Ensure PDF.js worker is configured
+  if(typeof pdfjsLib==='undefined'){showErr('PDF.js not loaded. Please check your internet connection and try again.');return;}
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  let fullText='';
   try{
-    base64=await new Promise((res,rej)=>{
-      const r=new FileReader();
-      r.onload=e=>res(e.target.result.split(',')[1]);
-      r.onerror=rej;
-      r.readAsDataURL(file);
-    });
-  }catch(e){showErr('Could not read PDF file.');return;}
-
-  if(statusTxt)statusTxt.innerHTML='<span class="spin"><i class="ti ti-loader"></i></span> &nbsp;Claude AI is extracting PSA data...';
-
-  try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key':key,
-        'anthropic-version':'2023-06-01',
-        'anthropic-beta':'pdfs-2024-09-25',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
-      body:JSON.stringify({
-        model:'claude-opus-4-5',
-        max_tokens:1024,
-        messages:[{
-          role:'user',
-          content:[
-            {type:'document',source:{type:'base64',media_type:'application/pdf',data:base64}},
-            {type:'text',text:`Extract data from this Purchase and Sale Agreement (PSA) for a commercial real estate deal. Return ONLY a valid JSON object with no markdown or explanation:
-
-{
-  "executionDate": "YYYY-MM-DD or empty string",
-  "purchasePrice": 0,
-  "emd": 0,
-  "feasibilityDays": 120,
-  "permittingDays": 120,
-  "extensionDays": 30,
-  "closingDate": "YYYY-MM-DD or empty string",
-  "sections": {
-    "executionDate": "Section X.X or empty",
-    "purchasePrice": "Section X.X or empty",
-    "emd": "Section X.X or empty",
-    "feasibilityDays": "Section X.X or empty",
-    "permittingDays": "Section X.X or empty",
-    "extensionDays": "Section X.X or empty",
-    "closingDate": "Section X.X or empty"
-  }
-}
-
-Rules: dates in YYYY-MM-DD. Periods in days (convert months × 30). Feasibility = due diligence period. If a field is missing use 0 or empty string, not null. Return ONLY the JSON.`}
-          ]
-        }]
-      })
-    });
-
-    if(!resp.ok){
-      const err=await resp.json().catch(()=>({}));
-      if(resp.status===401){localStorage.removeItem('rcp_anthropic_key');showErr('Invalid API key. Please re-enter your Anthropic key.');}
-      else showErr((err.error&&err.error.message)||`API error ${resp.status}`);
-      return;
+    const arrayBuffer=await file.arrayBuffer();
+    const pdf=await pdfjsLib.getDocument({data:arrayBuffer}).promise;
+    for(let i=1;i<=pdf.numPages;i++){
+      const page=await pdf.getPage(i);
+      const content=await page.getTextContent();
+      fullText+=content.items.map(it=>it.str).join(' ')+'\n';
     }
+  }catch(e){showErr('Could not read PDF: '+e.message);return;}
 
-    const data=await resp.json();
-    let txt=(data.content&&data.content[0]&&data.content[0].text||'').trim();
-    let extracted;
-    try{
-      const m=txt.match(/\{[\s\S]*\}/);
-      extracted=JSON.parse(m?m[0]:txt);
-    }catch(e){showErr('Could not parse AI response. Try uploading again.');return;}
+  setStatus('var(--blue-light)','var(--blue-mid)','var(--blue)','<span class="spin"><i class="ti ti-loader"></i></span> &nbsp;Extracting PSA data...');
 
-    if(!S.p.psa)S.p.psa={};
-    Object.assign(S.p.psa,extracted,{uploaded:true,extractedAt:new Date().toISOString()});
-    if(!S.p.psa.amendments)S.p.psa.amendments=[];
-    rAll();
-    if(statusEl){statusEl.style.background='var(--green-light)';statusEl.style.borderColor='var(--green-mid)';statusEl.style.color='var(--green)';}
-    if(statusTxt)statusTxt.innerHTML='<i class="ti ti-check"></i> &nbsp;PSA data extracted successfully — review below';
-    show('psa-data-section',true);
-    showSaveToast('PSA data extracted from PDF ✓');
+  const extracted=parsePSAText(fullText);
 
-  }catch(e){showErr('Network error: '+e.message);}
-
-  function showErr(msg){
-    if(statusEl){statusEl.style.background='var(--red-light)';statusEl.style.borderColor='var(--red-mid)';statusEl.style.color='var(--red)';}
-    if(statusTxt)statusTxt.innerHTML=`<i class="ti ti-alert-circle"></i> &nbsp;${msg}`;
-  }
+  if(!S.p.psa)S.p.psa={};
+  Object.assign(S.p.psa,extracted,{uploaded:true,extractedAt:new Date().toISOString()});
+  if(!S.p.psa.amendments)S.p.psa.amendments=[];
+  rAll();
+  setStatus('var(--green-light)','var(--green-mid)','var(--green)','<i class="ti ti-check"></i> &nbsp;PSA data extracted — review below and use "Edit Fields" to correct anything');
+  show('psa-data-section',true);
+  showSaveToast('PSA data extracted ✓');
 }
 
-function saveAPIKey(){
-  const k=($('apikey-input').value||'').trim();
-  if(!k){alert('Please enter your Anthropic API key.');return;}
-  localStorage.setItem('rcp_anthropic_key',k);
-  cm('mo-apikey');
-  if(window._pendingPSAFile){runPSAExtraction(window._pendingPSAFile,k);window._pendingPSAFile=null;}
+function parsePSAText(raw){
+  // Normalize whitespace for reliable matching
+  const t=raw.replace(/\r\n/g,'\n').replace(/[ \t]+/g,' ');
+
+  // Helper: extract dollar amount after a keyword
+  function findAmt(patterns){
+    for(const p of patterns){const m=t.match(p);if(m){const v=parseFloat((m[1]||'').replace(/,/g,''));if(v>0)return v;}}
+    return 0;
+  }
+  // Helper: extract day count (handles "one hundred twenty (120) days" and plain "120 days")
+  function findDays(patterns,def){
+    for(const p of patterns){
+      const m=t.match(p);
+      if(m){
+        // Prefer number in parentheses e.g. "(120)"
+        const inParen=(m[0]||'').match(/\((\d+)\)/);
+        if(inParen)return parseInt(inParen[1]);
+        if(m[1]&&/^\d+$/.test(m[1]))return parseInt(m[1]);
+        if(m[2])return parseInt(m[2])*30; // months fallback
+      }
+    }
+    return def;
+  }
+  // Helper: parse any date string to YYYY-MM-DD
+  function toISO(s){
+    if(!s)return'';
+    const mo={january:1,february:2,march:3,april:4,may:5,june:6,july:7,august:8,september:9,october:10,november:11,december:12,jan:1,feb:2,mar:3,apr:4,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+    const m1=s.match(/([A-Za-z]+)\s+(\d{1,2}),?\s*(\d{4})/);
+    if(m1){const mn=mo[m1[1].toLowerCase()];if(mn)return`${m1[3]}-${String(mn).padStart(2,'0')}-${String(m1[2]).padStart(2,'0')}`;}
+    const m2=s.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if(m2)return`${m2[3]}-${String(m2[1]).padStart(2,'0')}-${String(m2[2]).padStart(2,'0')}`;
+    if(/^\d{4}-\d{2}-\d{2}$/.test(s.trim()))return s.trim();
+    return'';
+  }
+  function findDate(patterns){
+    for(const p of patterns){const m=t.match(p);if(m){const d=toISO((m[1]||'').trim());if(d)return d;}}
+    return'';
+  }
+  // Helper: find section reference near a keyword
+  function findSec(keyword){
+    const re=new RegExp('(Section\\s+\\d+\\.\\d+(?:\\.\\d+)?|§\\s*\\d+\\.\\d+(?:\\.\\d+)?)[^.]{0,200}'+keyword,'i');
+    const re2=new RegExp(keyword+'[^.]{0,200}(Section\\s+\\d+\\.\\d+(?:\\.\\d+)?|§\\s*\\d+\\.\\d+(?:\\.\\d+)?)','i');
+    let m=t.match(re)||t.match(re2);
+    return m?(m[1]||m[2]||'').trim():'';
+  }
+
+  const purchasePrice=findAmt([
+    /(?:purchase price|contract price|sales price|total consideration)[^$\n]{0,120}\$([\d,]+(?:\.\d{1,2})?)/i,
+    /\$([\d,]+(?:\.\d{1,2})?)[^.\n]{0,100}(?:purchase price|contract price)/i,
+    /(?:sum of|price of)\s+\$([\d,]+(?:\.\d{1,2})?)/i,
+    /(?:pay|amount of)\s+\$([\d,]+(?:\.\d{1,2})?)[^.\n]{0,60}(?:purchase|sale|property)/i,
+  ]);
+
+  const emd=findAmt([
+    /(?:earnest money deposit|earnest money|emd)[^$\n]{0,120}\$([\d,]+(?:\.\d{1,2})?)/i,
+    /\$([\d,]+(?:\.\d{1,2})?)[^.\n]{0,80}(?:earnest money|good faith deposit)/i,
+    /(?:good faith deposit|initial deposit)[^$\n]{0,120}\$([\d,]+(?:\.\d{1,2})?)/i,
+    /deposit[^$\n]{0,80}\$([\d,]+(?:\.\d{1,2})?)/i,
+  ]);
+
+  const feasibilityDays=findDays([
+    /(?:feasibility period|due diligence period|inspection period|study period|contingency period)[^.]{0,200}/i,
+  ],120);
+
+  const permittingDays=findDays([
+    /(?:permitting period|permit period|entitlement period|permitting contingency)[^.]{0,200}/i,
+  ],120);
+
+  const extensionDays=findDays([
+    /(?:extend[^.]{0,60}closing|extension option|extension period|buyer.*right.*extend)[^.]{0,200}/i,
+  ],30);
+
+  const executionDate=findDate([
+    /(?:effective date of this agreement|this agreement is dated|dated as of|executed as of)[^.]{0,80}?([A-Za-z]+ \d{1,2},?\s*\d{4}|\d{1,2}\/\d{1,2}\/\d{4})/i,
+    /(?:effective date|execution date)[:\s]+([A-Za-z]+ \d{1,2},?\s*\d{4}|\d{1,2}\/\d{1,2}\/\d{4})/i,
+    /(?:entered into|made and entered|as of)[^.]{0,60}([A-Za-z]+ \d{1,2},?\s*\d{4})/i,
+  ]);
+
+  const closingDate=findDate([
+    /(?:closing shall occur|closing date shall be|close on or before|target closing date)[^.]{0,80}?([A-Za-z]+ \d{1,2},?\s*\d{4}|\d{1,2}\/\d{1,2}\/\d{4})/i,
+    /(?:closing date)[:\s]+([A-Za-z]+ \d{1,2},?\s*\d{4}|\d{1,2}\/\d{1,2}\/\d{4})/i,
+  ]);
+
+  const sections={
+    executionDate:findSec('(?:effective date|execution date)'),
+    purchasePrice:findSec('(?:purchase price|contract price)'),
+    emd:findSec('(?:earnest money|deposit)'),
+    feasibilityDays:findSec('(?:feasibility period|due diligence)'),
+    permittingDays:findSec('(?:permitting period|permit period)'),
+    extensionDays:findSec('(?:extension|extend)'),
+    closingDate:findSec('(?:closing date|closing shall)'),
+  };
+
+  return{executionDate,purchasePrice,emd,feasibilityDays,permittingDays,extensionDays,closingDate,sections};
 }
 
 function editPSAFields(){
