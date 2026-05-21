@@ -472,14 +472,17 @@ tbody tr:hover td{background:#F8FAFF}
 
 
 <div id="mo-gemini-key" class="ov" style="display:none">
-<div class="modal" style="max-width:430px">
+<div class="modal" style="max-width:450px">
   <div class="mtitle">🤖 One-time Setup — Free AI Key</div>
-  <div style="font-size:12.5px;color:var(--g6);line-height:1.7;margin-bottom:14px">
-    PSA extraction uses <b>Google Gemini Flash</b> — completely free (no credit card, 1,500 PDFs/day).<br><br>
+  <div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:11px 14px;margin-bottom:14px;font-size:12px;color:#92400E;line-height:1.6">
+    ⚠️ <b>Important:</b> You must get the key from <b>aistudio.google.com</b> — NOT from Google Cloud Console. Cloud Console keys do not have free access.
+  </div>
+  <div style="font-size:12.5px;color:var(--g6);line-height:1.8;margin-bottom:14px">
     <b>Get your free key in 30 seconds:</b><br>
-    1. Go to <b>aistudio.google.com</b><br>
-    2. Click <b>Get API Key</b> → <b>Create API Key</b><br>
-    3. Copy and paste it below
+    1. Open <b>aistudio.google.com/apikey</b> in a new tab<br>
+    2. Click <b>Create API key</b><br>
+    3. Select <b>Create API key in new project</b><br>
+    4. Copy the key and paste it below
   </div>
   <div class="fr"><div class="fl">Google AI Studio API Key</div><input class="inp" id="gemini-key-input" placeholder="AIza..."></div>
   <div style="font-size:10.5px;color:var(--g4);margin-bottom:4px">Stored only in this browser. Never sent anywhere except Google's API.</div>
@@ -2592,7 +2595,7 @@ async function extractPSAWithGemini(file,key){
 Important: return ONLY the JSON object.`;
 
   try{
-    const resp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,{
+    const resp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${key}`,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
@@ -2608,6 +2611,8 @@ Important: return ONLY the JSON object.`;
       const err=await resp.json().catch(()=>({}));
       const msg=(err.error&&err.error.message)||`API error ${resp.status}`;
       if(resp.status===400&&msg.includes('API_KEY')){showErr('Invalid API key — please re-enter.',true);}
+      else if(msg.includes('quota')&&msg.includes('limit: 0')){showErr('Wrong key type — your key was created in Google Cloud Console, not AI Studio. Go to aistudio.google.com/apikey and create a new key there.',true);}
+      else if(msg.includes('quota')){showErr('Quota exceeded — wait a minute and try again, or check aistudio.google.com/apikey.');}
       else showErr(msg);
       return;
     }
