@@ -271,6 +271,43 @@ tbody tr:hover td{background:#F8FAFF}
   .tb-sub{display:none}
   .btn-sm{font-size:11px;padding:5px 8px}
 }
+/* PSA Timeline */
+@keyframes psa-pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(185,28,28,.5)}60%{opacity:.55;box-shadow:0 0 0 7px rgba(185,28,28,0)}}
+.psa-expired-anim{animation:psa-pulse 1.4s ease-in-out infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{display:inline-block;animation:spin .8s linear infinite}
+.psa-tl-wrap{overflow-x:auto;padding:6px 0 18px}
+.psa-tl{display:flex;align-items:flex-start;min-width:680px;padding:32px 20px 14px;position:relative}
+.psa-tl::before{content:'';position:absolute;top:46px;left:44px;right:44px;height:3px;background:linear-gradient(90deg,var(--blue) 0%,var(--blue-mid) 60%,var(--g3) 100%);border-radius:2px}
+.psa-ms{display:flex;flex-direction:column;align-items:center;flex:1;position:relative}
+.psa-dot{width:18px;height:18px;border-radius:50%;border:3px solid var(--g3);background:#fff;z-index:2;margin-bottom:9px;flex-shrink:0;transition:all .25s;box-shadow:0 0 0 4px #fff}
+.psa-dot-ok{border-color:var(--blue);background:var(--blue)}
+.psa-dot-warn{border-color:#F59E0B;background:#F59E0B}
+.psa-dot-danger{border-color:var(--red);background:var(--red)}
+.psa-dot-expired{border-color:var(--red);background:var(--red)}
+.psa-dot-future{border-color:var(--g3);background:#fff}
+.psa-ms-name{font-size:10.5px;font-weight:700;color:var(--g6);text-align:center;max-width:100px;line-height:1.3}
+.psa-ms-date{font-size:10px;color:var(--g5);text-align:center;margin-top:3px;font-weight:500}
+.psa-ms-tag{font-size:9.5px;font-weight:700;text-align:center;margin-top:5px;padding:2px 8px;border-radius:9px;white-space:nowrap}
+.psa-ms-sec{font-size:9px;color:var(--g4);text-align:center;margin-top:3px;font-style:italic;cursor:help;max-width:95px}
+.tag-ok{background:var(--blue-light);color:var(--blue)}
+.tag-warn{background:var(--amber-light);color:var(--amber)}
+.tag-danger,.tag-expired{background:var(--red-light);color:var(--red)}
+.tag-future{background:var(--g2);color:var(--g5)}
+.psa-fields-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.psa-field{background:var(--g1);border:1px solid var(--g3);border-radius:8px;padding:10px 12px}
+.psa-field-label{font-size:9.5px;font-weight:700;color:var(--g5);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.psa-field-val{font-size:18px;font-weight:800;color:var(--g7);letter-spacing:-.02em;line-height:1}
+.psa-field-sec{font-size:9px;color:var(--g4);margin-top:3px;font-style:italic}
+.psa-amend-card{background:var(--g1);border:1px solid var(--g3);border-radius:9px;padding:12px 14px;margin-bottom:8px}
+.psa-cmp{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.psa-cmp-orig{background:#FFF7ED;border:1px solid #FCD34D;border-radius:7px;padding:10px 12px}
+.psa-cmp-new{background:var(--blue-light);border:1px solid var(--blue-mid);border-radius:7px;padding:10px 12px}
+.psa-clabel{font-size:9px;font-weight:700;color:var(--g5);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.psa-upload-zone{border:2px dashed var(--g3);border-radius:10px;padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--g1)}
+.psa-upload-zone:hover{border-color:var(--blue);background:var(--blue-light)}
+.psa-upload-zone i{font-size:32px;color:var(--g4);display:block;margin-bottom:8px}
+.psa-status-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;background:var(--blue-light);border:1px solid var(--blue-mid);font-size:12.5px;color:var(--blue);font-weight:600;margin-top:10px}
 </style>
 </head>
 <body>
@@ -431,6 +468,32 @@ tbody tr:hover td{background:#F8FAFF}
   <div class="mfoot"><button class="btn" onclick="cm('mo-equity')">Cancel</button><button class="btn btn-p" onclick="submitEquity()">✓ Log Funding</button></div>
 </div></div>
 
+<div id="mo-apikey" class="ov" style="display:none">
+<div class="modal" style="max-width:420px">
+  <div class="mtitle">🔑 Anthropic API Key Required</div>
+  <p style="font-size:12.5px;color:var(--g6);margin-bottom:14px;line-height:1.6">PSA extraction uses Claude AI to read your PDF and auto-fill all dates and terms. Enter your Anthropic API key below — it's stored only in this browser and never sent anywhere except Anthropic's API.</p>
+  <div class="fr"><div class="fl">Anthropic API Key</div><input class="inp" id="apikey-input" type="password" placeholder="sk-ant-..."></div>
+  <div style="font-size:11px;color:var(--g4);margin-bottom:4px">Get your key at console.anthropic.com → API Keys</div>
+  <div class="mfoot"><button class="btn" onclick="cm('mo-apikey')">Cancel</button><button class="btn btn-p" onclick="saveAPIKey()">✓ Save & Extract</button></div>
+</div></div>
+
+<div id="mo-psa-amend" class="ov" style="display:none">
+<div class="modal">
+  <div class="mtitle">📝 Log PSA Amendment</div>
+  <div class="fr"><div class="fl">Amendment Date</div><input class="inp" id="amend-date" type="date"></div>
+  <div class="fr"><div class="fl">Amendment Note / Reason</div><input class="inp" id="amend-note" placeholder="e.g. Extension granted — permitting delayed 30 days"></div>
+  <div style="font-size:12px;font-weight:600;color:var(--g6);margin-bottom:10px">Changed Dates (leave blank if unchanged)</div>
+  <div class="fg2">
+    <div class="fr"><div class="fl">New Feasibility End Date</div><input class="inp" id="amend-feas" type="date"></div>
+    <div class="fr"><div class="fl">New Permitting End Date</div><input class="inp" id="amend-perm" type="date"></div>
+    <div class="fr"><div class="fl">New Extension End Date</div><input class="inp" id="amend-ext" type="date"></div>
+    <div class="fr"><div class="fl">New Closing Date</div><input class="inp" id="amend-close" type="date"></div>
+    <div class="fr"><div class="fl">New Purchase Price ($)</div><input class="inp" id="amend-price" type="number" placeholder="0 if unchanged"></div>
+    <div class="fr"><div class="fl">New EMD Amount ($)</div><input class="inp" id="amend-emd" type="number" placeholder="0 if unchanged"></div>
+  </div>
+  <div class="mfoot"><button class="btn" onclick="cm('mo-psa-amend')">Cancel</button><button class="btn btn-p" onclick="savePSAAmendment()">✓ Log Amendment</button></div>
+</div></div>
+
 <!-- ===== APP ===== -->
 <div class="app">
 <div class="sb">
@@ -450,6 +513,7 @@ tbody tr:hover td{background:#F8FAFF}
     <button class="ni" onclick="go('stack',this)"><i class="ti ti-coin"></i>Capital Stack</button>
     <button class="ni" onclick="go('budget',this)"><i class="ti ti-table"></i>Pro-Forma Budget</button>
     <div class="nsec">Execution</div>
+    <button class="ni" onclick="go('psa',this)"><i class="ti ti-file-description"></i>PSA Timeline <span class="nbadge nba" id="nb-psa" style="display:none">!</span></button>
     <button class="ni" onclick="go('dd',this)"><i class="ti ti-search"></i>Due Diligence</button>
     <button class="ni" onclick="go('entitle',this)"><i class="ti ti-certificate"></i>Entitlements</button>
     <button class="ni" onclick="go('preclose',this)"><i class="ti ti-users"></i>Pre-Close Equity <span class="nbadge nba" id="nb-eq" style="display:none">0</span></button>
@@ -525,6 +589,72 @@ tbody tr:hover td{background:#F8FAFF}
         <div style="display:flex;gap:6px"><button class="btn btn-sm" onclick="addBLine()"><i class="ti ti-plus"></i>Add Line</button><button class="btn btn-sm" onclick="autoCalc()"><i class="ti ti-refresh"></i>Recalc Auto</button></div>
       </div><div style="overflow-x:auto"><table><thead><tr><th>Cat.</th><th>Description</th><th class="r">Budget ($)</th><th class="r">Actual ($)</th><th class="r">Variance</th><th class="r">%</th><th class="r">$/SF</th><th>Notes</th><th></th></tr></thead><tbody id="bud-body"></tbody><tfoot id="bud-foot"></tfoot></table></div></div>
     </div>
+    <div id="page-psa" class="page">
+      <div class="card">
+        <div class="chdr"><div class="ctitle"><i class="ti ti-file-description"></i>PSA Document — Upload & Extract</div><span id="psa-extract-badge" style="display:none" class="st st-g">AI Extracted</span></div>
+        <div id="psa-upload-area">
+          <div class="psa-upload-zone" onclick="$('psa-file-input').click()" id="psa-drop-zone">
+            <i class="ti ti-cloud-upload"></i>
+            <div style="font-size:13px;font-weight:600;color:var(--g6);margin-bottom:4px">Click to upload PSA PDF</div>
+            <div style="font-size:11.5px;color:var(--g4)">Claude AI will automatically extract all dates, purchase price, EMD, and period lengths</div>
+          </div>
+          <input type="file" id="psa-file-input" accept=".pdf" style="display:none" onchange="handlePSAUpload(this)">
+          <div id="psa-status-msg" style="display:none" class="psa-status-bar"><span id="psa-status-text"></span></div>
+        </div>
+      </div>
+      <div id="psa-data-section" style="display:none">
+        <div class="card">
+          <div class="chdr">
+            <div class="ctitle"><i class="ti ti-calendar-check"></i>Key PSA Terms</div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-sm" onclick="editPSAFields()"><i class="ti ti-edit"></i>Edit Fields</button>
+              <button class="btn btn-sm" onclick="$('psa-file-input').click()"><i class="ti ti-refresh"></i>Re-Upload PDF</button>
+            </div>
+          </div>
+          <div id="psa-fields-display"></div>
+        </div>
+        <div class="card">
+          <div class="chdr"><div class="ctitle"><i class="ti ti-timeline"></i>Deal Timeline</div></div>
+          <div class="psa-tl-wrap"><div class="psa-tl" id="psa-timeline"></div></div>
+        </div>
+        <div class="card">
+          <div class="chdr">
+            <div class="ctitle"><i class="ti ti-file-diff"></i>Amendment History</div>
+            <button class="btn btn-sm btn-p" onclick="om('mo-psa-amend')"><i class="ti ti-plus"></i>Log Amendment</button>
+          </div>
+          <div id="psa-amendments-list"></div>
+        </div>
+      </div>
+      <div id="psa-edit-section" style="display:none">
+        <div class="card">
+          <div class="chdr"><div class="ctitle"><i class="ti ti-edit"></i>Edit PSA Fields</div></div>
+          <div class="fg3">
+            <div class="fr"><div class="fl">Execution Date *</div><input class="inp" id="pe-exec" type="date"></div>
+            <div class="fr"><div class="fl">Purchase Price ($)</div><input class="inp" id="pe-price" type="number"></div>
+            <div class="fr"><div class="fl">EMD Amount ($)</div><input class="inp" id="pe-emd" type="number"></div>
+            <div class="fr"><div class="fl">Feasibility Period (days)</div><input class="inp" id="pe-feas" type="number" placeholder="120"></div>
+            <div class="fr"><div class="fl">Permitting Period (days)</div><input class="inp" id="pe-perm" type="number" placeholder="120"></div>
+            <div class="fr"><div class="fl">Extension Option (days)</div><input class="inp" id="pe-ext" type="number" placeholder="30"></div>
+            <div class="fr"><div class="fl">Closing Date (if fixed)</div><input class="inp" id="pe-close" type="date"></div>
+          </div>
+          <div style="font-size:12px;font-weight:600;color:var(--g6);margin:4px 0 10px">Section References (optional)</div>
+          <div class="fg3">
+            <div class="fr"><div class="fl">Execution Date — Section</div><input class="inp" id="pe-s-exec" placeholder="e.g. Section 1.1"></div>
+            <div class="fr"><div class="fl">Purchase Price — Section</div><input class="inp" id="pe-s-price" placeholder="e.g. Section 2.1"></div>
+            <div class="fr"><div class="fl">EMD — Section</div><input class="inp" id="pe-s-emd" placeholder="e.g. Section 3.1"></div>
+            <div class="fr"><div class="fl">Feasibility — Section</div><input class="inp" id="pe-s-feas" placeholder="e.g. Section 4.2"></div>
+            <div class="fr"><div class="fl">Permitting — Section</div><input class="inp" id="pe-s-perm" placeholder="e.g. Section 4.3"></div>
+            <div class="fr"><div class="fl">Extension — Section</div><input class="inp" id="pe-s-ext" placeholder="e.g. Section 4.4"></div>
+            <div class="fr"><div class="fl">Closing — Section</div><input class="inp" id="pe-s-close" placeholder="e.g. Section 5.1"></div>
+          </div>
+          <div class="mfoot" style="margin-top:8px;padding-top:12px;border-top:1px solid var(--g3)">
+            <button class="btn" onclick="cancelPSAEdit()">Cancel</button>
+            <button class="btn btn-p" onclick="savePSAFields()">✓ Save PSA Data</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div id="page-dd" class="page">
       <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-search"></i>Due Diligence Checklist</div><button class="btn btn-sm" onclick="addDD()"><i class="ti ti-plus"></i>Add Item</button></div>
       <table><thead><tr><th>Item</th><th>Vendor</th><th class="r">Budget</th><th class="r">Actual</th><th>Status</th><th>Due Date</th><th>Completed</th><th>Notes</th><th></th></tr></thead><tbody id="dd-body"></tbody></table></div>
@@ -830,6 +960,7 @@ function newP(o={}){return{
   ],
   equityFundings:[],draws:[],cors:[],corFromCont:0,expenses:[],
   sale:{buyer:'',type:'',exitCap:0,brokerPct:3,exitFeePct:1,closingCostPct:1.25,date:'',broker:''},
+  psa:{executionDate:'',purchasePrice:0,emd:0,feasibilityDays:120,permittingDays:120,extensionDays:30,closingDate:'',sections:{executionDate:'',purchasePrice:'',emd:'',feasibilityDays:'',permittingDays:'',extensionDays:'',closingDate:''},amendments:[],uploaded:false},
 };}
 
 function C(p){
@@ -872,7 +1003,7 @@ function rAll(){
   const p=S.p,c=C(p);
   rTB(p,c);rPB(p);rBadges(p);
   rDash(p,c);rProj(p);rStack(p,c);rBudget(p,c);
-  rDD(p);rEnt(p);rPC(p,c);rExp(p);
+  rPSA(p);rDD(p);rEnt(p);rPC(p,c);rExp(p);
   rDraws(p,c);rCOR(p,c);rInt(p,c);rRent(p);rSale(p,c);rPnL(p,c);
   rProforma();
   rMonthly();
@@ -2228,6 +2359,342 @@ demo.expenses.push({id:uid(),dt:'Jan 20, 2026',pay:'BABL Studio',cat:'Entitlemen
 S.projects.push(demo);S.cur=0;refSel();rAll();
   } // end else
 })(); // end async IIFE
+
+// ── PSA Timeline ──────────────────────────────────────────────────────────
+function psaAddDays(dateStr,days){
+  if(!dateStr)return'';
+  const d=new Date(dateStr+'T00:00:00');
+  d.setDate(d.getDate()+parseInt(days)||0);
+  return d.toISOString().split('T')[0];
+}
+function psaDaysUntil(dateStr){
+  if(!dateStr)return null;
+  const today=new Date();today.setHours(0,0,0,0);
+  const t=new Date(dateStr+'T00:00:00');
+  return Math.round((t-today)/86400000);
+}
+function psaStatus(dateStr){
+  const d=psaDaysUntil(dateStr);
+  if(d===null)return'future';
+  if(d<0)return'expired';
+  if(d<=7)return'danger';
+  if(d<=14)return'warn';
+  return'ok';
+}
+function psaFmtDate(s){
+  if(!s)return'—';
+  const d=new Date(s+'T00:00:00');
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+function psaTagLabel(status,days){
+  if(status==='future')return'Pending';
+  if(status==='expired'){const ago=Math.abs(days);return`Expired ${ago}d ago`;}
+  if(status==='danger')return`${days}d left`;
+  if(status==='warn')return`${days}d left`;
+  return`${days}d left`;
+}
+function psaMilestones(psa){
+  const exec=psa.executionDate||'';
+  const feasEnd=psaAddDays(exec,psa.feasibilityDays||120);
+  const permEnd=psaAddDays(feasEnd,psa.permittingDays||120);
+  const extEnd=psaAddDays(permEnd,psa.extensionDays||30);
+  const closeDate=psa.closingDate||extEnd;
+  const sec=psa.sections||{};
+  return[
+    {name:'Execution',date:exec,sec:sec.executionDate||'',isStart:true},
+    {name:'Feasibility End',date:feasEnd,sec:sec.feasibilityDays||'',durationLabel:`${psa.feasibilityDays||120}d feasibility`},
+    {name:'Permitting End',date:permEnd,sec:sec.permittingDays||'',durationLabel:`${psa.permittingDays||120}d permitting`},
+    {name:'Extension End',date:extEnd,sec:sec.extensionDays||'',durationLabel:`${psa.extensionDays||30}d extension`},
+    {name:'Target Close',date:closeDate,sec:sec.closingDate||'',isClose:true},
+  ];
+}
+
+function rPSA(p){
+  if(!p)return;
+  if(!p.psa)p.psa={executionDate:'',purchasePrice:0,emd:0,feasibilityDays:120,permittingDays:120,extensionDays:30,closingDate:'',sections:{executionDate:'',purchasePrice:'',emd:'',feasibilityDays:'',permittingDays:'',extensionDays:'',closingDate:''},amendments:[],uploaded:false};
+  const psa=p.psa;
+  const hasData=psa.executionDate||psa.purchasePrice||psa.emd;
+
+  // Badge alert in sidebar
+  const ms=psaMilestones(psa);
+  const hasAlert=hasData&&ms.slice(1).some(m=>['danger','expired'].includes(psaStatus(m.date)));
+  const nb=$('nb-psa');if(nb)nb.style.display=hasAlert?'':'none';
+
+  if(!hasData){
+    show('psa-upload-area',true);show('psa-data-section',false);show('psa-edit-section',false);
+    if($('psa-extract-badge'))$('psa-extract-badge').style.display='none';
+    return;
+  }
+
+  show('psa-data-section',true);show('psa-edit-section',false);
+  if($('psa-extract-badge'))$('psa-extract-badge').style.display=psa.uploaded?'':'none';
+
+  // Key fields display
+  const sec=psa.sections||{};
+  const fmtMoney=v=>v?'$'+Number(v).toLocaleString():'—';
+  $('psa-fields-display').innerHTML=`
+    <div class="psa-fields-grid">
+      <div class="psa-field"><div class="psa-field-label">Execution Date</div><div class="psa-field-val" style="font-size:14px;font-weight:700">${psaFmtDate(psa.executionDate)}</div>${sec.executionDate?`<div class="psa-field-sec">${sec.executionDate}</div>`:''}</div>
+      <div class="psa-field"><div class="psa-field-label">Purchase Price</div><div class="psa-field-val">${fmtMoney(psa.purchasePrice)}</div>${sec.purchasePrice?`<div class="psa-field-sec">${sec.purchasePrice}</div>`:''}</div>
+      <div class="psa-field"><div class="psa-field-label">Earnest Money (EMD)</div><div class="psa-field-val">${fmtMoney(psa.emd)}</div>${sec.emd?`<div class="psa-field-sec">${sec.emd}</div>`:''}</div>
+      <div class="psa-field"><div class="psa-field-label">Feasibility Period</div><div class="psa-field-val">${psa.feasibilityDays||120} <span style="font-size:12px;font-weight:600;color:var(--g5)">days</span></div>${sec.feasibilityDays?`<div class="psa-field-sec">${sec.feasibilityDays}</div>`:''}</div>
+      <div class="psa-field"><div class="psa-field-label">Permitting Period</div><div class="psa-field-val">${psa.permittingDays||120} <span style="font-size:12px;font-weight:600;color:var(--g5)">days</span></div>${sec.permittingDays?`<div class="psa-field-sec">${sec.permittingDays}</div>`:''}</div>
+      <div class="psa-field"><div class="psa-field-label">Extension Option</div><div class="psa-field-val">${psa.extensionDays||30} <span style="font-size:12px;font-weight:600;color:var(--g5)">days</span></div>${sec.extensionDays?`<div class="psa-field-sec">${sec.extensionDays}</div>`:''}</div>
+    </div>`;
+
+  // Timeline
+  const milestones=psaMilestones(psa);
+  $('psa-timeline').innerHTML=milestones.map(m=>{
+    const st=m.isStart?'ok':psaStatus(m.date);
+    const days=psaDaysUntil(m.date);
+    const tagLbl=m.isStart?psaFmtDate(m.date):psaTagLabel(st,days);
+    const expiredClass=st==='expired'?'psa-expired-anim':'';
+    return`<div class="psa-ms">
+      <div class="psa-dot psa-dot-${st} ${expiredClass}"></div>
+      <div class="psa-ms-name">${m.name}</div>
+      <div class="psa-ms-date">${psaFmtDate(m.date)}</div>
+      ${m.isStart?'':`<div class="psa-ms-tag tag-${st}">${tagLbl}</div>`}
+      ${m.durationLabel?`<div class="psa-ms-sec">${m.durationLabel}</div>`:''}
+      ${m.sec?`<div class="psa-ms-sec" title="${m.sec}">${m.sec}</div>`:''}
+    </div>`;
+  }).join('');
+
+  // Amendments
+  const amends=psa.amendments||[];
+  $('psa-amendments-list').innerHTML=amends.length===0
+    ?'<div class="empty" style="padding:20px 10px"><i class="ti ti-file-check" style="font-size:24px;margin-bottom:6px"></i><div style="font-size:12px">No amendments logged — click "+ Log Amendment" if the PSA has been amended</div></div>'
+    :amends.map((a,i)=>{
+      const changes=a.changes||{};
+      const hasChanges=Object.keys(changes).length>0;
+      return`<div class="psa-amend-card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><span style="font-weight:700;font-size:12.5px">Amendment ${i+1}</span> &nbsp;<span style="color:var(--g5);font-size:11.5px">${a.date||''}</span></div>
+          <button class="btn-xs btn" style="color:var(--red)" onclick="deletePSAAmendment(${i})"><i class="ti ti-trash"></i></button>
+        </div>
+        <div style="font-size:12px;color:var(--g6);margin-top:4px">${a.note||''}</div>
+        ${hasChanges?`<div class="psa-cmp">${Object.entries(changes).map(([k,v])=>`
+          <div class="psa-cmp-orig"><div class="psa-clabel">Original ${k}</div><div style="font-size:12px;font-weight:700;color:#92400E">${v.from||'—'}</div></div>
+          <div class="psa-cmp-new"><div class="psa-clabel">Amended ${k}</div><div style="font-size:12px;font-weight:700;color:var(--blue)">${v.to||'—'}</div></div>`).join('')}</div>`:''}
+      </div>`;
+    }).join('');
+}
+
+function show(id,vis){const el=$(id);if(el)el.style.display=vis?'block':'none';}
+
+function handlePSAUpload(input){
+  const file=input.files[0];
+  if(!file)return;
+  input.value='';
+  extractPSA(file);
+}
+
+async function extractPSA(file){
+  let key=localStorage.getItem('rcp_anthropic_key');
+  if(!key){
+    window._pendingPSAFile=file;
+    om('mo-apikey');
+    return;
+  }
+  await runPSAExtraction(file,key);
+}
+
+async function runPSAExtraction(file,key){
+  const statusEl=$('psa-status-msg');
+  const statusTxt=$('psa-status-text');
+  if(statusEl){statusEl.style.display='flex';statusEl.style.background='var(--blue-light)';statusEl.style.borderColor='var(--blue-mid)';statusEl.style.color='var(--blue)';}
+  if(statusTxt)statusTxt.innerHTML='<span class="spin"><i class="ti ti-loader"></i></span> &nbsp;Reading PDF...';
+
+  let base64;
+  try{
+    base64=await new Promise((res,rej)=>{
+      const r=new FileReader();
+      r.onload=e=>res(e.target.result.split(',')[1]);
+      r.onerror=rej;
+      r.readAsDataURL(file);
+    });
+  }catch(e){showErr('Could not read PDF file.');return;}
+
+  if(statusTxt)statusTxt.innerHTML='<span class="spin"><i class="ti ti-loader"></i></span> &nbsp;Claude AI is extracting PSA data...';
+
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-beta':'pdfs-2024-09-25',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-opus-4-5',
+        max_tokens:1024,
+        messages:[{
+          role:'user',
+          content:[
+            {type:'document',source:{type:'base64',media_type:'application/pdf',data:base64}},
+            {type:'text',text:`Extract data from this Purchase and Sale Agreement (PSA) for a commercial real estate deal. Return ONLY a valid JSON object with no markdown or explanation:
+
+{
+  "executionDate": "YYYY-MM-DD or empty string",
+  "purchasePrice": 0,
+  "emd": 0,
+  "feasibilityDays": 120,
+  "permittingDays": 120,
+  "extensionDays": 30,
+  "closingDate": "YYYY-MM-DD or empty string",
+  "sections": {
+    "executionDate": "Section X.X or empty",
+    "purchasePrice": "Section X.X or empty",
+    "emd": "Section X.X or empty",
+    "feasibilityDays": "Section X.X or empty",
+    "permittingDays": "Section X.X or empty",
+    "extensionDays": "Section X.X or empty",
+    "closingDate": "Section X.X or empty"
+  }
+}
+
+Rules: dates in YYYY-MM-DD. Periods in days (convert months × 30). Feasibility = due diligence period. If a field is missing use 0 or empty string, not null. Return ONLY the JSON.`}
+          ]
+        }]
+      })
+    });
+
+    if(!resp.ok){
+      const err=await resp.json().catch(()=>({}));
+      if(resp.status===401){localStorage.removeItem('rcp_anthropic_key');showErr('Invalid API key. Please re-enter your Anthropic key.');}
+      else showErr((err.error&&err.error.message)||`API error ${resp.status}`);
+      return;
+    }
+
+    const data=await resp.json();
+    let txt=(data.content&&data.content[0]&&data.content[0].text||'').trim();
+    let extracted;
+    try{
+      const m=txt.match(/\{[\s\S]*\}/);
+      extracted=JSON.parse(m?m[0]:txt);
+    }catch(e){showErr('Could not parse AI response. Try uploading again.');return;}
+
+    if(!S.p.psa)S.p.psa={};
+    Object.assign(S.p.psa,extracted,{uploaded:true,extractedAt:new Date().toISOString()});
+    if(!S.p.psa.amendments)S.p.psa.amendments=[];
+    rAll();
+    if(statusEl){statusEl.style.background='var(--green-light)';statusEl.style.borderColor='var(--green-mid)';statusEl.style.color='var(--green)';}
+    if(statusTxt)statusTxt.innerHTML='<i class="ti ti-check"></i> &nbsp;PSA data extracted successfully — review below';
+    show('psa-data-section',true);
+    showSaveToast('PSA data extracted from PDF ✓');
+
+  }catch(e){showErr('Network error: '+e.message);}
+
+  function showErr(msg){
+    if(statusEl){statusEl.style.background='var(--red-light)';statusEl.style.borderColor='var(--red-mid)';statusEl.style.color='var(--red)';}
+    if(statusTxt)statusTxt.innerHTML=`<i class="ti ti-alert-circle"></i> &nbsp;${msg}`;
+  }
+}
+
+function saveAPIKey(){
+  const k=($('apikey-input').value||'').trim();
+  if(!k){alert('Please enter your Anthropic API key.');return;}
+  localStorage.setItem('rcp_anthropic_key',k);
+  cm('mo-apikey');
+  if(window._pendingPSAFile){runPSAExtraction(window._pendingPSAFile,k);window._pendingPSAFile=null;}
+}
+
+function editPSAFields(){
+  const psa=S.p&&S.p.psa||{};
+  const sec=psa.sections||{};
+  show('psa-data-section',false);show('psa-edit-section',true);
+  const g=id=>$(id);
+  if(g('pe-exec'))g('pe-exec').value=psa.executionDate||'';
+  if(g('pe-price'))g('pe-price').value=psa.purchasePrice||'';
+  if(g('pe-emd'))g('pe-emd').value=psa.emd||'';
+  if(g('pe-feas'))g('pe-feas').value=psa.feasibilityDays||120;
+  if(g('pe-perm'))g('pe-perm').value=psa.permittingDays||120;
+  if(g('pe-ext'))g('pe-ext').value=psa.extensionDays||30;
+  if(g('pe-close'))g('pe-close').value=psa.closingDate||'';
+  if(g('pe-s-exec'))g('pe-s-exec').value=sec.executionDate||'';
+  if(g('pe-s-price'))g('pe-s-price').value=sec.purchasePrice||'';
+  if(g('pe-s-emd'))g('pe-s-emd').value=sec.emd||'';
+  if(g('pe-s-feas'))g('pe-s-feas').value=sec.feasibilityDays||'';
+  if(g('pe-s-perm'))g('pe-s-perm').value=sec.permittingDays||'';
+  if(g('pe-s-ext'))g('pe-s-ext').value=sec.extensionDays||'';
+  if(g('pe-s-close'))g('pe-s-close').value=sec.closingDate||'';
+}
+
+function cancelPSAEdit(){
+  show('psa-edit-section',false);
+  show('psa-data-section',!!(S.p&&S.p.psa&&(S.p.psa.executionDate||S.p.psa.purchasePrice)));
+}
+
+function savePSAFields(){
+  if(!S.p)return;
+  if(!S.p.psa)S.p.psa={amendments:[]};
+  const g=id=>$(id)&&$(id).value;
+  Object.assign(S.p.psa,{
+    executionDate:g('pe-exec')||'',
+    purchasePrice:+g('pe-price')||0,
+    emd:+g('pe-emd')||0,
+    feasibilityDays:+g('pe-feas')||120,
+    permittingDays:+g('pe-perm')||120,
+    extensionDays:+g('pe-ext')||30,
+    closingDate:g('pe-close')||'',
+    sections:{
+      executionDate:g('pe-s-exec')||'',
+      purchasePrice:g('pe-s-price')||'',
+      emd:g('pe-s-emd')||'',
+      feasibilityDays:g('pe-s-feas')||'',
+      permittingDays:g('pe-s-perm')||'',
+      extensionDays:g('pe-s-ext')||'',
+      closingDate:g('pe-s-close')||''
+    }
+  });
+  show('psa-edit-section',false);
+  rAll();
+  showSaveToast('PSA fields saved ✓');
+}
+
+function savePSAAmendment(){
+  if(!S.p||!S.p.psa)return;
+  const g=id=>$(id)&&$(id).value;
+  const psa=S.p.psa;
+  const orig=psaMilestones(psa);
+  const changes={};
+  const fmtD=s=>s?psaFmtDate(s):'';
+
+  const nFeas=g('amend-feas');const nPerm=g('amend-perm');
+  const nExt=g('amend-ext');const nClose=g('amend-close');
+  const nPrice=+g('amend-price')||0;const nEmd=+g('amend-emd')||0;
+
+  if(nFeas){changes['Feasibility End']={from:fmtD(orig[1].date),to:fmtD(nFeas)};}
+  if(nPerm){changes['Permitting End']={from:fmtD(orig[2].date),to:fmtD(nPerm)};}
+  if(nExt){changes['Extension End']={from:fmtD(orig[3].date),to:fmtD(nExt)};}
+  if(nClose){changes['Closing Date']={from:fmtD(orig[4].date),to:fmtD(nClose)};}
+  if(nPrice>0){changes['Purchase Price']={from:'$'+Number(psa.purchasePrice).toLocaleString(),to:'$'+nPrice.toLocaleString()};}
+  if(nEmd>0){changes['EMD']={from:'$'+Number(psa.emd).toLocaleString(),to:'$'+nEmd.toLocaleString()};}
+
+  // Apply the changes to the live PSA data
+  if(nFeas){const diff=psaDaysUntil(nFeas)-psaDaysUntil(orig[1].date)||(+new Date(nFeas+'T00:00:00')-+new Date((orig[1].date||nFeas)+'T00:00:00'))/86400000;psa.feasibilityDays=(+psa.feasibilityDays||120)+Math.round(diff);}
+  if(nPerm){const execEnd=psaAddDays(psa.executionDate||'',psa.feasibilityDays||120);psa.permittingDays=Math.round((+new Date(nPerm+'T00:00:00')-+new Date((execEnd||nPerm)+'T00:00:00'))/86400000)||+psa.permittingDays||120;}
+  if(nExt){const permEnd=psaAddDays(psaAddDays(psa.executionDate||'',psa.feasibilityDays||120),psa.permittingDays||120);psa.extensionDays=Math.round((+new Date(nExt+'T00:00:00')-+new Date((permEnd||nExt)+'T00:00:00'))/86400000)||+psa.extensionDays||30;}
+  if(nClose)psa.closingDate=nClose;
+  if(nPrice>0)psa.purchasePrice=nPrice;
+  if(nEmd>0)psa.emd=nEmd;
+
+  if(!psa.amendments)psa.amendments=[];
+  psa.amendments.push({id:uid(),date:g('amend-date')||new Date().toISOString().split('T')[0],note:g('amend-note')||'',changes});
+
+  cm('mo-psa-amend');
+  rAll();
+  showSaveToast('Amendment logged ✓');
+}
+
+function deletePSAAmendment(idx){
+  if(!S.p||!S.p.psa||!S.p.psa.amendments)return;
+  if(!confirm('Remove this amendment from the log?'))return;
+  S.p.psa.amendments.splice(idx,1);
+  rAll();
+}
+// ── End PSA Timeline ──────────────────────────────────────────────────────
 </script>
 </body>
 </html>
