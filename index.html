@@ -1,0 +1,2149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RCP NNN Deal Tracker — Red Cedar Partners</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1C2B3A;--navy2:#243447;--navy3:#2D3F52;
+  --blue:#2A6FBF;--blue2:#1A4F8A;--blue-light:#EBF3FC;--blue-mid:#BFDBFE;
+  --green:#2E7D32;--green-light:#E8F5E9;--green-mid:#86EFAC;
+  --amber:#B45309;--amber-light:#FEF3C7;--amber-mid:#FCD34D;
+  --red:#B91C1C;--red-light:#FEE2E2;--red-mid:#FCA5A5;
+  --purple:#6D28D9;--purple-light:#EDE9FE;
+  --g1:#F8FAFC;--g2:#F1F5F9;--g3:#E2E8F0;--g4:#94A3B8;--g5:#64748B;--g6:#334155;--g7:#1E293B;
+  --white:#FFF;
+  --r:8px;--rsm:5px;--sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+body{font-family:var(--font);background:var(--g1);font-size:13px;color:var(--g7);height:100vh;overflow:hidden}
+.app{display:flex;height:100vh}
+.sb{width:220px;min-width:220px;background:var(--navy);display:flex;flex-direction:column;overflow:hidden}
+.sb-brand{padding:16px 14px 12px;border-bottom:1px solid var(--navy3)}
+.sb-logo{font-size:14px;font-weight:700;color:#fff}
+.sb-sub{font-size:9px;color:#5C7A94;margin-top:2px;letter-spacing:.06em;text-transform:uppercase}
+.sb-proj{padding:10px 12px;border-bottom:1px solid var(--navy3)}
+.sb-proj select{width:100%;font-size:11px;padding:5px 7px;border-radius:var(--rsm);background:var(--navy3);border:none;color:#CBD5E1;cursor:pointer}
+.sb-new{display:flex;align-items:center;justify-content:center;gap:4px;margin-top:6px;font-size:11px;padding:5px;border-radius:var(--rsm);border:1px dashed #3D5A73;background:none;color:#5C7A94;cursor:pointer;width:100%}
+.sb-new:hover{background:var(--navy3);color:#CBD5E1}
+.nav{flex:1;overflow-y:auto;padding:6px 0}
+.nav::-webkit-scrollbar{width:3px}.nav::-webkit-scrollbar-thumb{background:#3D5A73;border-radius:3px}
+.nsec{font-size:9px;color:#3D5A73;padding:10px 14px 3px;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+.ni{display:flex;align-items:center;gap:8px;padding:7px 14px;font-size:12px;color:#6B8BA4;cursor:pointer;border:none;background:none;width:100%;text-align:left;border-left:2px solid transparent;transition:all .12s}
+.ni:hover{background:var(--navy3);color:#CBD5E1}
+.ni.on{color:#fff;background:rgba(42,111,191,.2);border-left-color:var(--blue)}
+.ni i{font-size:14px;width:16px;text-align:center;flex-shrink:0}
+.nbadge{margin-left:auto;font-size:9px;padding:1px 6px;border-radius:8px;font-weight:600}
+.nbr{background:#7F1D1D;color:#FCA5A5}.nba{background:#78350F;color:#FCD34D}.nbg{background:#14532D;color:#86EFAC}
+.sb-foot{padding:10px 14px;border-top:1px solid var(--navy3)}
+.phase-bar{height:4px;border-radius:2px;background:var(--navy3);overflow:hidden;margin-top:5px}
+.phase-fill{height:100%;border-radius:2px;background:var(--blue);transition:width .4s}
+.phase-txt{font-size:9px;color:#5C7A94;margin-bottom:2px;display:flex;justify-content:space-between}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:var(--white);border-bottom:1px solid var(--g3);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0;box-shadow:var(--sh)}
+.tb-name{font-size:15px;font-weight:700;color:var(--g7)}
+.tb-sub{font-size:11px;color:var(--g5);margin-top:1px}
+.tb-pills{display:flex;gap:5px;flex-wrap:wrap}
+.pill{font-size:10px;padding:3px 10px;border-radius:20px;font-weight:600;white-space:nowrap}
+.pill-g{background:var(--green-light);color:var(--green)}.pill-b{background:var(--blue-light);color:var(--blue)}
+.pill-p{background:var(--g2);color:var(--g5)}.pill-w{background:var(--amber-light);color:var(--amber)}.pill-r{background:var(--red-light);color:var(--red)}
+.content{flex:1;overflow-y:auto;padding:18px 20px;background:var(--g1)}
+.content::-webkit-scrollbar{width:5px}.content::-webkit-scrollbar-thumb{background:var(--g3);border-radius:3px}
+.page{display:none}.page.on{display:block}
+.card{background:var(--white);border:1px solid var(--g3);border-radius:var(--r);padding:16px;margin-bottom:14px;box-shadow:var(--sh)}
+.chdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}
+.ctitle{font-size:13px;font-weight:600;color:var(--g7);display:flex;align-items:center;gap:7px}
+.ctitle i{color:var(--blue);font-size:15px}
+.g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g23{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.mc{background:var(--white);border:1px solid var(--g3);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh)}
+.mc .l{font-size:9px;color:var(--g5);font-weight:600;letter-spacing:.04em;margin-bottom:6px;text-transform:uppercase}
+.mc .v{font-size:22px;font-weight:700;color:var(--g7);letter-spacing:-.02em;line-height:1}
+.mc .s{font-size:11px;color:var(--g4);margin-top:3px}
+.mc-warn{border-color:#F59E0B;background:#FFFBEB}.mc-danger{border-color:var(--red);background:#FFF5F5}.mc-good{border-color:#22C55E;background:#F0FDF4}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;font-weight:600;color:var(--g5);padding:6px 10px;border-bottom:1px solid var(--g3);font-size:10px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;background:var(--g1)}
+td{padding:8px 10px;border-bottom:1px solid var(--g3);color:var(--g7);vertical-align:middle}
+td.r{text-align:right;font-variant-numeric:tabular-nums}
+th.r{text-align:right}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--g1)}
+.tr-tot td{background:var(--blue-light);font-weight:700;color:var(--blue2);border-top:2px solid var(--g3)}
+.tr-g td{background:var(--green-light);font-weight:600;color:var(--green)}
+.tr-r td{background:var(--red-light);font-weight:600;color:var(--red)}
+.sec-div{padding:5px 10px;background:var(--g2);font-size:10px;font-weight:700;color:var(--g5);text-transform:uppercase;letter-spacing:.05em;border-top:1px solid var(--g3);border-bottom:1px solid var(--g3)}
+.st{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600;display:inline-block;white-space:nowrap}
+.st-g{background:var(--green-light);color:var(--green)}.st-a{background:var(--amber-light);color:var(--amber)}
+.st-r{background:var(--red-light);color:var(--red)}.st-b{background:var(--blue-light);color:var(--blue)}
+.st-p{background:var(--purple-light);color:var(--purple)}.st-gray{background:var(--g2);color:var(--g5)}
+.pb{background:var(--g2);border-radius:3px;height:5px;overflow:hidden}
+.pbf{height:100%;border-radius:3px;transition:width .3s}
+.alert{border-radius:var(--rsm);padding:10px 14px;margin-bottom:12px;display:flex;align-items:flex-start;gap:9px;font-size:12px;line-height:1.5}
+.alert i{font-size:16px;flex-shrink:0;margin-top:1px}
+.al-r{background:var(--red-light);color:var(--red);border:1px solid var(--red-mid)}
+.al-a{background:var(--amber-light);color:var(--amber);border:1px solid var(--amber-mid)}
+.al-b{background:var(--blue-light);color:var(--blue);border:1px solid var(--blue-mid)}
+.al-g{background:var(--green-light);color:var(--green);border:1px solid var(--green-mid)}
+.spread-box{border-radius:var(--r);padding:14px 20px;margin-bottom:14px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.sn{font-size:40px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.sl{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-top:3px}
+.irow{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--g3);font-size:12px}
+.irow:last-child{border-bottom:none}
+.ik{color:var(--g5)}.iv{font-weight:600;color:var(--g7)}
+.btn{display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:6px 12px;border-radius:var(--rsm);border:1px solid var(--g3);background:var(--white);color:var(--g7);cursor:pointer;font-family:var(--font);font-weight:500;transition:all .12s}
+.btn:hover{background:var(--g2)}.btn-p{background:var(--blue);color:#fff;border-color:var(--blue)}.btn-p:hover{background:var(--blue2)}
+.btn-d{background:var(--red-light);color:var(--red);border-color:var(--red-mid)}.btn-d:hover{background:#FEE2E2}
+.btn-sm{font-size:11px;padding:4px 10px}.btn-xs{font-size:10px;padding:2px 7px}
+.inp{background:var(--white);border:1px solid var(--g3);border-radius:var(--rsm);padding:7px 10px;font-size:12px;color:var(--g7);font-family:var(--font);width:100%}
+.inp:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(42,111,191,.12)}
+.inp-y{background:rgba(255,251,235,.7);border:1px solid #FCD34D;border-radius:4px;padding:3px 7px;font-size:11px;color:var(--g7);text-align:right;width:100%;min-width:80px}
+.inp-y:focus{outline:none;border-color:#F59E0B}
+.sel{background:var(--white);border:1px solid var(--g3);border-radius:var(--rsm);padding:7px 10px;font-size:12px;color:var(--g7);font-family:var(--font);width:100%}
+.sel:focus{outline:none;border-color:var(--blue)}
+.fl{font-size:11px;color:var(--g5);font-weight:500;margin-bottom:4px}
+.fr{margin-bottom:10px}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.ov{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;z-index:999;backdrop-filter:blur(3px)}
+.modal{background:var(--white);border-radius:var(--r);padding:20px;width:480px;max-width:96vw;max-height:88vh;overflow-y:auto;box-shadow:0 25px 60px rgba(0,0,0,.25)}
+.modal-lg{width:580px}
+.mtitle{font-size:14px;font-weight:700;color:var(--g7);margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--g3)}
+.mfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--g3)}
+.lcard{background:var(--g1);border:1px solid var(--g3);border-radius:var(--r);padding:14px;margin-bottom:10px}
+.lcard-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.pbox{border-radius:var(--r);padding:20px 24px;margin-top:14px}
+.pbox-g{background:var(--green-light);border:1px solid var(--green-mid)}.pbox-r{background:var(--red-light);border:1px solid var(--red-mid)}
+.slider-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.slider-row label{font-size:11px;color:var(--g5);width:140px;flex-shrink:0}
+.slider-row input[type=range]{flex:1;accent-color:var(--blue)}
+.slider-row span{font-size:13px;font-weight:700;min-width:55px;text-align:right}
+.empty{text-align:center;padding:40px 20px;color:var(--g4)}
+.empty i{font-size:32px;display:block;margin-bottom:10px}
+
+/* ── UI Enhancement v2 ──────────────────────────── */
+body{font-size:14px}
+.card{padding:20px;border-radius:10px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.06),0 4px 20px rgba(0,0,0,.04)}
+.chdr{margin-bottom:16px}.ctitle{font-size:13.5px}
+.mc{padding:16px 18px;border-radius:9px}.mc .v{font-size:23px}
+.btn{padding:7px 14px;font-size:12px;border-radius:6px;transition:all .12s}
+.btn-p{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn-p:hover{background:var(--blue2) !important;box-shadow:0 3px 10px rgba(42,111,191,.3)}
+.btn:hover{box-shadow:0 2px 6px rgba(0,0,0,.09)}
+.btn:disabled{opacity:.45;cursor:not-allowed;pointer-events:none}
+.inp{padding:8px 12px;font-size:12.5px;border-radius:6px;transition:border-color .12s,box-shadow .12s}
+.inp:focus{box-shadow:0 0 0 3px rgba(42,111,191,.13)}
+.sel{padding:8px 12px;font-size:12.5px;border-radius:6px}
+.fl{font-size:12px}.fr{margin-bottom:12px}
+.content{padding:22px 26px}
+.topbar{padding:11px 24px}
+.tb-name{font-size:16px;font-weight:700}
+.sb{width:240px;min-width:240px}
+.sb-brand{padding:18px 16px 14px}
+.sb-logo{font-size:14.5px}
+.ni{padding:8px 16px;font-size:12px;border-left:2px solid transparent;border-radius:0 5px 5px 0;margin:1px 0 1px 0;width:100%}
+.ni.on{background:rgba(42,111,191,.2);border-left-color:var(--blue);color:#fff}
+.nsec{font-size:9.5px;padding:12px 16px 3px}
+th{font-size:11px;padding:7px 10px}
+td{padding:9px 10px}
+.g4{gap:12px;margin-bottom:16px}
+.g3{gap:12px;margin-bottom:14px}
+.alert{border-radius:7px;padding:11px 15px;font-size:12.5px}
+.sb-new{font-size:11.5px;padding:7px 10px;margin-bottom:7px;border-radius:6px;font-weight:600;background:rgba(42,111,191,.18);border:1px dashed rgba(42,111,191,.5);color:#93C5FD;transition:all .15s}
+.sb-new:hover{background:rgba(42,111,191,.35);color:#fff;border-color:var(--blue)}
+.sb-proj select{font-size:11.5px;padding:6px 8px;background:var(--navy3);border:1px solid rgba(255,255,255,.08)}
+.spread-box{border-radius:10px;padding:16px 22px}
+.sn{font-size:38px}
+.modal{border-radius:12px;padding:24px}
+.mtitle{font-size:15px;margin-bottom:16px;padding-bottom:14px}
+.pbox{border-radius:9px}
+#topbar-undo:not(:disabled){opacity:1}
+@media(max-width:900px){
+  .tb-pills{display:none}
+  .topbar{flex-wrap:wrap;gap:6px}
+  .tb-name{font-size:14px}
+}
+@media(max-width:700px){
+  body{height:auto;overflow:auto}
+  .app{flex-direction:column;height:auto;min-height:100vh}
+  .sb{width:100%;min-width:unset;flex-direction:column;height:auto}
+  .sb-brand{padding:12px 14px;border-bottom:1px solid var(--navy3)}
+  .sb-proj{padding:6px 10px}
+  .sb-foot{display:none}
+  .nav{flex-direction:row;overflow-x:auto;padding:3px;flex-wrap:nowrap}
+  .ni{padding:6px 10px;font-size:10.5px;white-space:nowrap;border-left:none;border-bottom:2px solid transparent;border-radius:4px;margin:2px 1px;width:auto;flex-shrink:0}
+  .ni.on{border-left:none;border-bottom-color:var(--blue);background:rgba(42,111,191,.15)}
+  .nsec{display:none}
+  .main{overflow:auto;flex:1}
+  .content{padding:12px;overflow:visible}
+  .g4{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:1fr 1fr}
+  .g2{grid-template-columns:1fr}
+  .topbar{padding:8px 12px;gap:4px}
+  .tb-sub{display:none}
+  .btn-sm{font-size:11px;padding:5px 8px}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== MODALS ===== -->
+<div id="mo-proj" class="ov" style="display:none">
+<div class="modal modal-lg">
+  <div class="mtitle">➕ New Project Setup</div>
+  <div class="fg2">
+    <div class="fr"><div class="fl">Project Name *</div><input class="inp" id="np-name" placeholder="e.g. Chicago IL — 7-Eleven Clark St"></div>
+    <div class="fr"><div class="fl">Tenant *</div>
+      <select class="sel" id="np-tenant"><option value="">Select tenant...</option><option>7-Eleven</option><option>Speedway</option><option>Panera Bread</option><option>ALDI</option><option>Dollar General</option><option>Bright Path Kids</option><option>Other National</option><option>Custom</option></select>
+    </div>
+    <div class="fr"><div class="fl">Street Address</div><input class="inp" id="np-addr" placeholder="123 Main Street"></div>
+    <div class="fr"><div class="fl">City</div><input class="inp" id="np-city" placeholder="City"></div>
+    <div class="fr"><div class="fl">State</div>
+      <select class="sel" id="np-state"><option>IL</option><option>OH</option><option>IN</option><option>MI</option><option>AR</option><option>CT</option><option>WI</option><option>MN</option><option>Other</option></select>
+    </div>
+    <div class="fr"><div class="fl">Building SF</div><input class="inp" id="np-sf" type="number" placeholder="e.g. 3500"></div>
+    <div class="fr"><div class="fl">Lot SF</div><input class="inp" id="np-lotsf" type="number" placeholder="e.g. 50000"></div>
+    <div class="fr"><div class="fl">Intersection</div><input class="inp" id="np-int" placeholder="e.g. Main St & Oak Ave"></div>
+    <div class="fr"><div class="fl">Annual Rent / NOI — Year 1 ($)</div><input class="inp" id="np-noi" type="number" placeholder="Annual NOI Year 1 ($)"></div>
+    <div class="fr"><div class="fl">Rent Escalation (%)</div><input class="inp" id="np-esc" type="number" step="0.5" placeholder="7.5"></div>
+    <div class="fr"><div class="fl">Escalation Period (years)</div><input class="inp" id="np-escy" type="number" placeholder="5"></div>
+    <div class="fr"><div class="fl">Primary Lease Term (years)</div><input class="inp" id="np-term" type="number" placeholder="20"></div>
+    <div class="fr"><div class="fl">Number of Option Periods</div><input class="inp" id="np-opts" type="number" placeholder="3"></div>
+    <div class="fr"><div class="fl">Years per Option</div><input class="inp" id="np-optsyrs" type="number" placeholder="5"></div>
+    <div class="fr"><div class="fl">OZ Zone?</div>
+      <select class="sel" id="np-oz"><option value="0">No</option><option value="1">Yes — Opportunity Zone</option></select>
+    </div>
+  </div>
+  <div class="mfoot"><button class="btn" onclick="cm('mo-proj')">Cancel</button><button class="btn btn-p" onclick="createProj()">✓ Create Project</button></div>
+</div></div>
+
+<div id="mo-lender" class="ov" style="display:none">
+<div class="modal">
+  <div class="mtitle">💰 Add Capital Provider</div>
+  <div class="fr"><div class="fl">Institution / Name *</div><input class="inp" id="ml-name" placeholder="e.g. Stablewood, NASB, Eric Johnston, Alliance USA..."></div>
+  <div class="fg2">
+    <div class="fr"><div class="fl">Role / Type</div>
+      <select class="sel" id="ml-role">
+        <option>Construction Lender (1st)</option><option>Pre-Close Equity Investor</option>
+        <option>Mezzanine / Bridge</option><option>Preferred Equity (2nd)</option>
+        <option>Co-Lender</option><option>Sponsor Equity</option><option>Other</option>
+      </select>
+    </div>
+    <div class="fr"><div class="fl">Total Committed ($)</div><input class="inp" id="ml-amt" type="number" placeholder="8000000"></div>
+    <div class="fr"><div class="fl">Annual Interest Rate (%)</div><input class="inp" id="ml-rate" type="number" step="0.1" placeholder="10.5"></div>
+    <div class="fr"><div class="fl">Origination / Points (%)</div><input class="inp" id="ml-orig" type="number" step="0.1" placeholder="1.33"></div>
+    <div class="fr"><div class="fl">Funded at Close ($)</div><input class="inp" id="ml-close" type="number" placeholder="2193739"></div>
+    <div class="fr"><div class="fl">Holdback / Reserve ($)</div><input class="inp" id="ml-hold" type="number" placeholder="5931224"></div>
+    <div class="fr"><div class="fl">Pref Return % (equity only)</div><input class="inp" id="ml-pref" type="number" step="0.5" placeholder="25"></div>
+    <div class="fr"><div class="fl">Loan Term (months)</div><input class="inp" id="ml-term" type="number" placeholder="18"></div>
+    <div class="fr"><div class="fl">Exit / Payoff Fee (%)</div><input class="inp" id="ml-exit" type="number" step="0.1" placeholder="1.0"></div>
+  </div>
+  <div class="fr"><div class="fl">Notes / Special Terms</div><input class="inp" id="ml-notes" placeholder="Any terms, conditions, covenants..."></div>
+  <div class="mfoot"><button class="btn" onclick="cm('mo-lender')">Cancel</button><button class="btn btn-p" onclick="addLender()">✓ Add Provider</button></div>
+</div></div>
+
+<div id="mo-lender-edit" class="ov" style="display:none">
+<div class="modal">
+  <div class="mtitle">✏️ Edit Capital Provider</div>
+  <input type="hidden" id="mle-id">
+  <div class="fr"><div class="fl">Institution / Name</div><input class="inp" id="mle-name"></div>
+  <div class="fg2">
+    <div class="fr"><div class="fl">Role / Type</div>
+      <select class="sel" id="mle-role">
+        <option>Construction Lender (1st)</option><option>Pre-Close Equity Investor</option>
+        <option>Mezzanine / Bridge</option><option>Preferred Equity (2nd)</option>
+        <option>Co-Lender</option><option>Sponsor Equity</option><option>Other</option>
+      </select>
+    </div>
+    <div class="fr"><div class="fl">Total Committed ($)</div><input class="inp" id="mle-amt" type="number"></div>
+    <div class="fr"><div class="fl">Annual Interest Rate (%)</div><input class="inp" id="mle-rate" type="number" step="0.1"></div>
+    <div class="fr"><div class="fl">Origination / Points (%)</div><input class="inp" id="mle-orig" type="number" step="0.1"></div>
+    <div class="fr"><div class="fl">Funded at Close ($)</div><input class="inp" id="mle-close" type="number"></div>
+    <div class="fr"><div class="fl">Holdback / Reserve ($)</div><input class="inp" id="mle-hold" type="number"></div>
+    <div class="fr"><div class="fl">Pref Return % (equity only)</div><input class="inp" id="mle-pref" type="number" step="0.5"></div>
+    <div class="fr"><div class="fl">Loan Term (months)</div><input class="inp" id="mle-term" type="number"></div>
+    <div class="fr"><div class="fl">Exit / Payoff Fee (%)</div><input class="inp" id="mle-exit" type="number" step="0.1"></div>
+  </div>
+  <div class="fr"><div class="fl">Notes / Special Terms</div><input class="inp" id="mle-notes"></div>
+  <div class="mfoot"><button class="btn" onclick="cm('mo-lender-edit')">Cancel</button><button class="btn btn-p" onclick="saveLenderEdit()">✓ Save Changes</button></div>
+</div></div>
+
+<div id="mo-draw" class="ov" style="display:none">
+<div class="modal">
+  <div class="mtitle">🏗️ Submit Construction Draw</div>
+  <div class="fg2">
+    <div class="fr"><div class="fl">Draw Month</div><input class="inp" id="dr-mo" placeholder="June 2026"></div>
+    <div class="fr"><div class="fl">Lender Funding This Draw</div><input class="inp" id="dr-lend" placeholder="Stablewood / NASB..."></div>
+    <div class="fr"><div class="fl">Contractor / Vendor</div><input class="inp" id="dr-vend" placeholder="RSD Construction LLC"></div>
+    <div class="fr"><div class="fl">Description</div><input class="inp" id="dr-desc" placeholder="Foundation, Framing, MEP..."></div>
+    <div class="fr"><div class="fl">Hard Costs ($)</div><input class="inp" id="dr-hard" type="number" placeholder="0"></div>
+    <div class="fr"><div class="fl">Soft Costs ($)</div><input class="inp" id="dr-soft" type="number" placeholder="0"></div>
+    <div class="fr"><div class="fl">Interest ($)</div><input class="inp" id="dr-int" type="number" placeholder="0"></div>
+    <div class="fr"><div class="fl">Dev Fee ($)</div><input class="inp" id="dr-dev" type="number" placeholder="0"></div>
+    <div class="fr"><div class="fl">Other ($)</div><input class="inp" id="dr-oth" type="number" placeholder="0"></div>
+  </div>
+  <div class="mfoot"><button class="btn" onclick="cm('mo-draw')">Cancel</button><button class="btn btn-p" onclick="submitDraw()">✓ Submit Draw</button></div>
+</div></div>
+
+<div id="mo-cor" class="ov" style="display:none">
+<div class="modal">
+  <div class="mtitle">⚠️ Log Change Order (COR)</div>
+  <div class="fr"><div class="fl">Description *</div><input class="inp" id="cor-desc" placeholder="Unexpected soil remediation — rock layer discovered"></div>
+  <div class="fg2">
+    <div class="fr"><div class="fl">Amount ($) *</div><input class="inp" id="cor-amt" type="number" placeholder="25000"></div>
+    <div class="fr"><div class="fl">Requested By</div><input class="inp" id="cor-by" placeholder="GC / Owner / City / Tenant"></div>
+    <div class="fr"><div class="fl">Cost Category</div>
+      <select class="sel" id="cor-cat"><option>Hard Costs</option><option>Soft Costs</option><option>Feasibility</option><option>Other</option></select>
+    </div>
+    <div class="fr"><div class="fl">Funded From</div>
+      <select class="sel" id="cor-fund">
+        <option value="cont">Contingency Budget</option>
+        <option value="owner">Additional Owner Equity</option>
+        <option value="lender">Lender (Change Order)</option>
+        <option value="tenant">Tenant Direct</option>
+      </select>
+    </div>
+  </div>
+  <div class="mfoot"><button class="btn" onclick="cm('mo-cor')">Cancel</button><button class="btn btn-p" onclick="submitCOR()">✓ Log COR</button></div>
+</div></div>
+
+<div id="mo-exp" class="ov" style="display:none">
+<div class="modal">
+  <div class="mtitle">🧾 Log Expense</div>
+  <div class="fg2">
+    <div class="fr"><div class="fl">Date</div><input class="inp" id="ex-dt" placeholder="May 15, 2026"></div>
+    <div class="fr"><div class="fl">Payee / Vendor</div><input class="inp" id="ex-pay" placeholder="CESO Engineering"></div>
+    <div class="fr"><div class="fl">Category</div><input class="inp" id="ex-cat" placeholder="Geotech / Legal / Environmental..."></div>
+    <div class="fr"><div class="fl">Amount ($)</div><input class="inp" id="ex-amt" type="number" placeholder="5000"></div>
+    <div class="fr"><div class="fl">Paid By</div><input class="inp" id="ex-by" placeholder="Project LLC / Eric / Sponsor"></div>
+    <div class="fr"><div class="fl">Budget Line</div><input class="inp" id="ex-line" placeholder="Geotech / Entitlements / Legal"></div>
+    <div class="fr"><div class="fl">Phase</div>
+      <select class="sel" id="ex-phase"><option>Pre-LOI</option><option>Due Diligence</option><option>Entitlements</option><option>Pre-Close</option><option>Construction</option><option>Post-Close</option></select>
+    </div>
+    <div class="fr"><div class="fl">Reimbursed at Close?</div>
+      <select class="sel" id="ex-reimb"><option value="no">No</option><option value="yes">Yes — at Close</option><option value="pending">Pending</option></select>
+    </div>
+  </div>
+  <div class="mfoot"><button class="btn" onclick="cm('mo-exp')">Cancel</button><button class="btn btn-p" onclick="submitExp()">✓ Log Expense</button></div>
+</div></div>
+
+<div id="mo-equity" class="ov" style="display:none">
+<div class="modal">
+  <div class="mtitle">👤 Log Pre-Close Equity Funding</div>
+  <div class="fg2">
+    <div class="fr"><div class="fl">Date</div><input class="inp" id="eq-dt" placeholder="Aug 15, 2025"></div>
+    <div class="fr"><div class="fl">Investor Name</div><input class="inp" id="eq-inv" placeholder="Eric Johnston / E2 CRE"></div>
+    <div class="fr"><div class="fl">Description / Purpose</div><input class="inp" id="eq-desc" placeholder="EMD paid to title / Geotech invoice..."></div>
+    <div class="fr"><div class="fl">Amount Funded ($)</div><input class="inp" id="eq-amt" type="number" placeholder="25000"></div>
+    <div class="fr"><div class="fl">Pref Return Rate (%)</div><input class="inp" id="eq-rate" type="number" step="0.5" placeholder="25"></div>
+    <div class="fr"><div class="fl">Paid Direct to Vendor?</div>
+      <select class="sel" id="eq-direct"><option value="yes">Yes — paid direct to vendor</option><option value="no">No — to project account</option></select>
+    </div>
+  </div>
+  <div class="mfoot"><button class="btn" onclick="cm('mo-equity')">Cancel</button><button class="btn btn-p" onclick="submitEquity()">✓ Log Funding</button></div>
+</div></div>
+
+<!-- ===== APP ===== -->
+<div class="app">
+<div class="sb">
+  <div class="sb-brand" style="padding:10px 12px 8px">
+    <img src="data:image/png;base64,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" alt="Red Cedar Partners" style="width:100%;max-width:180px;border-radius:3px;display:block;margin-bottom:6px">
+    <div class="sb-sub" style="color:#7C9BB5">NNN Development Platform</div>
+  </div>
+  <div class="sb-proj">
+    <button class="sb-new" onclick="om('mo-proj')"><i class="ti ti-plus"></i> New Project</button>
+    <select id="proj-sel" onchange="switchProj(this.value)"></select>
+  </div>
+  <div class="nav">
+    <div class="nsec">Overview</div>
+    <button class="ni on" onclick="go('dash',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
+    <div class="nsec">Deal Setup</div>
+    <button class="ni" onclick="go('proj',this)"><i class="ti ti-settings"></i>Project Info</button>
+    <button class="ni" onclick="go('stack',this)"><i class="ti ti-coin"></i>Capital Stack</button>
+    <button class="ni" onclick="go('budget',this)"><i class="ti ti-table"></i>Pro-Forma Budget</button>
+    <div class="nsec">Execution</div>
+    <button class="ni" onclick="go('dd',this)"><i class="ti ti-search"></i>Due Diligence</button>
+    <button class="ni" onclick="go('entitle',this)"><i class="ti ti-certificate"></i>Entitlements</button>
+    <button class="ni" onclick="go('preclose',this)"><i class="ti ti-users"></i>Pre-Close Equity <span class="nbadge nba" id="nb-eq" style="display:none">0</span></button>
+    <button class="ni" onclick="go('expenses',this)"><i class="ti ti-receipt"></i>Expenses</button>
+    <div class="nsec">Construction</div>
+    <button class="ni" onclick="go('draws',this)"><i class="ti ti-crane"></i>Draws <span class="nbadge nbg" id="nb-dr" style="display:none">0</span></button>
+    <button class="ni" onclick="go('cor',this)"><i class="ti ti-git-merge"></i>Change Orders <span class="nbadge nbr" id="nb-cor" style="display:none">0</span></button>
+    <button class="ni" onclick="go('interest',this)"><i class="ti ti-building-bank"></i>Interest Carry</button>
+    <div class="nsec">Exit</div>
+    <button class="ni" onclick="go('rent',this)"><i class="ti ti-calendar-stats"></i>Rent Schedule</button>
+    <button class="ni" onclick="go('sale',this)"><i class="ti ti-home-dollar"></i>Sale & Exit</button>
+    <button class="ni" onclick="go('pnl',this)"><i class="ti ti-report-analytics"></i>P&L Report</button>
+    <div class="nsec">Pro Forma</div>
+    <button class="ni" onclick="go('proforma',this)"><i class="ti ti-table-options"></i>Deal Pro Forma</button>
+    <div class="nsec">Tracking</div>
+    <button class="ni" onclick="go('monthly',this)"><i class="ti ti-chart-bar"></i>Monthly Tracker</button>
+    <div class="nsec">Analytics</div>
+    
+  </div>
+  <div class="sb-foot">
+    <div class="phase-txt"><span id="phase-lbl">Phase</span><span id="phase-pct">0%</span></div>
+    <div class="phase-bar"><div class="phase-fill" id="phase-fill" style="width:0%"></div></div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="tb-name" id="tb-name">RCP NNN Deal Tracker</div>
+      <div class="tb-sub" id="tb-sub">Select or create a project to begin</div>
+    </div>
+    <div class="tb-pills" id="tb-pills"></div>
+    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+      <span style="font-size:10px;color:var(--g4)" id="save-status">Auto-saving ✓</span>
+      <button class="btn btn-sm" id="topbar-undo" onclick="undoAction()" title="Undo last change — Ctrl+Z" disabled style="opacity:.55"><i class="ti ti-arrow-back-up"></i> Undo</button>
+      <span style="width:1px;height:18px;background:var(--g3);display:inline-block;margin:0 2px;flex-shrink:0"></span>
+      <button class="btn btn-sm" onclick="forceSave()" title="Force sync all data to Supabase cloud now"><i class="ti ti-cloud-upload"></i> Sync</button>
+      <button class="btn btn-sm" onclick="reloadFromCloud()" title="Pull latest from cloud — overwrites unsaved local changes"><i class="ti ti-refresh"></i> Reload</button>
+      <button class="btn btn-sm" style="background:#10B981;color:#fff;border-color:#059669" onclick="exportData()" title="Download a JSON backup of all your projects"><i class="ti ti-download"></i> Export</button>
+      <button class="btn btn-sm" style="background:#8B5CF6;color:#fff;border-color:#7C3AED" onclick="$('import-input').click()" title="Restore data from a JSON backup file — overwrites current data for the whole team"><i class="ti ti-upload"></i> Import</button>
+      <input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(this)">
+      <button class="btn btn-sm btn-d" onclick="confirmReset()" title="⚠️ Delete ALL projects for the entire team — cannot be undone"><i class="ti ti-trash"></i> Reset</button>
+    </div>
+  </div>
+  <div class="content">
+    <div id="page-dash" class="page on">
+      <div id="d-alerts"></div><div id="d-spread"></div>
+      <div class="g4" id="d-metrics"></div>
+      <div class="g2">
+        <div>
+          <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-timeline"></i>Deal Phase</div></div><div id="d-phase"></div></div>
+          <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-chart-bar"></i>Budget by Category</div></div><div id="d-cats"></div></div>
+        </div>
+        <div>
+          <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-coin"></i>Capital Stack</div></div><div id="d-stack"></div></div>
+          <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-alert-circle"></i>Action Items</div></div><div id="d-issues"></div></div>
+        </div>
+      </div>
+    </div>
+    <div id="page-proj" class="page">
+      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-settings"></i>Project Details</div></div><div class="fg2" id="proj-form"></div></div>
+      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-timeline"></i>Current Phase — Click to Update</div></div><div id="proj-phase-btns"></div></div>
+    </div>
+    <div id="page-stack" class="page">
+      <div class="alert al-b"><i class="ti ti-info-circle"></i>Add any number of capital providers — construction lenders, equity investors, mezz, preferred equity. No limit. Each tracks its own rate, origination, holdback, and exit fee.</div>
+      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-coin"></i>Capital Providers</div><button class="btn btn-p btn-sm" onclick="om('mo-lender')"><i class="ti ti-plus"></i>Add Provider</button></div><div id="stack-list"></div></div>
+      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-calculator"></i>Reconciliation — Sources vs Uses</div></div><div id="stack-recon"></div></div>
+    </div>
+    <div id="page-budget" class="page">
+      <div class="alert al-b"><i class="ti ti-info-circle"></i><strong>Yellow cells = editable actuals.</strong> Enter amounts as costs come in. Contingency auto-calculates at 5% hard + 5% soft. Dev Fee at 3% hard+soft. Add lines to match your GC's contract exactly.</div>
+      <div class="g4" id="bud-top"></div>
+      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-table"></i>Pro-Forma — Budget vs Actual vs Variance</div>
+        <div style="display:flex;gap:6px"><button class="btn btn-sm" onclick="addBLine()"><i class="ti ti-plus"></i>Add Line</button><button class="btn btn-sm" onclick="autoCalc()"><i class="ti ti-refresh"></i>Recalc Auto</button></div>
+      </div><div style="overflow-x:auto"><table><thead><tr><th>Cat.</th><th>Description</th><th class="r">Budget ($)</th><th class="r">Actual ($)</th><th class="r">Variance</th><th class="r">%</th><th class="r">$/SF</th><th>Notes</th><th></th></tr></thead><tbody id="bud-body"></tbody><tfoot id="bud-foot"></tfoot></table></div></div>
+    </div>
+    <div id="page-dd" class="page">
+      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-search"></i>Due Diligence Checklist</div><button class="btn btn-sm" onclick="addDD()"><i class="ti ti-plus"></i>Add Item</button></div>
+      <table><thead><tr><th>Item</th><th>Vendor</th><th class="r">Budget</th><th class="r">Actual</th><th>Status</th><th>Due Date</th><th>Completed</th><th>Notes</th><th></th></tr></thead><tbody id="dd-body"></tbody></table></div>
+    </div>
+    <div id="page-entitle" class="page">
+      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-certificate"></i>Entitlements & Permits</div><button class="btn btn-sm" onclick="addEnt()"><i class="ti ti-plus"></i>Add Item</button></div>
+      <table><thead><tr><th>Type / Approval</th><th>Submitted</th><th>Hearing Date</th><th>Approved Date</th><th>Status</th><th>Notes</th><th></th></tr></thead><tbody id="ent-body"></tbody></table></div>
+    </div>
+    <div id="page-preclose" class="page">
+      <div class="alert al-b"><i class="ti ti-info-circle"></i>Track every dollar an equity investor puts in before land closing. At closing, all these amounts get reimbursed from lender proceeds. Preferred return accrues from the funding date.</div>
+      <div class="g3" id="eq-metrics"></div>
+      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-users"></i>Pre-Close Equity Funding Log</div><button class="btn btn-p btn-sm" onclick="om('mo-equity')"><i class="ti ti-plus"></i>Log Funding</button></div><div id="eq-list"></div></div>
+      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-check"></i>Reimbursement at Closing</div></div><div id="eq-reimb"></div></div>
+    </div>
+    <div id="page-expenses" class="page">
+      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-receipt"></i>Expense Log — All Phases</div><button class="btn btn-p btn-sm" onclick="om('mo-exp')"><i class="ti ti-plus"></i>Log Expense</button></div><div id="exp-list"></div></div>
+    </div>
+    <div id="page-draws" class="page">
+      <div class="g4" id="dr-top"></div>
+      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-crane"></i>Construction Draw Log</div><button class="btn btn-p btn-sm" onclick="om('mo-draw')"><i class="ti ti-plus"></i>New Draw</button></div><div id="draws-list"></div></div>
+    </div>
+    <div id="page-cor" class="page">
+      <div id="cor-top"></div>
+      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-git-merge"></i>Change Orders (COR)</div><button class="btn btn-p btn-sm" onclick="om('mo-cor')"><i class="ti ti-plus"></i>Log COR</button></div><div id="cor-list"></div></div>
+      <div class="card" id="cor-sum-card" style="display:none"><div class="chdr"><div class="ctitle"><i class="ti ti-calculator"></i>Contingency Impact</div></div><div id="cor-sum"></div></div>
+    </div>
+    <div id="page-interest" class="page">
+      <div class="g3" id="int-top"></div>
+      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-building-bank"></i>Monthly Interest Carry — Draw Schedule</div><div style="font-size:11px;color:var(--g5)">Edit balance — interest updates live</div></div>
+      <table><thead><tr><th>#</th><th>Month</th><th class="r">Draw Amount ($)</th><th class="r">Total Drawn</th><th class="r">Monthly Interest</th><th class="r">Cumulative Interest</th><th>Status</th></tr></thead><tbody id="int-body"></tbody><tfoot id="int-foot"></tfoot></table></div>
+    </div>
+    <div id="page-rent" class="page">
+      <div class="g3" id="rent-top"></div>
+      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-calendar-stats"></i>Rent Schedule with Escalations</div></div>
+      <table><thead><tr><th>Period</th><th>Lease Years</th><th>Escalation</th><th class="r">Annual Rent</th><th class="r">Monthly Rent</th><th class="r">Total Period Rent</th><th>Type</th></tr></thead><tbody id="rent-body"></tbody><tfoot id="rent-foot"></tfoot></table></div>
+    </div>
+    <div id="page-sale" class="page">
+      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-home-dollar"></i>Sale & Exit Details</div></div><div class="fg2" id="sale-form"></div></div>
+      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-chart-line"></i>Exit Model — Live Sliders</div></div>
+        <div class="slider-row"><label>Exit Cap Rate:</label><input type="range" min="4" max="9" step="0.05" id="sl-cap" oninput="calcSale()"><span id="sl-cap-v">—</span></div>
+        <div class="slider-row"><label>Broker Commission:</label><input type="range" min="1" max="5" step="0.25" id="sl-brok" oninput="calcSale()"><span id="sl-brok-v">—</span></div>
+        <div class="slider-row"><label>Annual NOI:</label><input type="range" id="sl-noi" oninput="calcSale()"><span id="sl-noi-v">—</span></div>
+        <div id="sale-result"></div>
+      </div>
+    </div>
+    <div id="page-pnl" class="page">
+      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-report-analytics"></i>Full Project P&L — A to Z</div></div><div id="pnl-body"></div></div>
+    </div>
+
+    <!-- DEAL PRO FORMA -->
+    <div id="page-proforma" class="page">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <div class="alert al-b" style="margin:0;flex:1"><i class="ti ti-info-circle"></i><strong>Deal Pro Forma</strong> — Yellow cells editable. Live calculations. Add lines to any section.</div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm" onclick="pfUndo()" id="pf-undo-btn" title="Undo last change">↩ Undo</button>
+          <span class="st st-gray" id="pf-revision-label" style="font-size:10px;padding:4px 8px">Rev 1</span>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+        <button class="btn btn-p btn-sm" id="pf-tab-inputs" onclick="pfTab('inputs')">📋 Inputs & Summary</button>
+        <button class="btn btn-sm" id="pf-tab-sensitivity" onclick="pfTab('sensitivity')">📊 Sensitivity Analysis</button>
+      </div>
+
+      <!-- INPUTS TAB -->
+      <div id="pf-inputs">
+        <div class="g2">
+          <!-- LEFT col -->
+          <div>
+            <div class="card">
+              <div class="chdr"><div class="ctitle"><i class="ti ti-building"></i>Project Information</div></div>
+              <table><thead><tr><th>Field</th><th class="r">Value</th></tr></thead>
+              <tbody id="pf-project-rows"></tbody></table>
+            </div>
+            <div class="card">
+              <div class="chdr">
+                <div class="ctitle"><i class="ti ti-hammer"></i>Hard Costs</div>
+                <button class="btn btn-sm" onclick="pfAddLine('hard')"><i class="ti ti-plus"></i>Add Line</button>
+              </div>
+              <table><thead><tr><th>Description</th><th class="r">Amount ($)</th><th></th></tr></thead>
+              <tbody id="pf-hard-rows"></tbody>
+              <tfoot id="pf-hard-foot"></tfoot></table>
+            </div>
+            <div class="card">
+              <div class="chdr">
+                <div class="ctitle"><i class="ti ti-file-invoice"></i>Soft Costs</div>
+                <button class="btn btn-sm" onclick="pfAddLine('soft')"><i class="ti ti-plus"></i>Add Line</button>
+              </div>
+              <table><thead><tr><th>Description</th><th class="r">Amount ($)</th><th></th></tr></thead>
+              <tbody id="pf-soft-rows"></tbody>
+              <tfoot id="pf-soft-foot"></tfoot></table>
+            </div>
+            <div class="card">
+              <div class="chdr"><div class="ctitle"><i class="ti ti-shield"></i>Contingency</div></div>
+              <table><thead><tr><th>Description</th><th class="r">% of Hard+Soft</th><th class="r">Amount ($)</th></tr></thead>
+              <tbody id="pf-cont-rows"></tbody>
+              <tfoot id="pf-cont-foot"></tfoot></table>
+            </div>
+          </div>
+          <!-- RIGHT col -->
+          <div>
+            <div class="card">
+              <div class="chdr">
+                <div class="ctitle"><i class="ti ti-coin"></i>Financing & Fees</div>
+                <button class="btn btn-sm" onclick="pfAddCustomRow('finExtra')"><i class="ti ti-plus"></i>Add Row</button>
+              </div>
+              <table><thead><tr><th>Parameter</th><th class="r">Value</th><th></th></tr></thead>
+              <tbody id="pf-fin-rows"></tbody></table>
+            </div>
+            <div class="card">
+              <div class="chdr">
+                <div class="ctitle"><i class="ti ti-target"></i>Exit Assumptions</div>
+                <button class="btn btn-sm" onclick="pfAddCustomRow('exitExtra')"><i class="ti ti-plus"></i>Add Row</button>
+              </div>
+              <table><thead><tr><th>Parameter</th><th class="r">Value</th><th></th></tr></thead>
+              <tbody id="pf-exit-rows"></tbody></table>
+            </div>
+            <div class="card">
+              <div class="chdr">
+                <div class="ctitle"><i class="ti ti-chart-pie"></i>Uses Summary</div>
+                <button class="btn btn-sm" onclick="pfAddUsesLine()"><i class="ti ti-plus"></i>Add Item</button>
+              </div>
+              <table><thead><tr><th>Category</th><th class="r">Amount ($)</th><th class="r">$/SF</th><th></th></tr></thead>
+              <tbody id="pf-uses-rows"></tbody>
+              <tfoot id="pf-uses-foot"></tfoot></table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Returns & Key Metrics full width -->
+        <div class="g2" style="margin-top:0">
+          <div>
+            <div class="card">
+              <div class="chdr">
+                <div class="ctitle"><i class="ti ti-trophy"></i>Returns Summary</div>
+                <button class="btn btn-sm" onclick="pfAddReturnRow('returns')"><i class="ti ti-plus"></i>Add Row</button>
+              </div>
+              <table><thead><tr><th>Metric</th><th class="r">Value</th><th></th></tr></thead>
+              <tbody id="pf-returns-rows"></tbody></table>
+            </div>
+            <div class="card">
+              <div class="chdr">
+                <div class="ctitle"><i class="ti ti-chart-line"></i>Internal Returns</div>
+                <button class="btn btn-sm" onclick="pfAddReturnRow('internal')"><i class="ti ti-plus"></i>Add Row</button>
+              </div>
+              <table><thead><tr><th>Metric</th><th class="r">Value</th><th></th></tr></thead>
+              <tbody id="pf-internal-rows"></tbody></table>
+            </div>
+          </div>
+          <div>
+            <div class="card">
+              <div class="chdr"><div class="ctitle"><i class="ti ti-gauge"></i>Key Metrics</div></div>
+              <table><thead><tr><th>Metric</th><th class="r">Value</th></tr></thead>
+              <tbody id="pf-metrics-rows"></tbody></table>
+            </div>
+            <div class="card">
+              <div class="chdr"><div class="ctitle"><i class="ti ti-calendar"></i>Debt Draw Schedule</div></div>
+              <div style="font-size:11px;color:var(--g5);margin-bottom:8px">Edit draw % per month — must total 100%</div>
+              <table><thead><tr><th>Mo.</th><th class="r">Draw %</th><th class="r">Cum %</th><th class="r">Avg Balance</th><th class="r">Monthly Int.</th><th class="r">Rent Credit</th><th class="r">Net Int.</th></tr></thead>
+              <tbody id="pf-draw-sched"></tbody>
+              <tfoot id="pf-draw-sched-foot"></tfoot></table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SENSITIVITY TAB -->
+      <div id="pf-sensitivity" style="display:none">
+        <!-- Locked Pro-Forma Values -->
+        <div class="card">
+          <div class="chdr"><div class="ctitle"><i class="ti ti-lock"></i>Locked Pro-Forma Values & Deal Terms</div></div>
+          <div class="g2">
+            <div>
+              <div style="font-size:10px;font-weight:700;color:var(--g5);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Locked Pro-Forma Values</div>
+              <table><tbody id="pf-sens-locked"></tbody></table>
+            </div>
+            <div>
+              <div style="font-size:10px;font-weight:700;color:var(--g5);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Deal Terms (from Inputs)</div>
+              <table><tbody id="pf-sens-terms"></tbody></table>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="chdr">
+            <div class="ctitle"><i class="ti ti-chart-bar"></i>Sensitivity — Net Profit Developer ($000s)</div>
+            <div style="font-size:11px;color:var(--g5)">Yellow = base | Green = profit | Red = loss</div>
+          </div>
+          <div style="font-size:11px;color:var(--g5);margin-bottom:8px">Cap rate rows auto-center on exit cap. Budget multiplier varies cost vs pro-forma total uses.</div>
+          <div style="overflow-x:auto"><table id="pf-sens-table"></table></div>
+        </div>
+        <div class="card">
+          <div class="chdr"><div class="ctitle"><i class="ti ti-percent"></i>Sensitivity — Profit Margin (Net Profit / TPC)</div></div>
+          <div style="overflow-x:auto"><table id="pf-sens-margin-table"></table></div>
+        </div>
+        <div class="card">
+          <div class="chdr"><div class="ctitle"><i class="ti ti-info-circle"></i>Methodology & Notes</div></div>
+          <div id="pf-sens-notes" style="font-size:12px;color:var(--g5);line-height:1.8"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MONTHLY TRACKER -->
+    <div id="page-monthly" class="page">
+      <div class="alert al-b"><i class="ti ti-chart-bar"></i>Monthly expense tracker — auto-populated from your logged expenses. Add invoices in the <strong>Expenses</strong> section and they appear here automatically as a bar chart by month and category.</div>
+      <div class="g3" id="mt-metrics"></div>
+      <div class="card">
+        <div class="chdr">
+          <div class="ctitle"><i class="ti ti-chart-bar"></i>Monthly Spend — Bar Chart</div>
+          <select class="sel" style="width:160px;font-size:11px" id="mt-filter" onchange="rMonthly()">
+            <option value="all">All Categories</option>
+            <option value="Hard Costs">Hard Costs</option>
+            <option value="Soft Costs">Soft Costs / Legal</option>
+            <option value="Geotech">Geotech</option>
+            <option value="Environmental">Environmental</option>
+            <option value="Entitlements">Entitlements</option>
+            <option value="Construction">Construction</option>
+            <option value="Interest">Interest</option>
+          </select>
+        </div>
+        <div id="mt-chart" style="overflow-x:auto;padding:10px 0"></div>
+      </div>
+      <div class="card">
+        <div class="chdr"><div class="ctitle"><i class="ti ti-table"></i>Monthly Expense Breakdown</div></div>
+        <div id="mt-table"></div>
+      </div>
+    </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<script>
+const TC={
+  '7-Eleven':{floor:112,lo:4.8,hi:5.5},'Speedway':{floor:112,lo:4.8,hi:5.5},
+  'Panera Bread':{floor:150,lo:5.0,hi:5.75},'ALDI':{floor:150,lo:4.5,hi:5.25},
+  'Dollar General':{floor:150,lo:5.5,hi:6.5},'Bright Path Kids':{floor:175,lo:6.75,hi:7.75},
+  'Other National':{floor:175,lo:6.0,hi:7.5},'Custom':{floor:150,lo:5.0,hi:7.0}
+};
+const PHASES=['Origination','LOI','PSA','Due Diligence','Entitlements','Financing','Land Close','Construction','CO Obtained','Stabilized','Sold'];
+const PKEYS=['orig','loi','psa','dd','entitle','finance','landclose','construction','co','stabil','sold'];
+const CATS=['Land','Feasibility','Hard Costs','Soft Costs','Dev Fee'];
+const CC={Land:'#8B5CF6',Feasibility:'#06B6D4','Hard Costs':'#F59E0B','Soft Costs':'#3B82F6','Dev Fee':'#10B981'};
+let _id=0; const uid=()=>'u'+(++_id);
+const $=id=>document.getElementById(id);
+const S={projects:[],cur:0,get p(){return this.projects[this.cur]||null}};
+
+function defB(){return[
+  {id:uid(),cat:'Land',desc:'Land Purchase Price',bgt:0,act:0,notes:'Per PSA closing statement',auto:false},
+  {id:uid(),cat:'Feasibility',desc:'Environmental Phase 1 & 2',bgt:0,act:0,notes:'Phase 1 required; Phase 2 if flagged',auto:false},
+  {id:uid(),cat:'Feasibility',desc:'Geotechnical / Soil Investigation',bgt:0,act:0,notes:'',auto:false},
+  {id:uid(),cat:'Hard Costs',desc:'Demolition',bgt:0,act:0,notes:'',auto:false},
+  {id:uid(),cat:'Hard Costs',desc:'Building Construction',bgt:0,act:0,notes:'Per GC contract',auto:false},
+  {id:uid(),cat:'Hard Costs',desc:'On-Site Construction',bgt:0,act:0,notes:'Grading, paving, utilities, landscaping',auto:false},
+  {id:uid(),cat:'Hard Costs',desc:'Off-Site Construction',bgt:0,act:0,notes:'Curb cuts, road improvements',auto:false},
+  {id:uid(),cat:'Hard Costs',desc:'Equipment & Specialty Installation',bgt:0,act:0,notes:'Fuel systems, canopy, signage',auto:false},
+  {id:uid(),cat:'Hard Costs',desc:'Tenant Improvement (TI) Package',bgt:0,act:0,notes:'Tenant-specific buildout',auto:false},
+  {id:uid(),cat:'Hard Costs',desc:'Hard Cost Contingency (5%)',bgt:0,act:0,notes:'Auto: 5% of hard base costs',auto:'hcont'},
+  {id:uid(),cat:'Soft Costs',desc:'Entitlements / Zoning',bgt:0,act:0,notes:'',auto:false},
+  {id:uid(),cat:'Soft Costs',desc:'Architecture / MEP Engineering',bgt:0,act:0,notes:'',auto:false},
+  {id:uid(),cat:'Soft Costs',desc:'Civil Engineering',bgt:0,act:0,notes:'',auto:false},
+  {id:uid(),cat:'Soft Costs',desc:'Landscape Architecture',bgt:0,act:0,notes:'',auto:false},
+  {id:uid(),cat:'Soft Costs',desc:'Legal (RE Attorney / Land Use)',bgt:0,act:0,notes:'',auto:false},
+  {id:uid(),cat:'Soft Costs',desc:"Insurance (Builder's Risk / GL)",bgt:0,act:0,notes:'',auto:false},
+  {id:uid(),cat:'Soft Costs',desc:'Title Policy & Closing Costs',bgt:0,act:0,notes:'',auto:false},
+  {id:uid(),cat:'Soft Costs',desc:'Survey / ALTA / As-Built',bgt:0,act:0,notes:'',auto:false},
+  {id:uid(),cat:'Soft Costs',desc:'Appraisal',bgt:0,act:0,notes:'',auto:false},
+  {id:uid(),cat:'Soft Costs',desc:'Permit Fees',bgt:0,act:0,notes:'',auto:false},
+  {id:uid(),cat:'Soft Costs',desc:'Impact Fees (Elec/Gas/Water/Sewer)',bgt:0,act:0,notes:'',auto:false},
+  {id:uid(),cat:'Soft Costs',desc:'Property Taxes (Carrying Period)',bgt:0,act:0,notes:'',auto:false},
+  {id:uid(),cat:'Soft Costs',desc:'Loan Origination / Capital Costs',bgt:0,act:0,notes:'',auto:false},
+  {id:uid(),cat:'Soft Costs',desc:'Interest Reserve / Debt Service',bgt:0,act:0,notes:'',auto:false},
+  {id:uid(),cat:'Soft Costs',desc:'Traffic Study',bgt:0,act:0,notes:'If required by city',auto:false},
+  {id:uid(),cat:'Soft Costs',desc:'Soil Bearing / Field Testing',bgt:0,act:0,notes:'',auto:false},
+  {id:uid(),cat:'Soft Costs',desc:'Admin / Accounting / Travel',bgt:0,act:0,notes:'',auto:false},
+  {id:uid(),cat:'Soft Costs',desc:'Peer Review',bgt:0,act:0,notes:'',auto:false},
+  {id:uid(),cat:'Soft Costs',desc:'Soft Cost Contingency (5%)',bgt:0,act:0,notes:'Auto: 5% of soft base costs',auto:'scont'},
+  {id:uid(),cat:'Dev Fee',desc:'Development Fee (3% Hard+Soft)',bgt:0,act:0,notes:'Auto: 3% of hard+soft base',auto:'devfee'},
+];}
+
+function newP(o={}){return{
+  id:uid(),name:o.name||'New Project',tenant:o.tenant||'',addr:o.addr||'',city:o.city||'',state:o.state||'IL',
+  sf:+o.sf||0,lotSf:+o.lotsf||0,intersection:o.int||'',phase:'orig',isOZ:o.oz==='1',
+  annualRent:+o.noi||0,rentEsc:+o.esc||7.5,escYrs:+o.escy||5,leaseTerm:+o.term||20,leaseOpts:+o.opts||3,optYrs:+o.optsyrs||5,
+  lenders:[],budgetLines:defB(),
+  ddItems:[
+    {id:uid(),name:'Environmental Phase 1',vendor:'',bgt:0,act:0,status:'pending',due:'',done:'',notes:''},
+    {id:uid(),name:'Environmental Phase 2',vendor:'',bgt:0,act:0,status:'na',due:'',done:'',notes:'If flagged in Phase 1'},
+    {id:uid(),name:'Geotechnical Report',vendor:'',bgt:0,act:0,status:'pending',due:'',done:'',notes:''},
+    {id:uid(),name:'ALTA Survey',vendor:'',bgt:0,act:0,status:'pending',due:'',done:'',notes:''},
+    {id:uid(),name:'Topographic Survey',vendor:'',bgt:0,act:0,status:'pending',due:'',done:'',notes:''},
+    {id:uid(),name:'Title Review',vendor:'',bgt:0,act:0,status:'pending',due:'',done:'',notes:''},
+    {id:uid(),name:'Traffic Study',vendor:'',bgt:0,act:0,status:'na',due:'',done:'',notes:'If required'},
+    {id:uid(),name:'Appraisal',vendor:'',bgt:0,act:0,status:'pending',due:'',done:'',notes:''},
+  ],
+  entItems:[
+    {id:uid(),type:'Zoning / Rezoning',submitted:'',hearing:'',approved:'',status:'pending',notes:''},
+    {id:uid(),type:'Site Plan Approval',submitted:'',hearing:'',approved:'',status:'pending',notes:''},
+    {id:uid(),type:'Building Permit',submitted:'',hearing:'',approved:'',status:'pending',notes:''},
+    {id:uid(),type:'Grading & Utility Permit',submitted:'',hearing:'',approved:'',status:'pending',notes:''},
+    {id:uid(),type:'Certificate of Occupancy (CO)',submitted:'',hearing:'',approved:'',status:'pending',notes:''},
+  ],
+  equityFundings:[],draws:[],cors:[],corFromCont:0,expenses:[],
+  sale:{buyer:'',type:'',exitCap:0,brokerPct:3,exitFeePct:1,closingCostPct:1.25,date:'',broker:''},
+};}
+
+function C(p){
+  if(!p)return{};
+  const L=p.budgetLines||[];
+  const bc=c=>L.filter(l=>l.cat===c).reduce((s,l)=>s+(+l.bgt||0),0);
+  const ac=c=>L.filter(l=>l.cat===c).reduce((s,l)=>s+(+l.act||0),0);
+  const hb=L.filter(l=>l.cat==='Hard Costs'&&!l.auto).reduce((s,l)=>s+(+l.bgt||0),0);
+  const sb=L.filter(l=>l.cat==='Soft Costs'&&!l.auto).reduce((s,l)=>s+(+l.bgt||0),0);
+  const hcont=Math.round(hb*.05),scont=Math.round(sb*.05),devfee=Math.round((hb+sb)*.03);
+  const land=bc('Land'),feas=bc('Feasibility'),hard=bc('Hard Costs'),soft=bc('Soft Costs'),dev=bc('Dev Fee');
+  const total=land+feas+hard+soft+dev;
+  const totalA=ac('Land')+ac('Feasibility')+ac('Hard Costs')+ac('Soft Costs')+ac('Dev Fee');
+  const hbA=L.filter(l=>l.cat==='Hard Costs'&&!l.auto).reduce((s,l)=>s+(+l.act||0),0);
+  const sbA=L.filter(l=>l.cat==='Soft Costs'&&!l.auto).reduce((s,l)=>s+(+l.act||0),0);
+  const cBgt=hcont+scont,cUsed=p.corFromCont||0,cRem=cBgt-cUsed;
+  const drawn=p.draws.reduce((s,d)=>s+(+d.hard||0)+(+d.soft||0)+(+d.int||0)+(+d.dev||0)+(+d.oth||0),0);
+  const remain=total-drawn;
+  const src=p.lenders.reduce((s,l)=>s+(+l.amt||0),0);
+  const bCap=total>0&&p.annualRent>0?p.annualRent/total*100:0;
+  const tc=TC[p.tenant]||TC.Custom;
+  const exitCap=+p.sale.exitCap||0;
+  const spread=exitCap>0?(bCap-exitCap)*100:null;
+  const exitVal=exitCap>0&&p.annualRent>0?Math.round(p.annualRent/(exitCap/100)):0;
+  const bA=exitVal?Math.round(exitVal*p.sale.brokerPct/100):0;
+  const efA=exitVal?Math.round(exitVal*p.sale.exitFeePct/100):0;
+  const ccA=exitVal?Math.round(exitVal*p.sale.closingCostPct/100):0;
+  const profit=exitVal?exitVal-total-bA-efA-ccA:null;
+  const eqTot=p.equityFundings.reduce((s,e)=>s+(+e.amt||0),0);
+  const mInt=p.lenders.filter(l=>l.rate>0).reduce((s,l)=>s+Math.round(+l.amt*(+l.rate/100)/12),0);
+  return{land,feas,hard,soft,dev,total,totalA,hb,sb,hbA,sbA,hcont,scont,devfee,cBgt,cUsed,cRem,drawn,remain,src,bCap,exitCap,spread,tc,exitVal,bA,efA,ccA,profit,eqTot,mInt};
+}
+
+const F=n=>n==null?'—':'$'+Math.round(n).toLocaleString();
+const Fp=n=>n==null?'—':n.toFixed(2)+'%';
+const pct=(a,b)=>b===0?0:Math.round(a/b*1000)/10;
+
+function rAll(){
+  if(!S.p){rEmpty();saveData();return;}
+  const p=S.p,c=C(p);
+  rTB(p,c);rPB(p);rBadges(p);
+  rDash(p,c);rProj(p);rStack(p,c);rBudget(p,c);
+  rDD(p);rEnt(p);rPC(p,c);rExp(p);
+  rDraws(p,c);rCOR(p,c);rInt(p,c);rRent(p);rSale(p,c);rPnL(p,c);
+  rProforma();
+  rMonthly();
+  saveData();
+}
+
+function rEmpty(){
+  $('tb-name').textContent='RCP NNN Deal Tracker';
+  $('tb-sub').textContent='Click "+ New Project" in the sidebar to get started';
+  $('tb-pills').innerHTML='';
+  $('d-alerts').innerHTML=`<div class="alert al-b"><i class="ti ti-plus-circle"></i>Welcome to RCP Deal Tracker. Click <strong>"+ New Project"</strong> in the sidebar to set up your first NNN deal.</div>`;
+  ['d-spread','d-metrics','d-stack','d-issues'].forEach(id=>$(id).innerHTML='');
+  $('d-phase').innerHTML='<div class="empty"><i class="ti ti-timeline"></i>No project loaded</div>';
+  $('d-cats').innerHTML='<div class="empty"><i class="ti ti-chart-bar"></i>No project loaded</div>';
+}
+
+function rTB(p,c){
+  $('tb-name').textContent=p.name;
+  $('tb-sub').textContent=[p.addr,p.city,p.state].filter(Boolean).join(', ')+(p.sf?' | '+p.sf.toLocaleString()+' SF':'')+(p.tenant?' | '+p.tenant:'');
+  const phi=PKEYS.indexOf(p.phase);
+  const pills=[];
+  if(phi>=6)pills.push(`<span class="pill pill-g">✓ Land Closed</span>`);
+  if(phi===7)pills.push(`<span class="pill pill-b">⚡ Construction</span>`);
+  if(phi>=8)pills.push(`<span class="pill pill-g">✓ CO Obtained</span>`);
+  if(phi>=9)pills.push(`<span class="pill pill-g">✓ Stabilized</span>`);
+  if(p.isOZ)pills.push(`<span class="pill pill-b">⭐ OZ Zone</span>`);
+  if(c.spread!==null){const ok=c.spread>=c.tc.floor;pills.push(`<span class="pill ${ok?'pill-g':'pill-r'}">${ok?'✓':'⚠'} Spread: ${c.spread.toFixed(0)} bps</span>`);}
+  if(c.cRem<c.cBgt*.2&&c.cBgt>0)pills.push(`<span class="pill pill-w">⚠ Cont. Low</span>`);
+  $('tb-pills').innerHTML=pills.join('');
+}
+
+function rPB(p){
+  const idx=PKEYS.indexOf(p.phase);
+  const p2=Math.round((idx+1)/PKEYS.length*100);
+  $('phase-fill').style.width=p2+'%';
+  $('phase-lbl').textContent=PHASES[idx]||'—';
+  $('phase-pct').textContent=p2+'%';
+}
+
+function rBadges(p){
+  const dr=$('nb-dr'),co=$('nb-cor'),eq=$('nb-eq');
+  p.draws.length?(dr.style.display='inline',dr.textContent=p.draws.length):dr.style.display='none';
+  p.cors.length?(co.style.display='inline',co.textContent=p.cors.length):co.style.display='none';
+  p.equityFundings.length?(eq.style.display='inline',eq.textContent=p.equityFundings.length):eq.style.display='none';
+}
+
+function rDash(p,c){
+  const al=[];
+  if(c.spread!==null&&c.spread<c.tc.floor)al.push(`<div class="alert al-r"><i class="ti ti-alert-triangle"></i><div><strong>⚠ Spread Floor Breach!</strong> Current spread is ${c.spread.toFixed(0)} bps — below the ${c.tc.floor} bps floor for ${p.tenant||'this tenant'}. Review exit cap rate or reduce costs immediately.</div></div>`);
+  if(c.cRem<0)al.push(`<div class="alert al-r"><i class="ti ti-alert-triangle"></i><strong>Contingency Exhausted!</strong> Over by ${F(Math.abs(c.cRem))}. Immediate rebalancing required.</div>`);
+  else if(c.cRem<c.cBgt*.2&&c.cBgt>0)al.push(`<div class="alert al-a"><i class="ti ti-alert-triangle"></i>Contingency is low — only ${F(c.cRem)} remaining (${pct(c.cRem,c.cBgt)}%). Monitor change orders closely.</div>`);
+  if(!p.lenders.length)al.push(`<div class="alert al-a"><i class="ti ti-coin"></i>No capital providers added. Go to <strong>Capital Stack</strong> to set up lenders.</div>`);
+  $('d-alerts').innerHTML=al.join('');
+
+  if(c.exitCap>0&&c.spread!==null){
+    const ok=c.spread>=c.tc.floor;
+    const col=ok?'var(--green)':c.spread>c.tc.floor-50?'var(--amber)':'var(--red)';
+    const bg=ok?'var(--green-light)':c.spread>0?'var(--amber-light)':'var(--red-light)';
+    const bd=ok?'var(--green-mid)':c.spread>0?'var(--amber-mid)':'var(--red-mid)';
+    $('d-spread').innerHTML=`<div class="spread-box" style="background:${bg};border:1px solid ${bd}">
+      <div><div class="sn" style="color:${col}">${c.spread.toFixed(0)}</div><div class="sl" style="color:${col}">BPS SPREAD</div></div>
+      <div style="flex:1">
+        <div class="irow" style="padding:4px 0"><span class="ik">Build Cap (Yield on Cost)</span><span class="iv">${Fp(c.bCap)}</span></div>
+        <div class="irow" style="padding:4px 0"><span class="ik">Exit Cap Rate</span><span class="iv">${Fp(c.exitCap)}</span></div>
+        <div class="irow" style="padding:4px 0;border:none"><span class="ik">Spread Floor (${p.tenant||'tenant'})</span><span class="iv" style="color:${col}">≥ ${c.tc.floor} bps ${ok?'✓':'⚠ BREACH'}</span></div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:10px;color:var(--g5);margin-bottom:2px">All-In Cost</div>
+        <div style="font-size:16px;font-weight:700">${F(c.total)}</div>
+        <div style="font-size:10px;color:var(--g5);margin-top:6px;margin-bottom:2px">Est. Exit Value</div>
+        <div style="font-size:16px;font-weight:700;color:var(--green)">${F(c.exitVal)}</div>
+      </div>
+    </div>`;
+  } else {
+    const tc=TC[p.tenant]||TC.Custom;
+    $('d-spread').innerHTML=`<div class="alert al-b"><i class="ti ti-info-circle"></i>Set Exit Cap Rate in <strong>Sale & Exit</strong> to see spread analysis. Target exit cap for ${p.tenant||'this tenant'}: ${tc.lo}% – ${tc.hi}% | Spread floor: ${tc.floor} bps</div>`;
+  }
+
+  $('d-metrics').innerHTML=`
+    <div class="mc"><div class="l">Total Budget</div><div class="v">${F(c.total)}</div><div class="s">${p.sf&&c.total?'$'+(c.total/p.sf).toFixed(0)+' per SF':''}</div></div>
+    <div class="mc"><div class="l">Drawn to Date</div><div class="v">${F(c.drawn)}</div><div class="s">${pct(c.drawn,c.total)}% of budget</div></div>
+    <div class="mc ${c.cRem<0?'mc-danger':c.cRem<c.cBgt*.2?'mc-warn':'mc-good'}"><div class="l">Contingency Left</div><div class="v" style="color:${c.cRem<0?'var(--red)':c.cRem<c.cBgt*.2?'var(--amber)':'var(--green)'}">${F(c.cRem)}</div><div class="s">${pct(c.cRem,c.cBgt)}% of original</div></div>
+    <div class="mc"><div class="l">Remaining to Draw</div><div class="v">${F(c.remain)}</div><div class="s">From lender holdback</div></div>`;
+
+  const phi=PKEYS.indexOf(p.phase);
+  $('d-phase').innerHTML='<div style="display:flex;align-items:flex-start;overflow-x:auto;padding-bottom:6px">'+
+    PHASES.map((ph,i)=>`<div style="display:flex;align-items:center;flex-shrink:0">
+      <div style="text-align:center;min-width:60px;padding:0 2px">
+        <div style="width:26px;height:26px;border-radius:50%;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2px solid ${i<phi?'var(--green)':i===phi?'var(--blue)':'var(--g3)'};background:${i<phi?'var(--green)':i===phi?'var(--blue)':'var(--white)'};color:${i<=phi?'#fff':'var(--g4)'}">${i<phi?'✓':i+1}</div>
+        <div style="font-size:9px;color:${i<phi?'var(--green)':i===phi?'var(--blue)':'var(--g4)'};font-weight:${i===phi?'700':'400'};line-height:1.3">${ph}</div>
+      </div>
+      ${i<PHASES.length-1?`<div style="width:16px;height:2px;background:${i<phi?'var(--green)':'var(--g3)'};flex-shrink:0;margin-bottom:14px"></div>`:''}
+    </div>`).join('')+'</div>';
+
+  $('d-cats').innerHTML=CATS.map(cat=>{
+    const b=(p.budgetLines||[]).filter(l=>l.cat===cat).reduce((s,l)=>s+(+l.bgt||0),0);
+    const a=(p.budgetLines||[]).filter(l=>l.cat===cat).reduce((s,l)=>s+(+l.act||0),0);
+    const pp=Math.min(pct(a,b),100);
+    return `<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">
+        <span style="color:var(--g6);font-weight:600">${cat}</span>
+        <span style="color:var(--g5)">${F(a)} / ${F(b)}</span>
+      </div>
+      <div class="pb"><div class="pbf" style="width:${pp}%;background:${CC[cat]}"></div></div>
+      <div style="font-size:10px;color:var(--g4);text-align:right;margin-top:2px">${pp}%</div>
+    </div>`;
+  }).join('');
+
+  $('d-stack').innerHTML=p.lenders.length?
+    p.lenders.map(l=>`<div class="irow"><span class="ik">${l.name}<span class="st st-b" style="margin-left:6px;font-size:9px">${l.role}</span></span><span class="iv">${F(l.amt)}${l.rate?' @ '+l.rate+'%':''}</span></div>`).join('')+
+    `<div class="irow" style="font-weight:700;border-top:2px solid var(--g3);margin-top:4px"><span class="ik">Total Sources</span><span class="iv" style="color:var(--blue)">${F(c.src)}</span></div>`
+  :'<div class="empty" style="padding:20px"><i class="ti ti-coin"></i>No providers added yet</div>';
+
+  const iss=[];
+  if(p.ddItems.filter(d=>d.status==='pending').length)iss.push(`<div class="irow"><span class="ik">📋 Due Diligence items pending</span><span class="st st-a">${p.ddItems.filter(d=>d.status==='pending').length} items</span></div>`);
+  if(p.entItems.filter(e=>e.status==='pending').length)iss.push(`<div class="irow"><span class="ik">📜 Entitlements pending</span><span class="st st-a">${p.entItems.filter(e=>e.status==='pending').length} items</span></div>`);
+  if(p.cors.filter(x=>x.status==='pending').length)iss.push(`<div class="irow"><span class="ik">🔄 CORs awaiting approval</span><span class="st st-r">${p.cors.filter(x=>x.status==='pending').length} open</span></div>`);
+  if(!p.lenders.length)iss.push(`<div class="irow"><span class="ik">💰 No capital providers added</span><span class="st st-a">Action needed</span></div>`);
+  if(c.total===0)iss.push(`<div class="irow"><span class="ik">📋 Budget not yet entered</span><span class="st st-a">Action needed</span></div>`);
+  if(!p.sale.exitCap)iss.push(`<div class="irow"><span class="ik">📈 Exit cap rate not set</span><span class="st st-a">Set in Sale & Exit</span></div>`);
+  $('d-issues').innerHTML=iss.length?iss.join(''):'<div style="text-align:center;padding:14px;color:var(--green);font-size:12px;font-weight:700">✓ No open action items</div>';
+}
+
+function rProj(p){
+  $('proj-form').innerHTML=`
+    <div class="fr"><div class="fl">Project Name</div><input class="inp" value="${p.name}" onchange="S.p.name=this.value;rAll()"></div>
+    <div class="fr"><div class="fl">Tenant</div><select class="sel" onchange="S.p.tenant=this.value;rAll()">
+      ${['7-Eleven','Speedway','Panera Bread','ALDI','Dollar General','Bright Path Kids','Other National','Custom'].map(t=>`<option ${p.tenant===t?'selected':''}>${t}</option>`).join('')}
+    </select></div>
+    <div class="fr"><div class="fl">Street Address</div><input class="inp" value="${p.addr||''}" onchange="S.p.addr=this.value"></div>
+    <div class="fr"><div class="fl">City</div><input class="inp" value="${p.city||''}" onchange="S.p.city=this.value"></div>
+    <div class="fr"><div class="fl">State</div><select class="sel" onchange="S.p.state=this.value">
+      ${['IL','OH','IN','MI','AR','CT','WI','MN','Other'].map(s=>`<option ${p.state===s?'selected':''}>${s}</option>`).join('')}
+    </select></div>
+    <div class="fr"><div class="fl">Building SF</div><input class="inp" type="number" value="${p.sf||''}" onchange="S.p.sf=+this.value;rAll()"></div>
+    <div class="fr"><div class="fl">Lot SF</div><input class="inp" type="number" value="${p.lotSf||''}" onchange="S.p.lotSf=+this.value"></div>
+    <div class="fr"><div class="fl">Intersection</div><input class="inp" value="${p.intersection||''}" onchange="S.p.intersection=this.value"></div>
+    <div class="fr"><div class="fl">Annual NOI / Rent Year 1 ($)</div><input class="inp" type="number" value="${p.annualRent||''}" onchange="S.p.annualRent=+this.value;rAll()"></div>
+    <div class="fr"><div class="fl">Rent Escalation (%)</div><input class="inp" type="number" step="0.5" value="${p.rentEsc||''}" onchange="S.p.rentEsc=+this.value;rRent(S.p)"></div>
+    <div class="fr"><div class="fl">Escalation Period (yrs)</div><input class="inp" type="number" value="${p.escYrs||''}" onchange="S.p.escYrs=+this.value;rRent(S.p)"></div>
+    <div class="fr"><div class="fl">Lease Term (yrs)</div><input class="inp" type="number" value="${p.leaseTerm||''}" onchange="S.p.leaseTerm=+this.value;rRent(S.p)"></div>
+    <div class="fr"><div class="fl">Option Periods</div><input class="inp" type="number" value="${p.leaseOpts||''}" onchange="S.p.leaseOpts=+this.value;rRent(S.p)"></div>
+    <div class="fr"><div class="fl">Years per Option</div><input class="inp" type="number" value="${p.optYrs||''}" onchange="S.p.optYrs=+this.value;rRent(S.p)"></div>
+    <div class="fr"><div class="fl">OZ Zone</div><select class="sel" onchange="S.p.isOZ=this.value==='1';rAll()">
+      <option value="0" ${!p.isOZ?'selected':''}>No</option><option value="1" ${p.isOZ?'selected':''}>Yes — Opportunity Zone</option>
+    </select></div>`;
+  $('proj-phase-btns').innerHTML='<div style="display:flex;flex-wrap:wrap;gap:6px">'+
+    PKEYS.map((k,i)=>`<button class="btn btn-sm ${p.phase===k?'btn-p':''}" onclick="S.p.phase='${k}';rAll();rProj(S.p)">${PHASES[i]}</button>`).join('')+'</div>';
+}
+
+function rStack(p,c){
+  const RC={'Construction Lender (1st)':'#3B82F6','Pre-Close Equity Investor':'#8B5CF6','Mezzanine / Bridge':'#F59E0B','Preferred Equity (2nd)':'#10B981','Co-Lender':'#06B6D4','Sponsor Equity':'#EC4899','Other':'#94A3B8'};
+  $('stack-list').innerHTML=p.lenders.length?p.lenders.map(l=>{
+    const col=RC[l.role]||'#94A3B8';
+    const mon=l.rate>0&&l.amt>0?Math.round(+l.amt*(+l.rate/100)/12):0;
+    return `<div class="lcard">
+      <div class="lcard-hdr">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:10px;height:10px;border-radius:50%;background:${col}"></div>
+          <span style="font-weight:700;font-size:13px">${l.name}</span>
+          <span class="st" style="background:${col}22;color:${col}">${l.role}</span>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm" onclick="editLender('${l.id}')"><i class="ti ti-edit"></i> Edit</button>
+          <button class="btn btn-d btn-xs" onclick="rmL('${l.id}')"><i class="ti ti-trash"></i> Remove</button>
+        </div>
+      </div>
+      <div class="fg3" style="font-size:12px">
+        <div><div class="fl">Committed</div><div style="font-weight:700">${F(l.amt)}</div></div>
+        <div><div class="fl">Rate / Pref Return</div><div>${l.rate>0?l.rate+'% annual':l.pref>0?l.pref+'% pref':'—'}</div></div>
+        <div><div class="fl">Origination Fee</div><div>${l.orig>0?l.orig+'% = '+F(+l.amt*(+l.orig/100)):'—'}</div></div>
+        <div><div class="fl">Funded at Close</div><div>${F(l.fundedAtClose)}</div></div>
+        <div><div class="fl">Holdback / Reserve</div><div>${F(l.holdback)}</div></div>
+        <div><div class="fl">Monthly Interest</div><div style="color:var(--red);font-weight:600">${mon?F(mon)+'/mo':'—'}</div></div>
+        ${l.exitFee?`<div><div class="fl">Exit Fee</div><div>${l.exitFee}%</div></div>`:''}
+        ${l.term?`<div><div class="fl">Loan Term</div><div>${l.term} months</div></div>`:''}
+      </div>
+      ${l.notes?`<div style="font-size:11px;color:var(--g5);margin-top:8px;border-top:1px solid var(--g3);padding-top:6px">${l.notes}</div>`:''}
+    </div>`;
+  }).join('')
+  :'<div class="empty"><i class="ti ti-coin"></i>No capital providers yet.<br>Add construction lenders, equity investors, mezz — any structure, any number.</div>';
+  $('stack-recon').innerHTML=`
+    <div class="irow"><span class="ik">Total Project Budget</span><span class="iv">${F(c.total)}</span></div>
+    <div class="irow"><span class="ik">Total Capital Committed</span><span class="iv">${F(c.src)}</span></div>
+    <div class="irow" style="font-weight:700"><span class="ik">Gap — Target = $0</span><span class="iv" style="color:${Math.abs(c.src-c.total)<100?'var(--green)':'var(--red)'}">${F(c.src-c.total)}</span></div>
+    <div style="margin-top:8px;font-size:11px;color:var(--g5)">Combined monthly interest at full draw: <strong>${F(c.mInt)}/month</strong></div>`;
+}
+
+function rBudget(p,c){
+  $('bud-top').innerHTML=`
+    <div class="mc"><div class="l">Total Budget</div><div class="v">${F(c.total)}</div><div class="s">${p.sf&&c.total?'$'+(c.total/p.sf).toFixed(0)+' per SF':''}</div></div>
+    <div class="mc ${c.totalA>c.total?'mc-danger':''}"><div class="l">Total Actual</div><div class="v">${F(c.totalA)}</div><div class="s">${pct(c.totalA,c.total)}% of budget</div></div>
+    <div class="mc ${c.cRem<0?'mc-danger':c.cRem<c.cBgt*.2?'mc-warn':'mc-good'}"><div class="l">Contingency Left</div><div class="v" style="color:${c.cRem<0?'var(--red)':c.cRem<c.cBgt*.2?'var(--amber)':'var(--green)'}">${F(c.cRem)}</div><div class="s">${pct(c.cRem,c.cBgt)}%</div></div>
+    <div class="mc ${c.totalA>c.total?'mc-danger':c.totalA>0?'mc-good':''}"><div class="l">Total Variance</div><div class="v" style="color:${c.totalA>c.total?'var(--red)':c.totalA>0?'var(--green)':'var(--g7)'}">${F(c.totalA-c.total)}</div><div class="s">${c.totalA>c.total?'Over budget':c.totalA>0?'Under budget':'No actuals yet'}</div></div>`;
+  let rows='',n=0;
+  CATS.forEach(cat=>{
+    const cl=p.budgetLines.filter(l=>l.cat===cat);
+    const cb=cl.reduce((s,l)=>s+(+l.bgt||0),0),ca=cl.reduce((s,l)=>s+(+l.act||0),0);
+    rows+=`<tr><td colspan="9" class="sec-div" style="border-left:4px solid ${CC[cat]||'#888'}">${cat} — Budget: ${F(cb)} | Actual: ${F(ca)} | Variance: <span style="color:${ca>cb?'var(--red)':'var(--green)'}">${F(ca-cb)}</span></td></tr>`;
+    cl.forEach(l=>{
+      const b=+l.bgt||0,a=+l.act||0,v=a-b,pp=pct(a,b),psf=p.sf&&b?'$'+(b/p.sf).toFixed(2):'—'; n++;
+      rows+=`<tr>
+        <td style="color:var(--g4);font-size:10px">${cat.charAt(0)}${cl.indexOf(l)+1}</td>
+        <td>${l.desc}${l.auto?'<span style="font-size:9px;color:var(--g4);margin-left:5px">(auto)</span>':''}</td>
+        <td class="r"><input class="inp-y" type="number" value="${b||''}" placeholder="0" ${l.auto?'readonly style="background:var(--g2);border-color:var(--g3);opacity:.7"':''} style="width:110px" onchange="updB('${l.id}','bgt',this.value)"></td>
+        <td class="r"><input class="inp-y" type="number" value="${a||''}" placeholder="0" style="width:110px" onchange="updB('${l.id}','act',this.value)"></td>
+        <td class="r" style="color:${v>0?'var(--red)':v<0?'var(--green)':'var(--g5)'};font-weight:600">${v!==0?F(v):'—'}</td>
+        <td class="r">${b>0?pp+'%':'—'}</td>
+        <td class="r" style="color:var(--g4)">${psf}</td>
+        <td><input class="inp" style="font-size:11px;padding:2px 6px" value="${l.notes||''}" placeholder="Notes..." onchange="updB('${l.id}','notes',this.value)"></td>
+        <td>${!l.auto?`<button class="btn btn-d btn-xs" onclick="rmB('${l.id}')"><i class="ti ti-x"></i></button>`:''}</td>
+      </tr>`;
+    });
+  });
+  $('bud-body').innerHTML=rows;
+  $('bud-foot').innerHTML=`<tr class="tr-tot"><td colspan="2">TOTAL PROJECT COST</td><td class="r">${F(c.total)}</td><td class="r">${F(c.totalA)}</td><td class="r" style="color:${c.totalA>c.total?'var(--red)':'var(--green)'}">${F(c.totalA-c.total)}</td><td class="r">${pct(c.totalA,c.total)}%</td><td class="r">${p.sf&&c.total?'$'+(c.total/p.sf).toFixed(2):'—'}</td><td colspan="2"></td></tr>`;
+}
+
+function rDD(p){
+  $('dd-body').innerHTML=p.ddItems.map(d=>`<tr>
+    <td><input class="inp" style="font-size:11px;padding:2px 6px" value="${d.name}" onchange="uDD('${d.id}','name',this.value)"></td>
+    <td><input class="inp" style="font-size:11px;padding:2px 6px" value="${d.vendor}" placeholder="Vendor" onchange="uDD('${d.id}','vendor',this.value)"></td>
+    <td class="r"><input class="inp-y" type="number" style="width:90px" value="${d.bgt||''}" placeholder="0" onchange="uDD('${d.id}','bgt',this.value)"></td>
+    <td class="r"><input class="inp-y" type="number" style="width:90px" value="${d.act||''}" placeholder="0" onchange="uDD('${d.id}','act',this.value)"></td>
+    <td><select class="sel" style="font-size:11px;padding:2px 6px;width:110px" onchange="uDD('${d.id}','status',this.value)">
+      ${['pending','inprogress','complete','na'].map(s=>`<option value="${s}" ${d.status===s?'selected':''}>${s==='inprogress'?'In Progress':s==='na'?'N/A':s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('')}
+    </select></td>
+    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:90px" value="${d.due}" placeholder="MM/DD/YY" onchange="uDD('${d.id}','due',this.value)"></td>
+    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:90px" value="${d.done}" placeholder="MM/DD/YY" onchange="uDD('${d.id}','done',this.value)"></td>
+    <td><input class="inp" style="font-size:11px;padding:2px 6px" value="${d.notes}" placeholder="Notes..." onchange="uDD('${d.id}','notes',this.value)"></td>
+    <td><button class="btn btn-d btn-xs" onclick="rmDD('${d.id}')"><i class="ti ti-x"></i></button></td>
+  </tr>`).join('');
+}
+
+function rEnt(p){
+  $('ent-body').innerHTML=p.entItems.map(e=>`<tr>
+    <td><input class="inp" style="font-size:11px;padding:2px 6px" value="${e.type}" onchange="uEnt('${e.id}','type',this.value)"></td>
+    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:90px" value="${e.submitted}" placeholder="Date" onchange="uEnt('${e.id}','submitted',this.value)"></td>
+    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:90px" value="${e.hearing}" placeholder="Date" onchange="uEnt('${e.id}','hearing',this.value)"></td>
+    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:90px" value="${e.approved}" placeholder="Date" onchange="uEnt('${e.id}','approved',this.value)"></td>
+    <td><select class="sel" style="font-size:11px;padding:2px 6px;width:100px" onchange="uEnt('${e.id}','status',this.value)">
+      ${['pending','submitted','approved','denied','na'].map(s=>`<option value="${s}" ${e.status===s?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('')}
+    </select></td>
+    <td><input class="inp" style="font-size:11px;padding:2px 6px" value="${e.notes}" placeholder="Notes..." onchange="uEnt('${e.id}','notes',this.value)"></td>
+    <td><button class="btn btn-d btn-xs" onclick="rmEnt('${e.id}')"><i class="ti ti-x"></i></button></td>
+  </tr>`).join('');
+}
+
+function rPC(p,c){
+  const prefAmt=p.equityFundings.reduce((s,e)=>{
+    const days=Math.max(0,Math.round((Date.now()-new Date(e.dt).getTime())/864e5));
+    return s+Math.round(+e.amt*(+e.rate/100)/365*days);
+  },0);
+  $('eq-metrics').innerHTML=`
+    <div class="mc"><div class="l">Total Equity Deployed</div><div class="v">${F(c.eqTot)}</div><div class="s">${p.equityFundings.length} funding(s)</div></div>
+    <div class="mc mc-warn"><div class="l">Pref Return Accrued</div><div class="v" style="color:var(--amber)">${F(prefAmt)}</div><div class="s">To date (daily accrual)</div></div>
+    <div class="mc mc-good"><div class="l">Total Reimbursement Due</div><div class="v" style="color:var(--green)">${F(c.eqTot+prefAmt)}</div><div class="s">Principal + pref at close</div></div>`;
+  $('eq-list').innerHTML=p.equityFundings.length?`<table><thead><tr><th>Date</th><th>Investor</th><th>Description</th><th class="r">Amount</th><th>Pref Rate</th><th>Paid Direct?</th><th></th></tr></thead><tbody>`+
+    p.equityFundings.map(e=>`<tr>
+      <td>${e.dt}</td><td style="font-weight:600">${e.inv}</td><td>${e.desc}</td>
+      <td class="r" style="font-weight:700">${F(e.amt)}</td>
+      <td>${e.rate?e.rate+'% pref':'—'}</td>
+      <td><span class="st ${e.direct==='yes'?'st-b':'st-gray'}">${e.direct==='yes'?'Direct to vendor':'To project acct'}</span></td>
+      <td><button class="btn btn-d btn-xs" onclick="rmEq('${e.id}')"><i class="ti ti-x"></i></button></td>
+    </tr>`).join('')+`</tbody><tfoot><tr class="tr-tot"><td colspan="3">TOTAL</td><td class="r">${F(c.eqTot)}</td><td colspan="3"></td></tr></tfoot></table>`
+  :'<div class="empty"><i class="ti ti-users"></i>No pre-close equity fundings logged yet.</div>';
+  $('eq-reimb').innerHTML=c.eqTot>0?`
+    <div class="irow"><span class="ik">Principal to Reimburse</span><span class="iv">${F(c.eqTot)}</span></div>
+    <div class="irow"><span class="ik">Preferred Return Accrued</span><span class="iv" style="color:var(--amber)">${F(prefAmt)}</span></div>
+    <div class="irow" style="font-weight:700"><span class="ik">Total Due at Closing</span><span class="iv" style="color:var(--green);font-size:15px">${F(c.eqTot+prefAmt)}</span></div>
+    <div style="margin-top:8px;font-size:11px;color:var(--g5)">This amount is reimbursed from lender proceeds at land closing — principal first, then preferred return.</div>`
+  :'<div style="color:var(--g5);font-size:12px;padding:8px 0">Log pre-close equity fundings above to auto-calculate reimbursement.</div>';
+}
+
+function rExp(p){
+  const tot=p.expenses.reduce((s,e)=>s+(+e.amt||0),0);
+  $('exp-list').innerHTML=p.expenses.length?`<table><thead><tr><th>Date</th><th>Payee</th><th>Category</th><th>Phase</th><th class="r">Amount</th><th>Paid By</th><th>Budget Line</th><th>Reimb?</th><th></th></tr></thead><tbody>`+
+    p.expenses.map(e=>`<tr>
+      <td>${e.dt}</td><td style="font-weight:600">${e.pay}</td><td>${e.cat}</td><td>${e.phase}</td>
+      <td class="r" style="font-weight:600">${F(e.amt)}</td><td>${e.by}</td><td>${e.line}</td>
+      <td><span class="st ${e.reimb==='yes'?'st-g':e.reimb==='pending'?'st-a':'st-gray'}">${e.reimb==='yes'?'✓ Reimbursed':e.reimb==='pending'?'Pending':'No'}</span></td>
+      <td><button class="btn btn-d btn-xs" onclick="rmExp('${e.id}')"><i class="ti ti-x"></i></button></td>
+    </tr>`).join('')+`</tbody><tfoot><tr class="tr-tot"><td colspan="4">TOTAL EXPENSES</td><td class="r">${F(tot)}</td><td colspan="4"></td></tr></tfoot></table>`
+  :'<div class="empty"><i class="ti ti-receipt"></i>No expenses logged yet.<br>Track all pre-close invoices, soft cost payments, and reimbursements here.</div>';
+}
+
+function rDraws(p,c){
+  $('dr-top').innerHTML=`
+    <div class="mc"><div class="l">Total Draws Submitted</div><div class="v">${p.draws.length}</div></div>
+    <div class="mc"><div class="l">Hard Costs Drawn</div><div class="v">${F(p.draws.reduce((s,d)=>s+(+d.hard||0),0))}</div></div>
+    <div class="mc"><div class="l">Interest Drawn</div><div class="v" style="color:var(--red)">${F(p.draws.reduce((s,d)=>s+(+d.int||0),0))}</div></div>
+    <div class="mc ${c.remain<0?'mc-danger':''}"><div class="l">Remaining to Draw</div><div class="v">${F(c.remain)}</div><div class="s">From lender holdback</div></div>`;
+  $('draws-list').innerHTML=p.draws.length?`<table><thead><tr><th>#</th><th>Month</th><th>Lender</th><th>Contractor</th><th>Description</th><th class="r">Hard</th><th class="r">Soft</th><th class="r">Interest</th><th class="r">Dev Fee</th><th class="r">Other</th><th class="r">Total</th><th></th></tr></thead><tbody>`+
+    p.draws.map((d,i)=>{
+      const tot=(+d.hard||0)+(+d.soft||0)+(+d.int||0)+(+d.dev||0)+(+d.oth||0);
+      return `<tr><td style="color:var(--g4);font-weight:600">${i+1}</td><td>${d.mo}</td><td>${d.lend||'—'}</td><td>${d.vend}</td><td>${d.desc}</td>
+        <td class="r">${d.hard>0?F(d.hard):'—'}</td><td class="r">${d.soft>0?F(d.soft):'—'}</td>
+        <td class="r" style="color:var(--red)">${d.int>0?F(d.int):'—'}</td><td class="r">${d.dev>0?F(d.dev):'—'}</td><td class="r">${d.oth>0?F(d.oth):'—'}</td>
+        <td class="r" style="font-weight:700">${F(tot)}</td>
+        <td><button class="btn btn-d btn-xs" onclick="rmDr('${d.id}')"><i class="ti ti-x"></i></button></td></tr>`;
+    }).join('')+`</tbody><tfoot><tr class="tr-tot"><td colspan="5">TOTAL</td>
+      <td class="r">${F(p.draws.reduce((s,d)=>s+(+d.hard||0),0))}</td>
+      <td class="r">${F(p.draws.reduce((s,d)=>s+(+d.soft||0),0))}</td>
+      <td class="r">${F(p.draws.reduce((s,d)=>s+(+d.int||0),0))}</td>
+      <td class="r">${F(p.draws.reduce((s,d)=>s+(+d.dev||0),0))}</td>
+      <td class="r">${F(p.draws.reduce((s,d)=>s+(+d.oth||0),0))}</td>
+      <td class="r">${F(c.drawn)}</td><td></td></tr></tfoot></table>`
+  :'<div class="empty"><i class="ti ti-crane"></i>No draws submitted yet.<br>Click "New Draw" to log the first construction draw.</div>';
+}
+
+function rCOR(p,c){
+  $('cor-top').innerHTML=c.cBgt>0?`<div class="alert ${c.cRem<0?'al-r':c.cRem<c.cBgt*.2?'al-a':'al-g'}"><i class="ti ti-${c.cRem<0?'alert-triangle':c.cRem<c.cBgt*.2?'alert-triangle':'checks'}"></i>Contingency: <strong>${F(c.cRem)}</strong> remaining of ${F(c.cBgt)} original (${pct(c.cRem,c.cBgt)}%). Total COR drawn from contingency: ${F(c.cUsed)}.</div>`:'' ;
+  const cs=$('cor-sum-card');
+  $('cor-list').innerHTML=p.cors.length?`<table><thead><tr><th>COR #</th><th>Date</th><th>Description</th><th>Requested By</th><th>Category</th><th class="r">Amount</th><th>Funded From</th><th>Status</th><th></th></tr></thead><tbody>`+
+    p.cors.map((r,i)=>`<tr>
+      <td style="font-weight:700;color:var(--red)">COR-${String(i+1).padStart(3,'0')}</td>
+      <td>${r.dt}</td><td>${r.desc}</td><td>${r.by}</td><td>${r.cat}</td>
+      <td class="r" style="color:var(--red);font-weight:700">${F(r.amt)}</td>
+      <td>${r.fund}</td>
+      <td><span class="st ${r.status==='approved'?'st-g':'st-a'}">${r.status==='approved'?'Approved':'Pending'}</span></td>
+      <td><button class="btn btn-d btn-xs" onclick="rmCOR('${r.id}')"><i class="ti ti-x"></i></button></td>
+    </tr>`).join('')+'</tbody></table>'
+  :'<div class="empty"><i class="ti ti-checks"></i>No change orders logged.<br>Budget is on track — click "Log COR" if an unexpected cost arises.</div>';
+  cs.style.display=p.cors.length?'block':'none';
+  if(p.cors.length)$('cor-sum').innerHTML=`
+    <div class="irow"><span class="ik">Original Contingency Budget</span><span class="iv">${F(c.cBgt)}</span></div>
+    <div class="irow"><span class="ik">COR Total (from contingency)</span><span class="iv" style="color:var(--red)">–${F(c.cUsed)}</span></div>
+    <div class="irow" style="font-weight:700"><span class="ik">Contingency Remaining</span><span class="iv" style="font-size:15px;color:${c.cRem<0?'var(--red)':c.cRem<c.cBgt*.2?'var(--amber)':'var(--green)'}">${F(c.cRem)}</span></div>`;
+}
+
+function rInt(p,c){
+  const rate=(p.lenders.find(l=>l.rate>0)?.rate||10.5);
+  const mon=rate/100/12;
+  $('int-top').innerHTML=`
+    <div class="mc"><div class="l">Primary Lender Rate</div><div class="v">${rate}%</div><div class="s">Annual / construction period</div></div>
+    <div class="mc mc-danger"><div class="l">Monthly Int. (full draw)</div><div class="v" style="color:var(--red)">${F(c.mInt)}</div><div class="s">At maximum drawdown</div></div>
+    <div class="mc"><div class="l">Total Committed (All Lenders)</div><div class="v">${F(c.src)}</div></div>`;
+  const totalLoan=c.src||1000000;
+  const n=Math.max(p.draws.length,8);
+  const mths=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const now=new Date();
+  let cum=0,cumI=0,totI=0,rows='';
+  for(let i=0;i<n;i++){
+    const dr=p.draws[i]?(+p.draws[i].hard||0)+(+p.draws[i].soft||0)+(+p.draws[i].dev||0)+(+p.draws[i].oth||0):Math.round(totalLoan/n);
+    cum+=dr;
+    const int=Math.round(cum*mon);cumI+=int;totI+=int;
+    const mo=mths[(now.getMonth()+i)%12]+' '+(now.getFullYear()+Math.floor((now.getMonth()+i)/12));
+    rows+=`<tr>
+      <td>${i+1}</td>
+      <td>${p.draws[i]?p.draws[i].mo:mo}</td>
+      <td class="r"><input class="inp-y" type="number" value="${dr}" id="icd-${i}" style="width:120px" onchange="recalcI()"></td>
+      <td class="r" id="icc-${i}">${F(cum)}</td>
+      <td class="r" style="color:var(--red);font-weight:600" id="ici-${i}">${F(int)}</td>
+      <td class="r" id="icI-${i}">${F(cumI)}</td>
+      <td>${p.draws[i]?`<span class="st st-g">Funded</span>`:`<span class="st st-gray">Projected</span>`}</td>
+    </tr>`;
+  }
+  $('int-body').innerHTML=rows;
+  $('int-foot').innerHTML=`<tr class="tr-tot"><td colspan="4">TOTAL PROJECTED INTEREST</td><td class="r" style="color:var(--red)">${F(totI)}</td><td colspan="2"></td></tr>`;
+}
+
+function recalcI(){
+  const p=S.p;if(!p)return;
+  const rate=(p.lenders.find(l=>l.rate>0)?.rate||10.5)/100/12;
+  const n=Math.max(p.draws.length,8);
+  let cum=0,cumI=0,totI=0;
+  for(let i=0;i<n;i++){
+    const el=$('icd-'+i);const dr=el?+el.value||0:0;
+    cum+=dr;const int=Math.round(cum*rate);cumI+=int;totI+=int;
+    const c=$('icc-'+i),ii=$('ici-'+i),cI=$('icI-'+i);
+    if(c)c.textContent=F(cum);if(ii)ii.textContent=F(int);if(cI)cI.textContent=F(cumI);
+  }
+  $('int-foot').innerHTML=`<tr class="tr-tot"><td colspan="4">TOTAL PROJECTED INTEREST</td><td class="r" style="color:var(--red)">${F(totI)}</td><td colspan="2"></td></tr>`;
+}
+
+function rRent(p){
+  if(!p)return;
+  const noi=p.annualRent||0,esc=p.rentEsc||7.5,escY=p.escYrs||5,term=p.leaseTerm||20,opts=p.leaseOpts||3,optY=p.optYrs||5;
+  $('rent-top').innerHTML=`
+    <div class="mc"><div class="l">Year 1 Annual Rent</div><div class="v">${F(noi)}</div><div class="s">${F(Math.round(noi/12))}/month</div></div>
+    <div class="mc"><div class="l">Escalation</div><div class="v">${esc}%</div><div class="s">Every ${escY} years</div></div>
+    <div class="mc"><div class="l">Total Lease</div><div class="v">${term} yrs</div><div class="s">+ ${opts} options × ${optY} yrs each</div></div>`;
+  if(!noi){$('rent-body').innerHTML='<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--g5)">Set Annual NOI in Project Info to generate rent schedule.</td></tr>';$('rent-foot').innerHTML='';return;}
+  let cur=noi,y=1,totR=0,rows='';
+  while(y<=term){
+    const ey=Math.min(y+escY-1,term);
+    const pt=Math.round(cur*(ey-y+1));totR+=pt;
+    rows+=`<tr><td>Primary</td><td>Years ${y}–${ey}</td><td>${y===1?'—':'+'+esc+'%'}</td>
+      <td class="r" style="font-weight:600">${F(cur)}</td><td class="r">${F(Math.round(cur/12))}</td>
+      <td class="r">${F(pt)}</td><td><span class="st st-b">Primary</span></td></tr>`;
+    y=ey+1;cur=Math.round(cur*(1+esc/100));
+  }
+  for(let o=1;o<=opts;o++){
+    const sy=term+(o-1)*optY+1,ey=sy+optY-1;
+    const pt=Math.round(cur*optY);totR+=pt;
+    rows+=`<tr><td>Option ${o}</td><td>Years ${sy}–${ey}</td><td>+${esc}%</td>
+      <td class="r" style="font-weight:600">${F(cur)}</td><td class="r">${F(Math.round(cur/12))}</td>
+      <td class="r">${F(pt)}</td><td><span class="st st-p">Option</span></td></tr>`;
+    cur=Math.round(cur*(1+esc/100));
+  }
+  $('rent-body').innerHTML=rows;
+  $('rent-foot').innerHTML=`<tr class="tr-g"><td colspan="3">TOTAL RENT OVER FULL TERM</td><td colspan="2"></td><td class="r">${F(totR)}</td><td></td></tr>`;
+}
+
+function rSale(p,c){
+  const s=p.sale;
+  $('sale-form').innerHTML=`
+    <div class="fr"><div class="fl">Buyer Name</div><input class="inp" value="${s.buyer||''}" placeholder="Meridian Net Lease Fund III" onchange="S.p.sale.buyer=this.value"></div>
+    <div class="fr"><div class="fl">Buyer Type</div><input class="inp" value="${s.type||''}" placeholder="1031 Exchange / Institutional" onchange="S.p.sale.type=this.value"></div>
+    <div class="fr"><div class="fl">Listing Broker</div><input class="inp" value="${s.broker||''}" placeholder="CBRE / Marcus & Millichap..." onchange="S.p.sale.broker=this.value"></div>
+    <div class="fr"><div class="fl">Est. Closing Date</div><input class="inp" value="${s.date||''}" placeholder="Q4 2026" onchange="S.p.sale.date=this.value"></div>
+    <div class="fr"><div class="fl">Broker Commission (%)</div><input class="inp" type="number" step="0.25" value="${s.brokerPct||3}" onchange="S.p.sale.brokerPct=+this.value;calcSale()"></div>
+    <div class="fr"><div class="fl">Loan Exit Fee (%)</div><input class="inp" type="number" step="0.1" value="${s.exitFeePct||1}" onchange="S.p.sale.exitFeePct=+this.value;calcSale()"></div>
+    <div class="fr"><div class="fl">Closing Costs (%)</div><input class="inp" type="number" step="0.1" value="${s.closingCostPct||1.25}" onchange="S.p.sale.closingCostPct=+this.value;calcSale()"></div>
+    <div class="fr"><div class="fl">OZ Zone</div><select class="sel" onchange="S.p.isOZ=this.value==='1';rAll()">
+      <option value="0" ${!p.isOZ?'selected':''}>No</option><option value="1" ${p.isOZ?'selected':''}>Yes — Opportunity Zone</option>
+    </select></div>`;
+  const sc=$('sl-cap'),sb=$('sl-brok'),sn=$('sl-noi');
+  if(sc&&!sc._i){sc.value=s.exitCap||5.5;sc._i=true;sb.value=s.brokerPct||3;sn.min=Math.max(50000,(p.annualRent||285000)*.4);sn.max=Math.max((p.annualRent||285000)*2.5,800000);sn.step=5000;sn.value=p.annualRent||285000;}
+  calcSale();
+}
+
+function calcSale(){
+  const p=S.p;if(!p)return;
+  const sc=$('sl-cap'),sb=$('sl-brok'),sn=$('sl-noi');
+  if(!sc)return;
+  const cap=+sc.value||0,brok=+sb.value||3;
+  if(sn&&!sn._s){sn.min=Math.max(50000,(p.annualRent||285000)*.4);sn.max=Math.max((p.annualRent||285000)*2.5,800000);sn.step=5000;sn.value=p.annualRent||285000;sn._s=true;}
+  const noi=+sn?.value||p.annualRent||0;
+  p.sale.exitCap=cap;
+  $('sl-cap-v').textContent=cap.toFixed(2)+'%';
+  $('sl-brok-v').textContent=brok.toFixed(2)+'%';
+  $('sl-noi-v').textContent=F(noi);
+  const c=C(p);
+  const sale=cap>0&&noi>0?Math.round(noi/(cap/100)):0;
+  const bA=Math.round(sale*brok/100),efA=Math.round(sale*(p.sale.exitFeePct/100)),ccA=Math.round(sale*(p.sale.closingCostPct/100));
+  const profit=sale?sale-c.total-bA-efA-ccA:null;
+  const bc=c.total>0&&noi>0?noi/c.total*100:0;
+  const sp=cap>0?(bc-cap)*100:0;
+  const tc=TC[p.tenant]||TC.Custom;
+  const ok=sp>=tc.floor;
+  $('sale-result').innerHTML=sale?`<div style="height:14px"></div><table><tbody>
+    <tr><td>Sale Price — NOI ${F(noi)} ÷ ${cap.toFixed(2)}% cap</td><td class="r" style="color:var(--green);font-weight:700;font-size:15px">${F(sale)}</td></tr>
+    <tr><td>Less: All-In Project Cost</td><td class="r" style="color:var(--red)">(${F(c.total)})</td></tr>
+    <tr><td>Less: Broker Commission (${brok.toFixed(2)}%)</td><td class="r" style="color:var(--red)">(${F(bA)})</td></tr>
+    <tr><td>Less: Loan Exit Fee (${p.sale.exitFeePct}%)</td><td class="r" style="color:var(--red)">(${F(efA)})</td></tr>
+    <tr><td>Less: Closing Costs (${p.sale.closingCostPct}%)</td><td class="r" style="color:var(--red)">(${F(ccA)})</td></tr>
+    <tr style="font-weight:700;background:var(--g1)"><td style="font-size:14px">NET PROFIT</td><td class="r" style="color:${profit>0?'var(--green)':'var(--red)'};font-size:16px">${F(profit)}</td></tr>
+    <tr><td>Build Cap / Yield on Cost</td><td class="r">${bc.toFixed(2)}%</td></tr>
+    <tr><td>Spread vs Exit Cap</td><td class="r" style="color:${ok?'var(--green)':'var(--red)'};font-weight:700">${sp.toFixed(0)} bps ${ok?'✓ Above floor':'⚠ Below '+tc.floor+' bps floor'}</td></tr>
+  </tbody></table>
+  <div class="pbox ${profit>0?'pbox-g':'pbox-r'}">
+    <div style="font-size:10px;font-weight:700;letter-spacing:.05em;color:${profit>0?'var(--green)':'var(--red)'};margin-bottom:6px">NET PROFIT AT ${cap.toFixed(2)}% EXIT CAP</div>
+    <div style="font-size:34px;font-weight:800;letter-spacing:-.02em;color:${profit>0?'var(--green)':'var(--red)'}">${F(profit)}</div>
+    <div style="font-size:12px;color:${profit>0?'var(--green)':'var(--red)'};margin-top:5px">${p.isOZ?'⭐ Opportunity Zone |':''} Sale ${F(sale)} | Spread ${sp.toFixed(0)} bps | Build Cap ${bc.toFixed(2)}%</div>
+  </div>`:'<div style="text-align:center;color:var(--g4);padding:20px">Move the Exit Cap Rate slider to calculate profit and spread.</div>';
+}
+
+function rPnL(p,c){
+  const s=p.sale,eC=s.exitCap||0,noi=p.annualRent||0;
+  const sale=eC>0&&noi>0?Math.round(noi/(eC/100)):0;
+  const bA=sale?Math.round(sale*s.brokerPct/100):0,efA=sale?Math.round(sale*s.exitFeePct/100):0,ccA=sale?Math.round(sale*s.closingCostPct/100):0;
+  const profit=sale?sale-c.total-bA-efA-ccA:null;
+  const expTot=p.expenses.reduce((s,e)=>s+(+e.amt||0),0);
+  const eqTot=p.equityFundings.reduce((s,e)=>s+(+e.amt||0),0);
+  $('pnl-body').innerHTML=`<table><thead><tr><th>Line Item</th><th class="r">Budget</th><th class="r">Actual / Projected</th></tr></thead><tbody>
+    <tr class="sec-div"><td colspan="3">INCOME</td></tr>
+    <tr><td>Exit Sale Price — ${eC||'—'}% cap × Annual NOI ${F(noi)}</td><td class="r" style="color:var(--green);font-weight:700">${sale?F(sale):'Set exit cap in Sale & Exit'}</td><td class="r" style="color:var(--g5)">TBD at sale</td></tr>
+    <tr class="sec-div"><td colspan="3">LAND & FEASIBILITY COSTS</td></tr>
+    <tr><td>Land Purchase</td><td class="r">${F(c.land)}</td><td class="r">${F(c.land)}</td></tr>
+    <tr><td>Feasibility (Environmental / Geotech)</td><td class="r">${F(c.feas)}</td><td class="r">${F(p.budgetLines.filter(l=>l.cat==='Feasibility').reduce((s,l)=>s+(+l.act||0),0))}</td></tr>
+    <tr class="sec-div"><td colspan="3">HARD COSTS</td></tr>
+    <tr><td>Hard Costs — GC, TI, Equipment</td><td class="r">${F(c.hb)}</td><td class="r">${F(c.hbA)}</td></tr>
+    <tr><td>Hard Cost Contingency (5%)</td><td class="r">${F(c.hcont)}</td><td class="r" style="color:${c.cUsed>0?'var(--amber)':'var(--g5)'}">–${F(c.cUsed)} used</td></tr>
+    <tr class="sec-div"><td colspan="3">SOFT COSTS</td></tr>
+    <tr><td>Soft Costs — Arch, Legal, Title, Permits, Engineering...</td><td class="r">${F(c.sb)}</td><td class="r">${F(c.sbA)}</td></tr>
+    <tr><td>Interest Reserve / Debt Service</td><td class="r">${F(p.budgetLines.find(l=>l.desc.includes('Interest Reserve'))?.bgt||0)}</td><td class="r">${F(p.draws.reduce((s,d)=>s+(+d.int||0),0))}</td></tr>
+    <tr><td>Development Fee (3% of Hard+Soft)</td><td class="r">${F(c.devfee)}</td><td class="r" style="color:var(--g5)">At close</td></tr>
+    <tr class="tr-tot"><td>TOTAL ALL-IN COST</td><td class="r">${F(c.total)}</td><td class="r">${F(c.totalA)}</td></tr>
+    <tr class="sec-div"><td colspan="3">SELLING COSTS (at exit)</td></tr>
+    <tr><td>Broker Commission (${s.brokerPct}%)</td><td class="r" style="color:var(--red)">${sale?F(bA):'—'}</td><td class="r" style="color:var(--g5)">TBD</td></tr>
+    <tr><td>Loan Exit Fee (${s.exitFeePct}%)</td><td class="r" style="color:var(--red)">${sale?F(efA):'—'}</td><td class="r" style="color:var(--g5)">TBD</td></tr>
+    <tr><td>Closing Costs (${s.closingCostPct}%)</td><td class="r" style="color:var(--red)">${sale?F(ccA):'—'}</td><td class="r" style="color:var(--g5)">TBD</td></tr>
+  </tbody></table>
+  <div class="pbox ${profit===null?'':profit>0?'pbox-g':'pbox-r'}" style="margin-top:14px${profit===null?';background:var(--g2);border:1px solid var(--g3)':''}">
+    <div style="font-size:10px;font-weight:700;letter-spacing:.05em;margin-bottom:6px;color:${profit===null?'var(--g5)':profit>0?'var(--green)':'var(--red)'}">NET PROFIT</div>
+    <div style="font-size:30px;font-weight:800;letter-spacing:-.02em;color:${profit===null?'var(--g5)':profit>0?'var(--green)':'var(--red)'}">${profit!==null?F(profit):'Enter exit cap rate in Sale & Exit tab'}</div>
+  </div>
+  <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:var(--g5)">
+    ${p.draws.length?`<span>Draws: ${p.draws.length} | Total drawn: ${F(c.drawn)} | Remaining: ${F(c.remain)}</span>`:''}
+    ${p.cors.length?`<span style="color:var(--amber)">CORs: ${p.cors.length} | Contingency used: ${F(c.cUsed)} | Left: ${F(c.cRem)}</span>`:''}
+    ${expTot?`<span>Expenses logged: ${F(expTot)}</span>`:''}
+    ${eqTot?`<span>Pre-close equity: ${F(eqTot)}</span>`:''}
+  </div>`;
+}
+
+// ── CRUD ──────────────────────────────────────────────
+function addLender(){const p=S.p;if(!p)return;const g=id=>$(id).value;p.lenders.push({id:uid(),name:g('ml-name')||'Lender',role:g('ml-role'),amt:+g('ml-amt')||0,rate:+g('ml-rate')||0,orig:+g('ml-orig')||0,fundedAtClose:+g('ml-close')||0,holdback:+g('ml-hold')||0,pref:+g('ml-pref')||0,term:+g('ml-term')||0,exitFee:+g('ml-exit')||0,notes:g('ml-notes')});cm('mo-lender');['ml-name','ml-amt','ml-rate','ml-orig','ml-close','ml-hold','ml-pref','ml-term','ml-exit','ml-notes'].forEach(id=>{$(id).value='';});rAll();}
+function rmL(id){S.p.lenders=S.p.lenders.filter(l=>l.id!==id);rAll();}
+function updB(id,f,v){const l=S.p.budgetLines.find(x=>x.id===id);if(l){l[f]=f==='bgt'||f==='act'?+v||0:v;}rAll();}
+function rmB(id){S.p.budgetLines=S.p.budgetLines.filter(l=>l.id!==id);rAll();}
+function addBLine(){const c=prompt('Category (Land/Feasibility/Hard Costs/Soft Costs/Dev Fee):');if(!c)return;const d=prompt('Description:');if(!d)return;S.p.budgetLines.push({id:uid(),cat:c,desc:d,bgt:0,act:0,notes:'',auto:false});rAll();}
+function autoCalc(){const p=S.p;if(!p)return;const hb=p.budgetLines.filter(l=>l.cat==='Hard Costs'&&!l.auto).reduce((s,l)=>s+(+l.bgt||0),0);const sb=p.budgetLines.filter(l=>l.cat==='Soft Costs'&&!l.auto).reduce((s,l)=>s+(+l.bgt||0),0);const hc=p.budgetLines.find(l=>l.auto==='hcont');const sc=p.budgetLines.find(l=>l.auto==='scont');const df=p.budgetLines.find(l=>l.auto==='devfee');if(hc)hc.bgt=Math.round(hb*.05);if(sc)sc.bgt=Math.round(sb*.05);if(df)df.bgt=Math.round((hb+sb)*.03);rAll();}
+function uDD(id,f,v){const d=S.p.ddItems.find(x=>x.id===id);if(d)d[f]=f==='bgt'||f==='act'?+v||0:v;rAll();}
+function rmDD(id){S.p.ddItems=S.p.ddItems.filter(x=>x.id!==id);rAll();}
+function addDD(){S.p.ddItems.push({id:uid(),name:'New DD Item',vendor:'',bgt:0,act:0,status:'pending',due:'',done:'',notes:''});rAll();}
+function uEnt(id,f,v){const e=S.p.entItems.find(x=>x.id===id);if(e)e[f]=v;rAll();}
+function rmEnt(id){S.p.entItems=S.p.entItems.filter(x=>x.id!==id);rAll();}
+function addEnt(){S.p.entItems.push({id:uid(),type:'New Permit / Approval',submitted:'',hearing:'',approved:'',status:'pending',notes:''});rAll();}
+function submitEquity(){const p=S.p;if(!p)return;const g=id=>$(id).value;p.equityFundings.push({id:uid(),dt:g('eq-dt')||'—',inv:g('eq-inv')||'—',desc:g('eq-desc')||'—',amt:+g('eq-amt')||0,rate:+g('eq-rate')||0,direct:g('eq-direct')});cm('mo-equity');['eq-dt','eq-inv','eq-desc','eq-amt','eq-rate'].forEach(id=>{$(id).value='';});rAll();}
+function rmEq(id){S.p.equityFundings=S.p.equityFundings.filter(e=>e.id!==id);rAll();}
+function submitDraw(){const p=S.p;if(!p)return;const g=id=>$(id).value;p.draws.push({id:uid(),mo:g('dr-mo')||'—',lend:g('dr-lend'),vend:g('dr-vend')||'—',desc:g('dr-desc')||'—',hard:+g('dr-hard')||0,soft:+g('dr-soft')||0,int:+g('dr-int')||0,dev:+g('dr-dev')||0,oth:+g('dr-oth')||0});cm('mo-draw');['dr-mo','dr-lend','dr-vend','dr-desc','dr-hard','dr-soft','dr-int','dr-dev','dr-oth'].forEach(id=>{$(id).value='';});rAll();}
+function rmDr(id){S.p.draws=S.p.draws.filter(d=>d.id!==id);rAll();}
+function submitCOR(){const p=S.p;if(!p)return;const amt=+$('cor-amt').value||0;if(!amt)return;const fm={'cont':'Contingency Budget','owner':'Owner Equity','lender':'Lender (CO)','tenant':'Tenant Direct'};const fu=$('cor-fund').value;p.cors.push({id:uid(),dt:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),desc:$('cor-desc').value||'—',by:$('cor-by').value||'—',cat:$('cor-cat').value,amt,fund:fm[fu],status:'pending'});if(fu==='cont')p.corFromCont=(p.corFromCont||0)+amt;cm('mo-cor');['cor-desc','cor-amt','cor-by'].forEach(id=>{$(id).value='';});rAll();}
+function rmCOR(id){const p=S.p;const r=p.cors.find(x=>x.id===id);if(r&&r.fund==='Contingency Budget')p.corFromCont=Math.max(0,(p.corFromCont||0)-r.amt);p.cors=p.cors.filter(x=>x.id!==id);rAll();}
+function submitExp(){const p=S.p;if(!p)return;const g=id=>$(id).value;p.expenses.push({id:uid(),dt:g('ex-dt')||'—',pay:g('ex-pay')||'—',cat:g('ex-cat')||'—',amt:+g('ex-amt')||0,by:g('ex-by')||'—',line:g('ex-line')||'—',phase:g('ex-phase'),reimb:g('ex-reimb')});cm('mo-exp');['ex-dt','ex-pay','ex-cat','ex-amt','ex-by','ex-line'].forEach(id=>{$(id).value='';});rAll();}
+function rmExp(id){S.p.expenses=S.p.expenses.filter(e=>e.id!==id);rAll();}
+
+// ── LOCALSTORAGE SAVE / LOAD ──────────────────────────
+// ── SUPABASE CONFIG ──────────────────────────────────
+const SB_URL='https://chdlaqblzuppxzxuzffi.supabase.co';
+const SB_KEY='sb_publishable_qDQARzOcjcHNnaRUdfxQ4Q_r5Pg4rMg';
+const SB_RECORD_ID='rcp_main';
+const SAVE_KEY='rcp_deal_tracker_v3'; // localStorage fallback
+
+let _saveTimer=null;
+let _isSaving=false;
+let _undoStack=[],_inUndo=false;
+
+function sbHeaders(){
+  return{
+    'apikey':SB_KEY,
+    'Authorization':'Bearer '+SB_KEY,
+    'Content-Type':'application/json',
+    'Prefer':'resolution=merge-duplicates'
+  };
+}
+
+// Debounced save — waits 1.5s after last change before saving to Supabase
+function saveData(){
+  // Undo snapshot
+  if(!_inUndo&&S.projects.length){try{const _s=JSON.stringify({projects:S.projects,cur:S.cur});if(!_undoStack.length||_undoStack[_undoStack.length-1]!==_s){_undoStack.push(_s);if(_undoStack.length>10)_undoStack.shift();const _ub=$("topbar-undo");if(_ub)_ub.disabled=_undoStack.length<2;}}catch(e){}}
+  // Always save to localStorage immediately as backup
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify({projects:S.projects,cur:S.cur}));}catch(e){}
+  // Debounce Supabase save
+  clearTimeout(_saveTimer);
+  _saveTimer=setTimeout(()=>saveToSupabase(),1500);
+}
+
+async function saveToSupabase(){
+  if(_isSaving)return;
+  _isSaving=true;
+  showSaveToast('⏳ Syncing...',true);
+  try{
+    const payload={projects:S.projects,cur:S.cur,updatedAt:new Date().toISOString()};
+    const res=await fetch(`${SB_URL}/rest/v1/rcp_data`,{
+      method:'POST',
+      headers:sbHeaders(),
+      body:JSON.stringify({id:SB_RECORD_ID,payload})
+    });
+    if(res.ok){
+      showSaveToast('☁️ Synced — all team members updated');
+    } else {
+      const err=await res.text();
+      console.warn('Supabase save error:',err);
+      showSaveToast('⚠️ Sync failed — saved locally only');
+    }
+  }catch(e){
+    console.warn('Supabase error:',e);
+    showSaveToast('⚠️ Offline — saved locally');
+  }finally{_isSaving=false;}
+}
+
+async function loadData(){
+  showSaveToast('⏳ Loading from cloud...',true);
+  try{
+    const res=await fetch(`${SB_URL}/rest/v1/rcp_data?id=eq.${SB_RECORD_ID}&select=payload`,{
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+    });
+    if(res.ok){
+      const rows=await res.json();
+      if(rows&&rows.length&&rows[0].payload&&rows[0].payload.projects&&rows[0].payload.projects.length){
+        S.projects=rows[0].payload.projects;
+        S.cur=rows[0].payload.cur||0;
+        // Also update localStorage backup
+        try{localStorage.setItem(SAVE_KEY,JSON.stringify({projects:S.projects,cur:S.cur}));}catch(e){}
+        showSaveToast('☁️ Loaded from cloud');
+        return true;
+      }
+    }
+  }catch(e){console.warn('Cloud load failed, trying local:',e);}
+  // Fallback to localStorage
+  try{
+    const raw=localStorage.getItem(SAVE_KEY);
+    if(raw){
+      const d=JSON.parse(raw);
+      if(d&&d.projects&&d.projects.length){
+        S.projects=d.projects;
+        S.cur=d.cur||0;
+        showSaveToast('💾 Loaded from local backup');
+        return true;
+      }
+    }
+  }catch(e){console.warn('Local load failed:',e);}
+  return false;
+}
+
+// Manual force-sync button
+async function forceSave(){
+  clearTimeout(_saveTimer);
+  await saveToSupabase();
+}
+
+// Manual reload from cloud
+async function reloadFromCloud(){
+  if(!confirm('Reload latest data from cloud? Any unsaved local changes will be lost.'))return;
+  const ok=await loadData();
+  if(ok){refSel();rAll();}
+  else showSaveToast('⚠️ No cloud data found');
+}
+
+function showSaveToast(msg,persist){
+  let t=$('save-toast');
+  if(!t){
+    t=document.createElement('div');
+    t.id='save-toast';
+    t.style.cssText='position:fixed;bottom:20px;right:20px;background:#1E293B;color:#fff;padding:8px 16px;border-radius:6px;font-size:12px;font-weight:500;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;max-width:280px';
+    document.body.appendChild(t);
+  }
+  t.textContent=msg||'✓ Saved';
+  t.style.opacity='1';
+  clearTimeout(t._t);
+  if(!persist) t._t=setTimeout(()=>{t.style.opacity='0';},3000);
+}
+
+
+// ── GLOBAL UNDO — 10 steps, Ctrl+Z ─────────────────────────────
+function undoAction(){
+  if(_undoStack.length<2){showSaveToast('↩ Nothing more to undo');return;}
+  _undoStack.pop();
+  _inUndo=true;
+  try{
+    const prev=JSON.parse(_undoStack[_undoStack.length-1]);
+    S.projects=prev.projects;S.cur=Math.min(prev.cur,Math.max(0,S.projects.length-1));
+    refSel();rAll();
+  }catch(e){}
+  _inUndo=false;
+  const left=_undoStack.length-1;
+  showSaveToast('↩ Undone — '+left+' step'+(left!==1?'s':'')+' left');
+  const b=$('topbar-undo');if(b)b.disabled=_undoStack.length<2;
+}
+function confirmReset(){
+  if(!confirm('⚠️ DELETE ALL projects?\n\nThis erases all data for the ENTIRE TEAM and cannot be undone.\n\nClick OK to confirm.'))return;
+  clearAllData();
+}
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='z'&&!e.shiftKey){e.preventDefault();undoAction();}
+});
+function clearAllData(){
+  if(!confirm('Delete ALL projects from cloud and local? This cannot be undone for ALL team members.'))return;
+  // Clear Supabase
+  fetch(`${SB_URL}/rest/v1/rcp_data?id=eq.${SB_RECORD_ID}`,{method:'DELETE',headers:sbHeaders()})
+    .catch(e=>console.warn(e));
+  localStorage.removeItem(SAVE_KEY);
+  S.projects=[];S.cur=0;
+  location.reload();
+}
+
+function exportData(){
+  if(!S.projects.length){alert('No projects to export.');return;}
+  const data=JSON.stringify({projects:S.projects,cur:S.cur,exportedAt:new Date().toISOString(),version:'v3'},null,2);
+  const blob=new Blob([data],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const projName=S.p?S.p.name.replace(/[^a-zA-Z0-9]/g,'_').substring(0,30):'RCP';
+  a.href=url;
+  a.download=`RCP_DealTracker_${projName}_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showSaveToast('✓ Exported! Share the .json file with your team.');
+}
+
+function importData(input){
+  const file=input.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!data.projects||!Array.isArray(data.projects)){alert('Invalid file — not an RCP Deal Tracker export.');return;}
+      if(!confirm(`Import ${data.projects.length} project(s) from "${file.name}"?\n\nThis will REPLACE all current data for the ENTIRE TEAM.`))return;
+      S.projects=data.projects;
+      S.cur=data.cur||0;
+      await saveToSupabase();
+      refSel();
+      rAll();
+      showSaveToast('✓ Imported & synced to cloud for all team members!');
+    }catch(err){alert('Could not read file. Make sure it is a valid RCP Deal Tracker export.\n\n'+err.message);}
+  };
+  reader.readAsText(file);
+  input.value=''; // reset so same file can be imported again
+}
+
+// auto-save is called at end of rAll directly — see below
+
+// ── PROJECT MGMT ──────────────────────────────────────
+function createProj(){const g=id=>$(id).value;const p=newP({name:g('np-name'),tenant:g('np-tenant'),addr:g('np-addr'),city:g('np-city'),state:g('np-state'),sf:g('np-sf'),lotsf:g('np-lotsf'),int:g('np-int'),noi:g('np-noi'),esc:g('np-esc'),escy:g('np-escy'),term:g('np-term'),opts:g('np-opts'),optsyrs:g('np-optsyrs'),oz:g('np-oz')});S.projects.push(p);S.cur=S.projects.length-1;refSel();cm('mo-proj');rAll();}
+function switchProj(idx){S.cur=+idx;rAll();}
+function refSel(){const s=$('proj-sel');s.innerHTML=S.projects.map((p,i)=>`<option value="${i}">${p.tenant?p.tenant+' — ':''}${p.name}</option>`).join('');s.value=S.cur;}
+
+// ── NAV & MODAL ──────────────────────────────────────
+function go(pg,el){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(x=>x.classList.remove('on'));
+  $('page-'+pg).classList.add('on');
+  el.classList.add('on');
+  if(pg==='monthly') rMonthly();
+  if(pg==='proforma') rProforma();
+}
+function om(id){$(id).style.display='flex';}
+function cm(id){$(id).style.display='none';}
+
+// ── LENDER EDIT ──────────────────────────────────────
+function editLender(id){
+  const p=S.p; const l=p.lenders.find(x=>x.id===id); if(!l)return;
+  $('mle-id').value=id;
+  $('mle-name').value=l.name||''; $('mle-role').value=l.role||''; $('mle-amt').value=l.amt||'';
+  $('mle-rate').value=l.rate||''; $('mle-orig').value=l.orig||''; $('mle-close').value=l.fundedAtClose||'';
+  $('mle-hold').value=l.holdback||''; $('mle-pref').value=l.pref||''; $('mle-term').value=l.term||'';
+  $('mle-exit').value=l.exitFee||''; $('mle-notes').value=l.notes||'';
+  om('mo-lender-edit');
+}
+function saveLenderEdit(){
+  const id=$('mle-id').value; const p=S.p; const l=p.lenders.find(x=>x.id===id); if(!l)return;
+  const g=id=>$(id).value;
+  l.name=g('mle-name'); l.role=g('mle-role'); l.amt=+g('mle-amt')||0; l.rate=+g('mle-rate')||0;
+  l.orig=+g('mle-orig')||0; l.fundedAtClose=+g('mle-close')||0; l.holdback=+g('mle-hold')||0;
+  l.pref=+g('mle-pref')||0; l.term=+g('mle-term')||0; l.exitFee=+g('mle-exit')||0; l.notes=g('mle-notes');
+  cm('mo-lender-edit'); rAll();
+}
+
+// ── UNDO / REVISION HISTORY ────────────────────────────
+const PF_HISTORY_KEY='rcp_pf_history';
+let pfHistory=[];
+let pfHistoryCur=0;
+
+function pfSaveRevision(){
+  const p=S.p; if(!p||!p.proforma)return;
+  const snap=JSON.stringify(p.proforma);
+  // trim to last 4
+  if(pfHistory.length>=4) pfHistory.shift();
+  pfHistory.push(snap);
+  pfHistoryCur=pfHistory.length;
+  updateUndoBtn();
+  try{localStorage.setItem(PF_HISTORY_KEY,JSON.stringify({hist:pfHistory,cur:pfHistoryCur}));}catch(e){}
+}
+
+function pfUndo(){
+  if(pfHistory.length<2){alert('No more undo steps available.');return;}
+  pfHistory.pop(); // remove current
+  const prev=pfHistory[pfHistory.length-1];
+  if(!prev)return;
+  const p=S.p; if(!p)return;
+  p.proforma=JSON.parse(prev);
+  rProforma(); saveData();
+  updateUndoBtn();
+  showSaveToast('↩ Undone — revision restored');
+}
+
+function updateUndoBtn(){
+  const btn=$('pf-undo-btn');
+  const lbl=$('pf-revision-label');
+  if(btn) btn.disabled=pfHistory.length<2;
+  if(lbl) lbl.textContent=`Rev ${pfHistory.length}`;
+}
+
+function loadPfHistory(){
+  try{
+    const raw=localStorage.getItem(PF_HISTORY_KEY);
+    if(raw){const d=JSON.parse(raw);pfHistory=d.hist||[];pfHistoryCur=d.cur||0;}
+  }catch(e){}
+}
+
+// ── PRO FORMA ENGINE ──────────────────────────────────
+function pfGetData(){
+  const p=S.p; if(!p)return null;
+  if(!p.proforma){
+    p.proforma={
+      // Project Info
+      asOfDate:'',siteAddress:'',tenant:'Corporate Credit Tenant',lease:'15 Year NNN BTS',
+      landAcres:1.5,buildingSF:3500,pursuitBudget:100000,
+      // Hard
+      hard:[
+        {id:uid(),desc:'Land or Existing Building',amt:750000},
+        {id:uid(),desc:'TI Package',amt:150000},
+        {id:uid(),desc:'Core Build',amt:1000000},
+        {id:uid(),desc:'Site Work',amt:400000},
+      ],
+      // Soft
+      soft:[
+        {id:uid(),desc:'Tenant Broker',amt:100000},
+        {id:uid(),desc:'Entitlements',amt:25000},
+        {id:uid(),desc:'Real Estate Attorney',amt:40000},
+        {id:uid(),desc:'Environmental',amt:3500},
+        {id:uid(),desc:'Alta Survey & Topo',amt:12500},
+        {id:uid(),desc:'Geotechnical',amt:12500},
+        {id:uid(),desc:'Civil Engineering',amt:65000},
+        {id:uid(),desc:'Traffic Study',amt:14000},
+        {id:uid(),desc:'Architecture',amt:50000},
+        {id:uid(),desc:'Insurance',amt:12500},
+        {id:uid(),desc:'GC Bond',amt:0},
+        {id:uid(),desc:'Construction Management',amt:25000},
+        {id:uid(),desc:'Building Permits',amt:20000},
+        {id:uid(),desc:'Impact & Utility Fees',amt:35000},
+        {id:uid(),desc:'Real Estate Taxes',amt:20000},
+        {id:uid(),desc:'Admin / Accounting / Travel',amt:10000},
+        {id:uid(),desc:'Construction Testing & Inspection',amt:25000},
+        {id:uid(),desc:'Lender & Capital Legal',amt:25000},
+        {id:uid(),desc:'Lender Closing Cost & Appraisal',amt:5000},
+        {id:uid(),desc:'Lender Servicing, Inspection & Reserve',amt:15000},
+        {id:uid(),desc:'Title & Other Closing Costs',amt:40000},
+      ],
+      // Contingency
+      contPct:5.0,
+      // Financing & Fees
+      intRate:10.0, pointsIn:1.3, pointsOut:1.0, ltc:100,
+      devFeePct:2.5, prefEquityReturn:22.0,
+      finExtra:[], // custom extra financing rows
+      // Exit Assumptions
+      exitCap:6.0, targetSpread:150, rentOverride:0, rentStartMonth:10,
+      dispositionPct:5.0, salesCommPct:10.0,
+      exitExtra:[], // custom extra exit rows
+      // Hold Period & Stabilized
+      holdMonths:13, takeoutRate:6.5, pursuitTreatment:'out',
+      // Uses - custom extra
+      usesExtra:[],
+      // Returns - custom extra
+      returnsExtra:[],
+      internalExtra:[],
+      // Draw schedule
+      drawSchedule:[
+        {month:1,drawPct:35},{month:2,drawPct:0},{month:3,drawPct:14},
+        {month:4,drawPct:14},{month:5,drawPct:14},{month:6,drawPct:20},
+        {month:7,drawPct:0},{month:8,drawPct:0},{month:9,drawPct:0},
+        {month:10,drawPct:0},{month:11,drawPct:3},{month:12,drawPct:0},
+        {month:13,drawPct:0},
+      ],
+    };
+  }
+  // ensure arrays exist for older saved data
+  if(!p.proforma.finExtra) p.proforma.finExtra=[];
+  if(!p.proforma.exitExtra) p.proforma.exitExtra=[];
+  if(!p.proforma.usesExtra) p.proforma.usesExtra=[];
+  if(!p.proforma.returnsExtra) p.proforma.returnsExtra=[];
+  if(!p.proforma.internalExtra) p.proforma.internalExtra=[];
+  return p.proforma;
+}
+
+function pfCalc(pf){
+  const sf=+pf.buildingSF||1;
+  const hardTotal=pf.hard.reduce((s,l)=>s+(+l.amt||0),0);
+  const softTotal=pf.soft.reduce((s,l)=>s+(+l.amt||0),0);
+  const hardSoft=hardTotal+softTotal;
+  const cont=Math.round(hardSoft*(+pf.contPct/100));
+  const devFee=Math.round(hardSoft*(+pf.devFeePct/100));
+  const totalUses=hardTotal+softTotal+cont+devFee;
+  const ltcFrac=+pf.ltc/100;
+  // debt = totalUses * LTC / (1 - pointsIn%) when LTC=100%, debt funds itself incl points
+  const debt=ltcFrac>=1?Math.round(totalUses/(1-(+pf.pointsIn/100))):Math.round(totalUses*ltcFrac);
+  const pointsInAmt=Math.round(debt*(+pf.pointsIn/100));
+  const equity=Math.max(0,totalUses+pointsInAmt-debt);
+  // Draw schedule
+  const noi=+pf.rentOverride>0?+pf.rentOverride:0;
+  const monthlyRent=noi/12;
+  let totalNetInt=0;
+  const drawRows=pf.drawSchedule.map((d,i)=>{
+    const dp=d.drawPct/100;
+    const cumPct=pf.drawSchedule.slice(0,i+1).reduce((s,x)=>s+x.drawPct/100,0);
+    const prevCum=cumPct-dp;
+    const avgDebtPct=(prevCum+cumPct)/2;
+    const avgBal=Math.round(debt*avgDebtPct);
+    const monthInt=Math.round(avgBal*(+pf.intRate/100)/12);
+    const rentCredit=i>=(+pf.rentStartMonth-1)?Math.round(monthlyRent):0;
+    const netInt=monthInt-rentCredit;
+    totalNetInt+=netInt;
+    return{...d,cumPct:Math.round(cumPct*100),avgBal,monthInt,rentCredit,netInt};
+  });
+  const intReserve=Math.max(0,totalNetInt);
+  const tpc=Math.round(totalUses+pointsInAmt+intReserve);
+  // NOI: if override use it, else auto-calc from target yield
+  const targetYield=(+pf.exitCap/100)+(+pf.targetSpread/10000);
+  const autoNOI=pf.rentOverride>0?+pf.rentOverride:Math.round(tpc*targetYield);
+  const impliedYield=tpc>0?autoNOI/tpc:0;
+  const impliedSpreadBps=Math.round((impliedYield-(+pf.exitCap/100))*10000);
+  const exitVal=+pf.exitCap>0?Math.round(autoNOI/(+pf.exitCap/100)):0;
+  const dispoCosts=Math.round(exitVal*(+pf.dispositionPct/100));
+  const grossProc=exitVal-dispoCosts;
+  const pursuitReturn=pf.pursuitTreatment==='out'?Math.min(+pf.pursuitBudget||0,25000):0;
+  const prefReturn=Math.round(Math.max(0,equity)*(+pf.prefEquityReturn/100));
+  const pointsOutAmt=Math.round(debt*(+pf.pointsOut/100));
+  const grossProfit=grossProc-debt-pointsOutAmt-pursuitReturn;
+  const salesComm=Math.round(Math.max(0,grossProfit-prefReturn)*(+pf.salesCommPct/100));
+  const devFeeGross=devFee;
+  const netProfitDev=Math.round((grossProfit-prefReturn)*(1-(+pf.salesCommPct/100)));
+  const grossedUpProfit=netProfitDev+devFeeGross;
+  const profitMargin=tpc>0?netProfitDev/tpc:0;
+  const breakEvenCap=tpc>0?(autoNOI/tpc):0;
+  const eqMOIC=equity>0?(equity+netProfitDev)/equity:0;
+  const holdYrs=(+pf.holdMonths||13)/12;
+  const annualReturn=holdYrs>0?Math.pow(Math.max(0.0001,eqMOIC),1/holdYrs)-1:0;
+  const annualProfitOnCost=holdYrs>0&&tpc>0?Math.pow(1+Math.max(0,profitMargin),1/holdYrs)-1:0;
+  const dscr=debt>0&&+pf.takeoutRate>0?(autoNOI/(debt*(+pf.takeoutRate/100))):0;
+  const profit=grossProc-tpc;
+  const returnOnCost=tpc>0?autoNOI/tpc:0;
+  return{sf,hardTotal,softTotal,hardSoft,cont,devFee,totalUses,debt,pointsInAmt,equity,
+    intReserve,tpc,autoNOI,impliedYield,impliedSpreadBps,exitVal,dispoCosts,grossProc,
+    pursuitReturn,prefReturn,pointsOutAmt,grossProfit,salesComm,netProfitDev,grossedUpProfit,
+    devFeeGross,profitMargin,breakEvenCap,eqMOIC,annualReturn,annualProfitOnCost,dscr,
+    drawRows,targetYield,profit,returnOnCost,impliedSpreadBps};
+}
+
+function pfTab(tab){
+  $('pf-inputs').style.display=tab==='inputs'?'block':'none';
+  $('pf-sensitivity').style.display=tab==='sensitivity'?'block':'none';
+  $('pf-tab-inputs').className='btn btn-sm'+(tab==='inputs'?' btn-p':'');
+  $('pf-tab-sensitivity').className='btn btn-sm'+(tab==='sensitivity'?' btn-p':'');
+  if(tab==='sensitivity') rPfSensitivity();
+}
+
+function inpY(val,key,step,ph,w){
+  step=step||'1';ph=ph||'0';w=w||'120px';
+  return `<input class="inp-y" type="number" step="${step}" value="${val||''}" placeholder="${ph}" style="width:${w}" onchange="pfSet('${key}',this.value)">`;
+}
+function inpYLine(type,id,field,val,step,ph,w){
+  step=step||'1';ph=ph||'0';w=w||'120px';
+  return `<input class="inp-y" type="number" step="${step}" value="${val||''}" placeholder="${ph}" style="width:${w}" onchange="pfUpdLine('${type}','${id}','${field}',this.value)">`;
+}
+function inpText(val,key,ph){
+  return `<input class="inp" style="font-size:11px;padding:2px 6px" value="${val||''}" placeholder="${ph||''}" onchange="pfSet('${key}',this.value)">`;
+}
+
+function rProforma(){
+  const pf=pfGetData(); if(!pf)return;
+  const c=pfCalc(pf);
+  updateUndoBtn();
+
+  // ── Project Info ──
+  const projF=[
+    {l:'As of Date',key:'asOfDate',type:'text',ph:'Apr 26, 2026'},
+    {l:'Site Address',key:'siteAddress',type:'text',ph:'123 Anystreet, Anytown USA'},
+    {l:'Tenant',key:'tenant',type:'text',ph:'Corporate Credit Tenant'},
+    {l:'Lease',key:'lease',type:'text',ph:'15 Year NNN BTS'},
+    {l:'Land Size (Acres)',key:'landAcres',type:'number',ph:'1.5'},
+    {l:'Building SF',key:'buildingSF',type:'number',ph:'3500'},
+    {l:'Pursuit Capital Budget ($)',key:'pursuitBudget',type:'number',ph:'100000'},
+  ];
+  $('pf-project-rows').innerHTML=projF.map(f=>`<tr>
+    <td style="color:var(--g5)">${f.l}</td>
+    <td class="r"><input class="inp-y" type="${f.type}" value="${pf[f.key]||''}" placeholder="${f.ph}" style="width:150px" onchange="pfSet('${f.key}',this.value)"></td>
+  </tr>`).join('');
+
+  // ── Hard Costs ──
+  $('pf-hard-rows').innerHTML=pf.hard.map(l=>`<tr>
+    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:100%" value="${l.desc}" onchange="pfUpdLine('hard','${l.id}','desc',this.value)"></td>
+    <td class="r">${inpYLine('hard',l.id,'amt',l.amt,'1','0','120px')}</td>
+    <td><button class="btn btn-d btn-xs" onclick="pfRmLine('hard','${l.id}')"><i class="ti ti-x"></i></button></td>
+  </tr>`).join('');
+  $('pf-hard-foot').innerHTML=`<tr class="tr-tot"><td>Total Hard Costs</td><td class="r">${F(c.hardTotal)}</td><td></td></tr>`;
+
+  // ── Soft Costs ──
+  $('pf-soft-rows').innerHTML=pf.soft.map(l=>`<tr>
+    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:100%" value="${l.desc}" onchange="pfUpdLine('soft','${l.id}','desc',this.value)"></td>
+    <td class="r">${inpYLine('soft',l.id,'amt',l.amt,'1','0','120px')}</td>
+    <td><button class="btn btn-d btn-xs" onclick="pfRmLine('soft','${l.id}')"><i class="ti ti-x"></i></button></td>
+  </tr>`).join('');
+  $('pf-soft-foot').innerHTML=`<tr class="tr-tot"><td>Total Soft Costs</td><td class="r">${F(c.softTotal)}</td><td></td></tr>`;
+
+  // ── Contingency ──
+  $('pf-cont-rows').innerHTML=`<tr>
+    <td style="color:var(--g5)">Contingency (applies to Hard + Soft)</td>
+    <td class="r">${inpY(pf.contPct,'contPct','0.5','5.0','70px')}%</td>
+    <td class="r" style="font-weight:600;color:var(--amber)">${F(c.cont)}</td>
+  </tr>`;
+  $('pf-cont-foot').innerHTML=`<tr class="tr-tot"><td>Contingency Total</td><td class="r"></td><td class="r">${F(c.cont)}</td></tr>`;
+
+  // ── Financing & Fees (Interest Rate → Pref Equity Return + Rent Start Month) ──
+  const finCore=[
+    {l:'Interest Rate (%)',key:'intRate',step:'0.1',ph:'10.0'},
+    {l:'Lender Points In (% of Debt)',key:'pointsIn',step:'0.1',ph:'1.3'},
+    {l:'Lender Points Out (% of Debt)',key:'pointsOut',step:'0.1',ph:'1.0'},
+    {l:'Loan to Cost — LTC (%)',key:'ltc',step:'1',ph:'100'},
+    {l:'Development Fee % (Hard + Soft)',key:'devFeePct',step:'0.5',ph:'2.5'},
+    {l:'Pref Equity Return (%)',key:'prefEquityReturn',step:'1',ph:'22'},
+    {l:'Rent Start Month',key:'rentStartMonth',step:'1',ph:'10'},
+  ];
+  let finRows=finCore.map(f=>`<tr>
+    <td style="color:var(--g5)">${f.l}</td>
+    <td class="r">${inpY(pf[f.key],f.key,f.step,f.ph)}</td>
+    <td></td>
+  </tr>`).join('');
+  finRows+=(pf.finExtra||[]).map(r=>`<tr>
+    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:100%" value="${r.label}" onchange="pfUpdExtra('finExtra','${r.id}','label',this.value)"></td>
+    <td class="r"><input class="inp-y" type="number" step="0.01" value="${r.val||''}" placeholder="0" style="width:120px" onchange="pfUpdExtra('finExtra','${r.id}','val',this.value)"></td>
+    <td><button class="btn btn-d btn-xs" onclick="pfRmExtra('finExtra','${r.id}')"><i class="ti ti-x"></i></button></td>
+  </tr>`).join('');
+  $('pf-fin-rows').innerHTML=finRows;
+
+  // ── Exit Assumptions (Market Exit Cap → Takeout Rate + Hold Period + Pursuit Treatment) ──
+  const exitCore=[
+    {l:'Market Exit Cap Rate (%)',key:'exitCap',step:'0.05',ph:'6.0'},
+    {l:'Target Spread (bps)',key:'targetSpread',step:'25',ph:'150'},
+    {l:'Rent Override — Annual NOI ($)',key:'rentOverride',step:'1000',ph:'0 = auto-calc'},
+    {l:'Disposition Cost incl. Broker (%)',key:'dispositionPct',step:'0.25',ph:'5.0'},
+    {l:'RCP Sales Rep Commission (%)',key:'salesCommPct',step:'0.5',ph:'10.0'},
+    {l:'Hold Period (Months)',key:'holdMonths',step:'1',ph:'13'},
+    {l:'Takeout Loan Rate for DSCR (%)',key:'takeoutRate',step:'0.25',ph:'6.5'},
+  ];
+  let exitRows=exitCore.map(f=>`<tr>
+    <td style="color:var(--g5)">${f.l}</td>
+    <td class="r">${inpY(pf[f.key],f.key,f.step,f.ph)}</td>
+    <td></td>
+  </tr>`).join('');
+  // Pursuit Treatment as dropdown
+  exitRows+=`<tr><td style="color:var(--g5)">Pursuit Treatment</td>
+    <td class="r"><select class="sel" style="font-size:11px;padding:3px 6px;width:160px" onchange="pfSet('pursuitTreatment',this.value)">
+      <option value="out" ${pf.pursuitTreatment==='out'?'selected':''}>Comes Out (returned at close)</option>
+      <option value="in" ${pf.pursuitTreatment==='in'?'selected':''}>Stays In (equity in deal)</option>
+    </select></td><td></td></tr>`;
+  // Computed helpers (read-only)
+  const sumD=pf.drawSchedule.reduce((s,d,i)=>{const cum=pf.drawSchedule.slice(0,i+1).reduce((a,x)=>a+x.drawPct/100,0);const prev=cum-d.drawPct/100;return s+(prev+cum)/2;},0);
+  const aFactor=(+pf.intRate/100)*sumD/12;
+  const rentNOIOffset=c.autoNOI;
+  exitRows+=`
+    <tr><td colspan="3" class="sec-div">Helpers (Auto-Computed)</td></tr>
+    <tr><td style="color:var(--g5)">Sum of Avg Draw % (SumD)</td><td class="r" style="color:var(--g4)">${sumD.toFixed(2)}</td><td></td></tr>
+    <tr><td style="color:var(--g5)">A Factor (Rate × SumD / 12)</td><td class="r" style="color:var(--g4)">${(aFactor*100).toFixed(4)}%</td><td></td></tr>
+    <tr><td style="color:var(--g5)">Rent NOI for Offset (auto-calc)</td><td class="r" style="color:var(--g4)">${F(rentNOIOffset)}</td><td></td></tr>`;
+  exitRows+=(pf.exitExtra||[]).map(r=>`<tr>
+    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:100%" value="${r.label}" onchange="pfUpdExtra('exitExtra','${r.id}','label',this.value)"></td>
+    <td class="r"><input class="inp-y" type="number" step="0.01" value="${r.val||''}" placeholder="0" style="width:120px" onchange="pfUpdExtra('exitExtra','${r.id}','val',this.value)"></td>
+    <td><button class="btn btn-d btn-xs" onclick="pfRmExtra('exitExtra','${r.id}')"><i class="ti ti-x"></i></button></td>
+  </tr>`).join('');
+  $('pf-exit-rows').innerHTML=exitRows;
+
+  // ── Uses Summary — standard rows with editable labels ──
+  if(!pf.usesLabels) pf.usesLabels={
+    land:'Land / Existing Building',
+    hardOther:'Hard Costs (excl. Land)',
+    soft:'Soft Costs',
+    cont:'Contingency',
+    devfee:'Development Fee',
+  };
+  const usesStd=[
+    {key:'land', amt:pf.hard[0]?.amt||0},
+    {key:'hardOther', amt:c.hardTotal-(pf.hard[0]?.amt||0)},
+    {key:'soft', amt:c.softTotal},
+    {key:'cont', amt:c.cont},
+    {key:'devfee', amt:c.devFee},
+  ];
+  let usesRows=usesStd.map(u=>`<tr>
+    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:100%" value="${pf.usesLabels[u.key]}" onchange="pfSetUsesLabel('${u.key}',this.value)"></td>
+    <td class="r" style="font-weight:500">${F(u.amt)}</td>
+    <td class="r" style="color:var(--g4)">${c.sf&&u.amt?'$'+(u.amt/c.sf).toFixed(2):'—'}</td>
+    <td></td>
+  </tr>`).join('');
+  usesRows+=(pf.usesExtra||[]).map(r=>`<tr>
+    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:100%" value="${r.label}" onchange="pfUpdExtra('usesExtra','${r.id}','label',this.value)"></td>
+    <td class="r"><input class="inp-y" type="number" value="${r.amt||''}" placeholder="0" style="width:110px" onchange="pfUpdExtra('usesExtra','${r.id}','amt',this.value)"></td>
+    <td class="r" style="color:var(--g4)">${r.amt&&c.sf?'$'+(r.amt/c.sf).toFixed(2):'—'}</td>
+    <td><button class="btn btn-d btn-xs" onclick="pfRmExtra('usesExtra','${r.id}')"><i class="ti ti-x"></i></button></td>
+  </tr>`).join('');
+  $('pf-uses-rows').innerHTML=usesRows;
+  const extraUsesTotal=(pf.usesExtra||[]).reduce((s,r)=>s+(+r.amt||0),0);
+  $('pf-uses-foot').innerHTML=`
+    <tr class="tr-tot"><td>Total Uses (before financing)</td><td class="r">${F(c.totalUses+extraUsesTotal)}</td><td class="r">${c.sf?'$'+((c.totalUses+extraUsesTotal)/c.sf).toFixed(2):'—'}</td><td></td></tr>
+    <tr style="background:var(--blue-light)"><td style="color:var(--blue2);font-weight:600">+ Debt (LTC ${pf.ltc}%)</td><td class="r" style="color:var(--blue2);font-weight:700">${F(c.debt)}</td><td class="r" style="color:var(--blue2)">${c.sf?'$'+(c.debt/c.sf).toFixed(2):'—'}</td><td></td></tr>
+    <tr style="background:var(--blue-light)"><td style="color:var(--blue2);font-weight:600">+ Points In (${pf.pointsIn}%)</td><td class="r" style="color:var(--blue2);font-weight:700">${F(c.pointsInAmt)}</td><td></td><td></td></tr>
+    <tr style="background:var(--blue-light)"><td style="color:var(--blue2);font-weight:600">+ Interest Reserve (net of rent)</td><td class="r" style="color:var(--blue2);font-weight:700">${F(c.intReserve)}</td><td></td><td></td></tr>
+    <tr class="tr-tot"><td style="font-size:13px">TOTAL PROJECT COST</td><td class="r" style="font-size:13px">${F(c.tpc)}</td><td class="r">${c.sf?'$'+(c.tpc/c.sf).toFixed(2):'—'}</td><td></td></tr>
+    <tr><td style="color:var(--g5)">Equity Required</td><td class="r" style="color:${c.equity>0?'var(--amber)':'var(--green)'};font-weight:600">${F(c.equity)}</td><td></td><td></td></tr>`;
+
+  // ── Returns Summary ──
+  const spOK=c.impliedSpreadBps>=(+pf.targetSpread);
+  let retRows=`
+    <tr><td style="color:var(--g5)">Target Yield (Exit Cap + Spread)</td><td class="r">${(c.targetYield*100).toFixed(2)}%</td><td></td></tr>
+    <tr><td style="color:var(--g5)">NNN Annual Rent / NOI</td><td class="r" style="font-weight:700;color:var(--blue)">${F(c.autoNOI)}</td><td></td></tr>
+    <tr><td style="color:var(--g5)">Implied Yield on Cost</td><td class="r">${(c.impliedYield*100).toFixed(2)}%</td><td></td></tr>
+    <tr><td style="color:var(--g5)">Implied Spread (bps)</td><td class="r" style="color:${spOK?'var(--green)':'var(--red)'};font-weight:700">${c.impliedSpreadBps} bps ${spOK?'✓':'⚠'}</td><td></td></tr>
+    <tr><td style="color:var(--g5)">Exit Value</td><td class="r" style="font-weight:700">${F(c.exitVal)}</td><td></td></tr>
+    <tr><td style="color:var(--g5)">Disposition Costs (${pf.dispositionPct}%)</td><td class="r" style="color:var(--red)">(${F(c.dispoCosts)})</td><td></td></tr>
+    <tr><td style="color:var(--g5)">Gross Sale Proceeds</td><td class="r" style="font-weight:600">${F(c.grossProc)}</td><td></td></tr>
+    <tr><td style="color:var(--g5)">Profit</td><td class="r" style="font-weight:600;color:${c.profit>0?'var(--green)':'var(--red)'}">${F(c.profit)}</td><td></td></tr>
+    <tr><td style="color:var(--g5)">Return on Cost</td><td class="r">${(c.returnOnCost*100).toFixed(2)}%</td><td></td></tr>`;
+  retRows+=(pf.returnsExtra||[]).map(r=>`<tr>
+    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:100%" value="${r.label}" onchange="pfUpdExtra('returnsExtra','${r.id}','label',this.value)"></td>
+    <td class="r"><input class="inp-y" type="number" value="${r.val||''}" placeholder="0" style="width:120px" onchange="pfUpdExtra('returnsExtra','${r.id}','val',this.value)"></td>
+    <td><button class="btn btn-d btn-xs" onclick="pfRmExtra('returnsExtra','${r.id}')"><i class="ti ti-x"></i></button></td>
+  </tr>`).join('');
+  $('pf-returns-rows').innerHTML=retRows;
+
+  // ── Internal Returns ──
+  let intRows=`
+    <tr class="sec-div"><td colspan="3">Internal Returns</td></tr>
+    <tr><td style="color:var(--g5)">Pursuit Capital Return ($)</td><td class="r">${F(c.pursuitReturn)}</td><td></td></tr>
+    <tr><td style="color:var(--g5)">Pref Equity Return</td><td class="r" style="color:var(--red)">(${F(c.prefReturn)})</td><td></td></tr>
+    <tr><td style="color:var(--g5)">Dev Fee (included in TPC)</td><td class="r">${F(c.devFeeGross)}</td><td></td></tr>
+    <tr><td style="color:var(--g5)">Grossed Up Profit + Dev Fee</td><td class="r" style="font-weight:600">${F(c.grossedUpProfit)}</td><td></td></tr>
+    <tr><td style="color:var(--g5)">RCP Sales Comm (${pf.salesCommPct}%)</td><td class="r" style="color:var(--red)">(${F(c.salesComm)})</td><td></td></tr>
+    <tr style="background:${c.netProfitDev>0?'var(--green-light)':'var(--red-light)'}">
+      <td style="font-weight:700;color:${c.netProfitDev>0?'var(--green)':'var(--red)'}">Net Profit (Developer)</td>
+      <td class="r" style="font-weight:700;font-size:14px;color:${c.netProfitDev>0?'var(--green)':'var(--red)'}">${F(c.netProfitDev)}</td>
+      <td></td>
+    </tr>`;
+  intRows+=(pf.internalExtra||[]).map(r=>`<tr>
+    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:100%" value="${r.label}" onchange="pfUpdExtra('internalExtra','${r.id}','label',this.value)"></td>
+    <td class="r"><input class="inp-y" type="number" value="${r.val||''}" placeholder="0" style="width:120px" onchange="pfUpdExtra('internalExtra','${r.id}','val',this.value)"></td>
+    <td><button class="btn btn-d btn-xs" onclick="pfRmExtra('internalExtra','${r.id}')"><i class="ti ti-x"></i></button></td>
+  </tr>`).join('');
+  $('pf-internal-rows').innerHTML=intRows;
+
+  // ── Key Metrics ──
+  $('pf-metrics-rows').innerHTML=`
+    <tr><td style="color:var(--g5)">Profit Margin (Net Profit / TPC)</td><td class="r" style="font-weight:600;color:${c.profitMargin>0?'var(--green)':'var(--red)'}">${(c.profitMargin*100).toFixed(2)}%</td></tr>
+    <tr><td style="color:var(--g5)">Equity Multiple — MOIC (Investor)</td><td class="r" style="font-weight:600">${c.eqMOIC.toFixed(2)}x</td></tr>
+    <tr><td style="color:var(--g5)">Annualized Return on Capital (Investor)</td><td class="r" style="font-weight:600">${(c.annualReturn*100).toFixed(2)}%</td></tr>
+    <tr><td style="color:var(--g5)">Annualized Profit on Cost</td><td class="r" style="font-weight:600">${(c.annualProfitOnCost*100).toFixed(2)}%</td></tr>
+    <tr><td style="color:var(--g5)">Break-Even Exit Cap Rate</td><td class="r" style="font-weight:600">${(c.breakEvenCap*100).toFixed(2)}%</td></tr>
+    <tr><td style="color:var(--g5)">DSCR at Takeout (interest-only)</td><td class="r" style="font-weight:600;color:${c.dscr>=1.2?'var(--green)':c.dscr>=1?'var(--amber)':'var(--red)'}">${c.dscr.toFixed(2)}x</td></tr>`;
+
+  // ── Draw Schedule ──
+  const totalDraw=pf.drawSchedule.reduce((s,d)=>s+d.drawPct,0);
+  $('pf-draw-sched').innerHTML=c.drawRows.map(r=>`<tr>
+    <td style="font-weight:600">${r.month}</td>
+    <td class="r"><input class="inp-y" type="number" value="${r.drawPct}" style="width:55px" onchange="pfSetDraw(${r.month-1},'drawPct',this.value)">%</td>
+    <td class="r">${r.cumPct}%</td>
+    <td class="r">${F(r.avgBal)}</td>
+    <td class="r" style="color:var(--red)">${F(r.monthInt)}</td>
+    <td class="r" style="color:var(--green)">${r.rentCredit>0?F(r.rentCredit):'—'}</td>
+    <td class="r" style="font-weight:600">${F(r.netInt)}</td>
+  </tr>`).join('');
+  $('pf-draw-sched-foot').innerHTML=`<tr class="tr-tot ${Math.round(totalDraw)!==100?'tr-r':''}">
+    <td colspan="4">Total Draw % — must equal 100%</td>
+    <td colspan="2" class="r">${Math.round(totalDraw)===100?'✓ 100%':totalDraw.toFixed(1)+'% ⚠'}</td>
+    <td class="r" style="color:var(--red)">${F(c.intReserve)}</td>
+  </tr>`;
+}
+
+function rPfSensitivity(){
+  const pf=pfGetData(); if(!pf)return;
+  const c=pfCalc(pf);
+  const baseCap=+pf.exitCap;
+
+  // ── Locked Values section ──
+  if($('pf-sens-locked')) $('pf-sens-locked').innerHTML=`
+    <tr><td style="color:var(--g5)">Pro-Forma Exit Cap (sensitivity center)</td><td class="r" style="font-weight:600">${baseCap.toFixed(2)}%</td></tr>
+    <tr><td style="color:var(--g5)">Locked NOI (annual rent)</td><td class="r" style="font-weight:600;color:var(--blue)">${F(c.autoNOI)}</td></tr>
+    <tr><td style="color:var(--g5)">Locked Debt</td><td class="r">${F(c.debt)}</td></tr>
+    <tr><td style="color:var(--g5)">Locked Lender Points</td><td class="r">${F(c.pointsInAmt)}</td></tr>
+    <tr><td style="color:var(--g5)">Locked Interest Reserve</td><td class="r">${F(c.intReserve)}</td></tr>
+    <tr><td style="color:var(--g5)">Locked Development Fee</td><td class="r">${F(c.devFee)}</td></tr>
+    <tr><td style="color:var(--g5)">Pro-Forma Total Project Cost</td><td class="r" style="font-weight:700">${F(c.tpc)}</td></tr>
+    <tr><td style="color:var(--g5)">Pro-Forma Total Uses (variance base)</td><td class="r">${F(c.totalUses)}</td></tr>`;
+  if($('pf-sens-terms')) $('pf-sens-terms').innerHTML=`
+    <tr><td style="color:var(--g5)">Lender Points Out (% of Debt)</td><td class="r">${pf.pointsOut}%</td></tr>
+    <tr><td style="color:var(--g5)">Disposition Cost %</td><td class="r">${pf.dispositionPct}%</td></tr>
+    <tr><td style="color:var(--g5)">RCP Sales Commission %</td><td class="r">${pf.salesCommPct}%</td></tr>
+    <tr><td style="color:var(--g5)">Pursuit Capital ($)</td><td class="r">${F(pf.pursuitBudget)}</td></tr>
+    <tr><td style="color:var(--g5)">Pref Equity Return %</td><td class="r">${pf.prefEquityReturn}%</td></tr>
+    <tr><td style="color:var(--g5)">Pursuit Capital Return ($)</td><td class="r">${F(c.pursuitReturn)}</td></tr>
+    <tr><td style="color:var(--g5)">Pursuit Treatment</td><td class="r">${pf.pursuitTreatment==='out'?'Comes Out':'Stays In'}</td></tr>`;
+  const bpDeltas=[-150,-100,-75,-50,-25,0,25,50,75,100,150,200];
+  const budgetMults=[0.85,0.90,0.95,1.00,1.05,1.10,1.15,1.20];
+
+  function calcNetProfit(cap,mult){
+    const budVar=(mult-1)*c.totalUses;
+    const realTPC=c.tpc+budVar;
+    const realEq=Math.max(0,realTPC-c.debt);
+    const exitV=cap>0?Math.round(c.autoNOI/(cap/100)):0;
+    const dispo=Math.round(exitV*(+pf.dispositionPct/100));
+    const gross=exitV-dispo;
+    const pOut=Math.round(c.debt*(+pf.pointsOut/100));
+    const pref=Math.round(realEq*(+pf.prefEquityReturn/100));
+    const pr=c.pursuitReturn;
+    const comm=(+pf.salesCommPct/100);
+    const netP=Math.round((gross-c.debt-pOut-pr-pref)*(1-comm));
+    const margin=realTPC>0?netP/realTPC:0;
+    return{netP,margin,realTPC};
+  }
+
+  // Net Profit table
+  const hdr='<thead><tr><th style="white-space:nowrap">Δ bps</th><th>Cap Rate</th>'+budgetMults.map(m=>`<th class="r">${Math.round(m*100)}%</th>`).join('')+'</tr></thead>';
+  let rows='<tbody>';
+  bpDeltas.forEach(bps=>{
+    const cap=baseCap+bps/100;
+    rows+=`<tr><td style="color:var(--g5);font-size:10px;white-space:nowrap">${bps>0?'+'+bps:bps}</td><td style="font-weight:600;white-space:nowrap">${cap.toFixed(2)}%</td>`;
+    budgetMults.forEach(mult=>{
+      const {netP}=calcNetProfit(cap,mult);
+      const isBase=bps===0&&mult===1;
+      const col=netP>0?'var(--green)':'var(--red)';
+      const bg=isBase?'var(--amber-light)':netP>0?'rgba(46,125,50,.09)':'rgba(185,28,28,.07)';
+      rows+=`<td class="r" style="background:${bg};color:${col};font-weight:${isBase?'700':'500'};font-size:11px">${isBase?'<b>':''}${Math.round(netP/1000)}k${isBase?'</b>':''}</td>`;
+    });
+    rows+='</tr>';
+  });
+  rows+='</tbody>';
+  $('pf-sens-table').innerHTML=hdr+rows;
+
+  // Margin table
+  let rows2='<thead><tr><th>Δ bps</th><th>Cap Rate</th>'+budgetMults.map(m=>`<th class="r">${Math.round(m*100)}%</th>`).join('')+'</tr></thead><tbody>';
+  bpDeltas.forEach(bps=>{
+    const cap=baseCap+bps/100;
+    rows2+=`<tr><td style="color:var(--g5);font-size:10px">${bps>0?'+'+bps:bps}</td><td style="font-weight:600">${cap.toFixed(2)}%</td>`;
+    budgetMults.forEach(mult=>{
+      const {margin}=calcNetProfit(cap,mult);
+      const isBase=bps===0&&mult===1;
+      const col=margin>0?'var(--green)':'var(--red)';
+      const bg=isBase?'var(--amber-light)':margin>0?'rgba(46,125,50,.09)':'rgba(185,28,28,.07)';
+      rows2+=`<td class="r" style="background:${bg};color:${col};font-weight:${isBase?'700':'500'};font-size:11px">${isBase?'<b>':''}${(margin*100).toFixed(1)}%${isBase?'</b>':''}</td>`;
+    });
+    rows2+='</tr>';
+  });
+  rows2+='</tbody>';
+  $('pf-sens-margin-table').innerHTML=rows2;
+
+  // Notes
+  $('pf-sens-notes').innerHTML=`
+    <strong>Methodology:</strong> Cap rate axis centers on Inputs exit cap (${baseCap.toFixed(2)}%). Budget multiplier varies actual cost vs pro-forma total uses.<br>
+    • Base case (Δ=0, 100%) ties exactly to Returns Summary net profit.<br>
+    • Locked at pro-forma: NOI/rent, Debt, Points, Interest Reserve, Dev Fee.<br>
+    • Variable: Budget Multiplier (% of Total Uses) and Market Exit Cap (Δ bps from base).<br>
+    • Variance = (Multiplier−1) × Total Uses. Flows to equity required — debt is locked.<br>
+    • Net Profit = ((NOI/Cap × (1−Dispo%) − Debt × PointsOut − Realized TPC) − Pursuit × Return% − Pref% × Realized Equity) × (1 − SalesComm%)
+  `;
+}
+
+// ── PF CRUD ──────────────────────────────────────────
+function pfSet(key,val){
+  const pf=pfGetData(); if(!pf)return;
+  pfSaveRevision();
+  pf[key]=isNaN(+val)||val===''||typeof val==='string'&&isNaN(val)?val:+val;
+  rProforma(); saveData();
+}
+function pfSetStr(key,val){const pf=pfGetData();if(!pf)return;pfSaveRevision();pf[key]=val;rProforma();saveData();}
+function pfSetDraw(idx,key,val){const pf=pfGetData();if(!pf)return;pfSaveRevision();pf.drawSchedule[idx][key]=+val||0;rProforma();saveData();}
+function pfUpdLine(type,id,field,val){const pf=pfGetData();if(!pf)return;pfSaveRevision();const l=pf[type].find(x=>x.id===id);if(l){l[field]=field==='amt'?+val||0:val;}rProforma();saveData();}
+function pfRmLine(type,id){const pf=pfGetData();if(!pf)return;pfSaveRevision();pf[type]=pf[type].filter(x=>x.id!==id);rProforma();saveData();}
+function pfAddLine(type){const pf=pfGetData();if(!pf)return;const desc=prompt(type==='hard'?'Hard Cost description:':'Soft Cost description:');if(!desc)return;pfSaveRevision();pf[type].push({id:uid(),desc,amt:0});rProforma();saveData();}
+function pfAddCustomRow(arrKey){const pf=pfGetData();if(!pf)return;const label=prompt('Row label:');if(!label)return;pfSaveRevision();pf[arrKey].push({id:uid(),label,val:0});rProforma();saveData();}
+function pfUpdExtra(arrKey,id,field,val){const pf=pfGetData();if(!pf)return;pfSaveRevision();const r=pf[arrKey].find(x=>x.id===id);if(r){r[field]=field==='val'||field==='amt'?+val||0:val;}rProforma();saveData();}
+function pfRmExtra(arrKey,id){const pf=pfGetData();if(!pf)return;pfSaveRevision();pf[arrKey]=pf[arrKey].filter(x=>x.id!==id);rProforma();saveData();}
+function pfAddUsesLine(){pfAddCustomRow('usesExtra');}
+function pfAddReturnRow(type){const arrKey=type==='internal'?'internalExtra':'returnsExtra';pfAddCustomRow(arrKey);}
+function pfSetUsesLabel(key,val){const pf=pfGetData();if(!pf)return;if(!pf.usesLabels)pf.usesLabels={};pf.usesLabels[key]=val;saveData();}
+
+// ── MONTHLY TRACKER ──────────────────────────────────
+function rMonthly(){
+  const p=S.p;
+  if(!p){
+    if($('mt-metrics'))$('mt-metrics').innerHTML='';
+    if($('mt-chart'))$('mt-chart').innerHTML='<div class="empty"><i class="ti ti-chart-bar"></i>No project loaded</div>';
+    if($('mt-table'))$('mt-table').innerHTML=''; return;
+  }
+  const filter=$('mt-filter')?.value||'all';
+  const allItems=[];
+  (p.expenses||[]).forEach(e=>{
+    const catMatch=filter==='all'||e.cat.toLowerCase().includes(filter.toLowerCase())||e.phase.toLowerCase().includes(filter.toLowerCase());
+    if(catMatch) allItems.push({month:parseMonth(e.dt),cat:e.cat,amt:+e.amt||0,desc:e.pay,phase:e.phase});
+  });
+  (p.draws||[]).forEach(d=>{
+    const tot=(+d.hard||0)+(+d.soft||0)+(+d.int||0)+(+d.dev||0)+(+d.oth||0);
+    if(tot>0&&(filter==='all'||filter==='Construction'||filter==='Hard Costs'))
+      allItems.push({month:parseMonth(d.mo),cat:'Construction Draw',amt:tot,desc:d.vend||d.desc,phase:'Construction'});
+  });
+  const byMonth={};
+  allItems.forEach(item=>{
+    const m=item.month||'Unknown';
+    if(!byMonth[m])byMonth[m]={total:0,items:[],cats:{}};
+    byMonth[m].total+=item.amt;
+    byMonth[m].items.push(item);
+    byMonth[m].cats[item.cat]=(byMonth[m].cats[item.cat]||0)+item.amt;
+  });
+  const months=Object.keys(byMonth).sort();
+  const grandTotal=allItems.reduce((s,i)=>s+i.amt,0);
+  const maxM=months.reduce((a,m)=>!a||byMonth[m].total>byMonth[a].total?m:a,'');
+  if($('mt-metrics'))$('mt-metrics').innerHTML=`
+    <div class="mc"><div class="l">Total (Expenses + Draws)</div><div class="v">${F(grandTotal)}</div><div class="s">${allItems.length} transactions</div></div>
+    <div class="mc"><div class="l">Months with Activity</div><div class="v">${months.length}</div><div class="s">avg ${months.length?F(Math.round(grandTotal/months.length)):F(0)}/mo</div></div>
+    <div class="mc"><div class="l">Highest Month</div><div class="v">${maxM?F(byMonth[maxM].total):'—'}</div><div class="s">${maxM||''}</div></div>`;
+  if(!$('mt-chart'))return;
+  if(!months.length){$('mt-chart').innerHTML='<div class="empty"><i class="ti ti-chart-bar"></i>No data. Log expenses or add draws to see chart.</div>';if($('mt-table'))$('mt-table').innerHTML='';return;}
+  const maxVal=Math.max(...months.map(m=>byMonth[m].total),1);
+  const barW=Math.max(44,Math.min(80,Math.floor(860/months.length)-6));
+  const chartH=200;
+  const catCol={'Construction Draw':'#F59E0B','Legal':'#3B82F6','Geotech':'#8B5CF6','Environmental':'#06B6D4','Entitlements':'#10B981','Hard Costs':'#EF4444','Soft Costs':'#3B82F6'};
+  const getCol=cat=>catCol[cat]||'#2A6FBF';
+  let svgBars='',svgW=Math.max(600,months.length*(barW+8)+60);
+  months.forEach((m,i)=>{
+    const x=48+i*(barW+8);
+    const h=Math.max(2,Math.round((byMonth[m].total/maxVal)*chartH));
+    const y=chartH+10-h;
+    const col=getCol(Object.keys(byMonth[m].cats)[0]||'');
+    const shortM=m.split(' ').slice(0,2).join(' ');
+    svgBars+=`<rect x="${x}" y="${y}" width="${barW}" height="${h}" fill="${col}" rx="3" opacity=".85"><title>${m}: ${F(byMonth[m].total)}</title></rect>
+      <text x="${x+barW/2}" y="${chartH+22}" text-anchor="middle" font-size="9" fill="#64748B">${shortM}</text>
+      <text x="${x+barW/2}" y="${y-4}" text-anchor="middle" font-size="9" fill="#334155" font-weight="600">$${Math.round(byMonth[m].total/1000)}k</text>`;
+  });
+  const gridLines=[0,.25,.5,.75,1].map(p2=>`<line x1="46" y1="${10+chartH*(1-p2)}" x2="${svgW-4}" y2="${10+chartH*(1-p2)}" stroke="#E2E8F0" stroke-width=".5" stroke-dasharray="3"/>
+    <text x="44" y="${14+chartH*(1-p2)}" text-anchor="end" font-size="8" fill="#94A3B8">$${Math.round(maxVal*p2/1000)}k</text>`).join('');
+  $('mt-chart').innerHTML=`<svg width="${svgW}" height="${chartH+40}" style="min-width:100%;display:block">
+    <line x1="46" y1="10" x2="46" y2="${chartH+10}" stroke="#E2E8F0" stroke-width="1"/>
+    <line x1="46" y1="${chartH+10}" x2="${svgW}" y2="${chartH+10}" stroke="#E2E8F0" stroke-width="1"/>
+    ${gridLines}${svgBars}</svg>`;
+  if($('mt-table'))$('mt-table').innerHTML=`<table><thead><tr><th>Month</th><th>Top Category</th><th class="r">Total</th><th class="r">Transactions</th><th class="r">% of Total</th></tr></thead><tbody>`+
+    months.map(m=>{const top=Object.entries(byMonth[m].cats).sort((a,b)=>b[1]-a[1])[0];
+      return`<tr><td style="font-weight:600">${m}</td><td>${top?top[0]:'—'}</td><td class="r" style="font-weight:600">${F(byMonth[m].total)}</td><td class="r">${byMonth[m].items.length}</td><td class="r">${grandTotal?((byMonth[m].total/grandTotal*100).toFixed(1))+'%':'—'}</td></tr>`;
+    }).join('')+`</tbody><tfoot><tr class="tr-tot"><td colspan="2">TOTAL</td><td class="r">${F(grandTotal)}</td><td class="r">${allItems.length}</td><td class="r">100%</td></tr></tfoot></table>`;
+}
+
+function parseMonth(s){
+  if(!s||s==='—')return null;
+  const d=new Date(s);if(!isNaN(d))return d.toLocaleString('en-US',{month:'short',year:'numeric'});
+  const ms=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  for(const m of ms){if(s.includes(m))return s.substring(s.indexOf(m),s.indexOf(m)+8).trim();}
+  return s.substring(0,7);
+}
+
+// ── INIT — Load from Supabase cloud first, then demo if empty ──
+(async()=>{
+  const ok=await loadData();
+  if(ok){refSel();rAll();}
+  else{
+// ── DEMO DATA (Toledo Speedway) — shown only first time ──
+const demo=newP({name:'Toledo OH — Speedway Airport & Bernath',tenant:'Speedway',addr:'1322 Bernath Pkwy',city:'Toledo',state:'OH',sf:4853,lotsf:230868,int:'Airport Hwy & Bernath Pkwy',noi:548435,esc:7.5,escy:5,term:20,opts:3,optsyrs:5,oz:'0'});
+const fi=(d,v)=>{const l=demo.budgetLines.find(x=>x.desc===d);if(l)l.bgt=v;};
+fi('Land Purchase Price',1975000);fi('Environmental Phase 1 & 2',25000);fi('Geotechnical / Soil Investigation',20000);
+fi('Demolition',100000);fi('Building Construction',2300000);fi('On-Site Construction',1110000);
+fi('Off-Site Construction',250000);fi('Equipment & Specialty Installation',1100000);
+fi('Entitlements / Zoning',59000);fi('Architecture / MEP Engineering',47500);fi('Civil Engineering',60000);
+fi('Legal (RE Attorney / Land Use)',45000);fi("Insurance (Builder's Risk / GL)",7500);
+fi('Title Policy & Closing Costs',46000);fi('Survey / ALTA / As-Built',8000);fi('Appraisal',4000);
+fi('Permit Fees',5000);fi('Impact Fees (Elec/Gas/Water/Sewer)',17500);fi('Property Taxes (Carrying Period)',48000);
+fi('Loan Origination / Capital Costs',110000);fi('Interest Reserve / Debt Service',457000);fi('Soil Bearing / Field Testing',26000);
+(()=>{const hb=demo.budgetLines.filter(l=>l.cat==='Hard Costs'&&!l.auto).reduce((s,l)=>s+(+l.bgt||0),0);const sb=demo.budgetLines.filter(l=>l.cat==='Soft Costs'&&!l.auto).reduce((s,l)=>s+(+l.bgt||0),0);const hc=demo.budgetLines.find(l=>l.auto==='hcont');const sc=demo.budgetLines.find(l=>l.auto==='scont');const df=demo.budgetLines.find(l=>l.auto==='devfee');if(hc)hc.bgt=Math.round(hb*.05);if(sc)sc.bgt=Math.round(sb*.05);if(df)df.bgt=Math.round((hb+sb)*.03);})();
+demo.phase='dd';
+demo.sale.exitCap=5.75;demo.sale.brokerPct=3;demo.sale.exitFeePct=1;demo.sale.closingCostPct=1.25;
+demo.lenders.push({id:uid(),name:'Stablewood',role:'Construction Lender (1st)',amt:8124963,rate:10.5,orig:1.33,fundedAtClose:2193739,holdback:5931224,pref:0,term:18,exitFee:1,notes:'100% project financing at 10.5%. Monthly draws against approved budget. 18-month term.'});
+demo.equityFundings.push({id:uid(),dt:'Aug 15, 2025',inv:'E2 CRE (Eric)',desc:'EMD paid direct to Chicago Title',amt:25000,rate:25,direct:'yes'});
+demo.equityFundings.push({id:uid(),dt:'Aug 18, 2025',inv:'E2 CRE (Eric)',desc:'August general pre-close funds',amt:5000,rate:25,direct:'no'});
+demo.equityFundings.push({id:uid(),dt:'Nov 15, 2025',inv:'E2 CRE (Eric)',desc:'November funds',amt:5000,rate:25,direct:'no'});
+demo.equityFundings.push({id:uid(),dt:'Jan 20, 2026',inv:'E2 CRE (Eric)',desc:'January funds',amt:20000,rate:25,direct:'no'});
+demo.expenses.push({id:uid(),dt:'Aug 13, 2025',pay:'Levick Legal',cat:'Legal',amt:25000,by:'E2 CRE',line:'Legal',phase:'Due Diligence',reimb:'pending'});
+demo.expenses.push({id:uid(),dt:'Nov 15, 2025',pay:'CESO Engineering',cat:'Geotechnical',amt:3075,by:'Project LLC',line:'Geotech',phase:'Due Diligence',reimb:'pending'});
+demo.expenses.push({id:uid(),dt:'Jan 20, 2026',pay:'BABL Studio',cat:'Entitlements',amt:645,by:'Project LLC',line:'Entitlements / Zoning',phase:'Entitlements',reimb:'pending'});
+S.projects.push(demo);S.cur=0;refSel();rAll();
+  } // end else
+})(); // end async IIFE
+</script>
+</body>
+</html>
