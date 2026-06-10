@@ -594,7 +594,6 @@ tbody tr:hover td{background:#F8FAFF}
     <button class="ni" onclick="go('stack',this)"><i class="ti ti-coin"></i>Capital Stack</button>
     <button class="ni" onclick="go('draws',this)"><i class="ti ti-crane"></i>Draws <span class="nbadge nbg" id="nb-dr" style="display:none">0</span></button>
     <button class="ni" onclick="go('cor',this)"><i class="ti ti-git-merge"></i>Change Orders <span class="nbadge nbr" id="nb-cor" style="display:none">0</span></button>
-    <button class="ni" onclick="go('interest',this)"><i class="ti ti-building-bank"></i>Interest Carry</button>
     <div class="nsec">Exit</div>
     <button class="ni" onclick="go('rent',this)"><i class="ti ti-calendar-stats"></i>Rent Schedule</button>
     <button class="ni" onclick="go('sale',this)"><i class="ti ti-home-dollar"></i>Sale & Exit</button>
@@ -715,6 +714,9 @@ tbody tr:hover td{background:#F8FAFF}
     <div id="page-stack" class="page">
       <div class="alert al-b"><i class="ti ti-info-circle"></i>Add any number of capital providers — construction lenders, equity investors, mezz, preferred equity. No limit. Each tracks its own rate, origination, holdback, and exit fee.</div>
       <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-coin"></i>Capital Providers</div><button class="btn btn-p btn-sm" onclick="om('mo-lender')"><i class="ti ti-plus"></i>Add Provider</button></div><div id="stack-list"></div></div>
+      <div class="g3" id="int-top"></div>
+      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-building-bank"></i>Monthly Interest Carry — Draw Schedule</div><div style="font-size:11px;color:var(--g5)">Edit balance — interest updates live</div></div>
+      <table><thead><tr><th>#</th><th>Month</th><th class="r">Draw Amount ($)</th><th class="r">Total Drawn</th><th class="r">Monthly Interest</th><th class="r">Cumulative Interest</th><th>Status</th></tr></thead><tbody id="int-body"></tbody><tfoot id="int-foot"></tfoot></table></div>
       <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-calculator"></i>Reconciliation — Sources vs Uses</div></div><div id="stack-recon"></div></div>
     </div>
     <div id="page-budget" class="page">
@@ -815,11 +817,6 @@ tbody tr:hover td{background:#F8FAFF}
       <div id="cor-top"></div>
       <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-git-merge"></i>Change Orders (COR)</div><button class="btn btn-p btn-sm" onclick="om('mo-cor')"><i class="ti ti-plus"></i>Log COR</button></div><div id="cor-list"></div></div>
       <div class="card" id="cor-sum-card" style="display:none"><div class="chdr"><div class="ctitle"><i class="ti ti-calculator"></i>Contingency Impact</div></div><div id="cor-sum"></div></div>
-    </div>
-    <div id="page-interest" class="page">
-      <div class="g3" id="int-top"></div>
-      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-building-bank"></i>Monthly Interest Carry — Draw Schedule</div><div style="font-size:11px;color:var(--g5)">Edit balance — interest updates live</div></div>
-      <table><thead><tr><th>#</th><th>Month</th><th class="r">Draw Amount ($)</th><th class="r">Total Drawn</th><th class="r">Monthly Interest</th><th class="r">Cumulative Interest</th><th>Status</th></tr></thead><tbody id="int-body"></tbody><tfoot id="int-foot"></tfoot></table></div>
     </div>
     <div id="page-rent" class="page">
       <div class="g3" id="rent-top"></div>
