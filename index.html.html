@@ -659,12 +659,20 @@ tbody tr:hover td{background:#F8FAFF}
         <div style="overflow-x:auto"><table id="ins-deals"></table></div>
       </div>
       <div class="card">
-        <div class="chdr"><div class="ctitle"><i class="ti ti-file-upload"></i>Pro-Forma Files</div><div style="font-size:11px;color:var(--g5)">Attach the pro-forma PDF/XLSX for each project — costs flow through the Pro-Forma Budget page</div></div>
+        <div class="chdr"><div class="ctitle"><i class="ti ti-file-upload"></i>Pro-Forma Files</div><div style="font-size:11px;color:var(--g5)" id="ins-pf-count"></div></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+          <span style="font-size:11px;font-weight:600;color:var(--g6)">Project:</span>
+          <select class="sel" id="ins-pf-sel" onchange="rInsightsProforma()" style="max-width:340px"></select>
+        </div>
         <div id="ins-proforma"></div>
       </div>
       <div class="card" style="border-left:4px solid #A6192E">
-        <div class="chdr"><div class="ctitle"><i class="ti ti-calculator"></i>What-If Analyzer for Rob — Portfolio BPS Sensitivity</div></div>
-        <div style="font-size:12px;color:var(--g5);margin-bottom:10px">Adjust market exit cap across the entire portfolio and see the impact on total exit value and projected profit. Tighter caps (lower bps) = higher value.</div>
+        <div class="chdr"><div class="ctitle"><i class="ti ti-calculator"></i>What-If Analyzer for Rob — BPS Sensitivity</div></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+          <span style="font-size:11px;font-weight:600;color:var(--g6)">Scope:</span>
+          <select class="sel" id="ins-wi-sel" onchange="rInsightsWhatIf()" style="max-width:340px"></select>
+        </div>
+        <div style="font-size:12px;color:var(--g5);margin-bottom:10px">Adjust market exit cap, costs and rent for the selected scope and see the impact on exit value and projected profit. Tighter caps (lower bps) = higher value.</div>
         <div class="g3" style="margin-bottom:12px">
           <div>
             <div style="font-size:10px;font-weight:700;color:var(--g5);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Exit Cap Adjustment</div>
@@ -2896,29 +2904,55 @@ function rInsights(){
     </tr>`;}).join('');
     $('ins-deals').innerHTML=`<thead><tr><th>Project</th><th>Tenant</th><th>State</th><th>Director</th><th>Phase</th><th class="r">TPC</th><th class="r">Annual NOI</th><th class="r">Build Cap</th><th class="r">Exit Cap</th><th class="r">Exit Value</th><th class="r">Net Profit</th><th class="r">Spread</th></tr></thead><tbody>${rows}</tbody>`;
   }
-  // Pro-forma uploads
-  if(!projs.length){
-    $('ins-proforma').innerHTML='<div style="font-size:12px;color:var(--g5);padding:10px 0">Add a project first to attach pro-forma files.</div>';
-  }else{
-    $('ins-proforma').innerHTML=projs.map((p,i)=>{
-      const f=p.proformaFile;
-      const has=f&&f.dataUrl;
-      return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--g3);flex-wrap:wrap">
-        <div style="flex:1;min-width:200px">
-          <div style="font-weight:600;font-size:12px;color:var(--g7)">${p.name||'Untitled'}</div>
-          <div style="font-size:10px;color:var(--g5)">${p.tenant||'—'} · ${p.state||'—'} · ${PHASES[PKEYS.indexOf(p.phase)]||'—'}</div>
-        </div>
-        <div style="font-size:11px;color:var(--g5);min-width:140px">${has?'📎 '+f.name+' · '+(f.uploadedAt?new Date(f.uploadedAt).toLocaleDateString():''):'<em>No file attached</em>'}</div>
-        ${has?`<a class="btn btn-sm" href="${f.dataUrl}" download="${f.name}"><i class="ti ti-download"></i> Download</a>`:''}
-        <label class="btn btn-sm btn-p" style="margin:0"><i class="ti ti-upload"></i> ${has?'Replace':'Upload'}<input type="file" accept=".pdf,.xlsx,.xls,.csv,.docx,.doc" style="display:none" onchange="uploadProforma(${i},this)"></label>
-        ${has?`<button class="btn btn-sm btn-d" onclick="removeProforma(${i})"><i class="ti ti-trash"></i></button>`:''}
-      </div>`;
-    }).join('');
-  }
+  // Populate project dropdowns (preserve current selection)
+  _insPopSel('ins-pf-sel', true, 'All projects');
+  _insPopSel('ins-wi-sel', true, 'Entire Portfolio');
+  rInsightsProforma();
   rInsightsWhatIf();
 }
-function rInsightsWhatIf(){
+// Populate a project selector; opt0 adds an "all" option at index value=""
+function _insPopSel(selId, withAll, allLabel){
+  const sel=$(selId);if(!sel)return;
+  const prev=sel.value;
   const projs=S.projects||[];
+  let html=withAll?`<option value="">${allLabel} (${projs.length})</option>`:'';
+  html+=projs.map((p,i)=>`<option value="${i}">${(p.tenant?p.tenant+' — ':'')+(p.name||'Untitled')}</option>`).join('');
+  sel.innerHTML=html;
+  // restore selection if still valid
+  if(prev!==''&&prev!=null&&+prev<projs.length)sel.value=prev;
+  else sel.value=withAll?'':(projs.length?'0':'');
+}
+function _insProformaRow(p,i){
+  const f=p.proformaFile;
+  const has=f&&f.dataUrl;
+  return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--g3);flex-wrap:wrap">
+    <div style="flex:1;min-width:200px">
+      <div style="font-weight:600;font-size:12px;color:var(--g7)">${p.name||'Untitled'}</div>
+      <div style="font-size:10px;color:var(--g5)">${p.tenant||'—'} · ${p.state||'—'} · ${PHASES[PKEYS.indexOf(p.phase)]||'—'}</div>
+    </div>
+    <div style="font-size:11px;color:var(--g5);min-width:140px">${has?'📎 '+f.name+' · '+(f.uploadedAt?new Date(f.uploadedAt).toLocaleDateString():''):'<em>No file attached</em>'}</div>
+    ${has?`<a class="btn btn-sm" href="${f.dataUrl}" download="${f.name}"><i class="ti ti-download"></i> Download</a>`:''}
+    <label class="btn btn-sm btn-p" style="margin:0"><i class="ti ti-upload"></i> ${has?'Replace':'Upload'}<input type="file" accept=".pdf,.xlsx,.xls,.csv,.docx,.doc" style="display:none" onchange="uploadProforma(${i},this)"></label>
+    ${has?`<button class="btn btn-sm btn-d" onclick="removeProforma(${i})"><i class="ti ti-trash"></i></button>`:''}
+  </div>`;
+}
+function rInsightsProforma(){
+  const projs=S.projects||[];
+  const cnt=projs.filter(p=>p.proformaFile&&p.proformaFile.dataUrl).length;
+  if($('ins-pf-count'))$('ins-pf-count').textContent=projs.length?`${cnt} of ${projs.length} have a file attached`:'';
+  const box=$('ins-proforma');if(!box)return;
+  if(!projs.length){box.innerHTML='<div style="font-size:12px;color:var(--g5);padding:10px 0">Add a project first to attach pro-forma files.</div>';return;}
+  const selVal=$('ins-pf-sel')?$('ins-pf-sel').value:'';
+  if(selVal===''||selVal==null){
+    box.innerHTML=projs.map((p,i)=>_insProformaRow(p,i)).join('');
+  }else{
+    const i=+selVal;box.innerHTML=_insProformaRow(projs[i],i);
+  }
+}
+function rInsightsWhatIf(){
+  const all=S.projects||[];
+  const scopeVal=$('ins-wi-sel')?$('ins-wi-sel').value:'';
+  const projs=(scopeVal===''||scopeVal==null)?all:(all[+scopeVal]?[all[+scopeVal]]:[]);
   const bps=+($('ins-bps')?.value||0);
   const costPct=+($('ins-cost')?.value||0);
   const rentPct=+($('ins-rent')?.value||0);
