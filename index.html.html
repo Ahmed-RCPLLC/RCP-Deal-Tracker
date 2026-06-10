@@ -577,6 +577,8 @@ tbody tr:hover td{background:#F8FAFF}
     <select id="proj-sel" onchange="switchProj(this.value)"></select>
   </div>
   <div class="nav">
+    <div class="nsec">Company</div>
+    <button class="ni" onclick="go('insights',this)"><i class="ti ti-building-skyscraper"></i>RCP LLC Insights</button>
     <div class="nsec">Overview</div>
     <button class="ni on" onclick="go('dash',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
     <div class="nsec">Deal Setup</div>
@@ -632,6 +634,58 @@ tbody tr:hover td{background:#F8FAFF}
     </div>
   </div>
   <div class="content">
+    <!-- ===== RCP LLC INSIGHTS PAGE ===== -->
+    <div id="page-insights" class="page">
+      <div class="card" style="background:linear-gradient(135deg,#A6192E 0%,#7E1322 100%);color:#fff;border:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+          <div>
+            <div style="font-size:18px;font-weight:700;letter-spacing:-.01em">RCP Development LLC — Portfolio Insights</div>
+            <div style="font-size:12px;opacity:.9;margin-top:3px">Company-wide view of all deals · auto-aggregated from project data</div>
+          </div>
+          <div style="font-size:11px;opacity:.85;text-align:right" id="ins-asof"></div>
+        </div>
+      </div>
+      <div class="g4" id="ins-kpi"></div>
+      <div class="g2">
+        <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-map-pin"></i>Projects by State</div></div><div id="ins-state"></div></div>
+        <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-user-star"></i>Director of Retail Development</div></div><div id="ins-director"></div></div>
+      </div>
+      <div class="g2">
+        <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-certificate"></i>Entitlements Manager</div></div><div id="ins-entitle"></div></div>
+        <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-building-store"></i>Tenant Mix</div></div><div id="ins-tenant"></div></div>
+      </div>
+      <div class="card">
+        <div class="chdr"><div class="ctitle"><i class="ti ti-table"></i>All Deals — Pricing Snapshot</div><div style="font-size:11px;color:var(--g5)">Click any row to open that project</div></div>
+        <div style="overflow-x:auto"><table id="ins-deals"></table></div>
+      </div>
+      <div class="card">
+        <div class="chdr"><div class="ctitle"><i class="ti ti-file-upload"></i>Pro-Forma Files</div><div style="font-size:11px;color:var(--g5)">Attach the pro-forma PDF/XLSX for each project — costs flow through the Pro-Forma Budget page</div></div>
+        <div id="ins-proforma"></div>
+      </div>
+      <div class="card" style="border-left:4px solid #A6192E">
+        <div class="chdr"><div class="ctitle"><i class="ti ti-calculator"></i>What-If Analyzer for Rob — Portfolio BPS Sensitivity</div></div>
+        <div style="font-size:12px;color:var(--g5);margin-bottom:10px">Adjust market exit cap across the entire portfolio and see the impact on total exit value and projected profit. Tighter caps (lower bps) = higher value.</div>
+        <div class="g3" style="margin-bottom:12px">
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--g5);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Exit Cap Adjustment</div>
+            <input type="range" id="ins-bps" min="-100" max="100" step="5" value="0" style="width:100%" oninput="rInsightsWhatIf()">
+            <div style="font-size:12px;color:var(--g6);margin-top:4px"><span id="ins-bps-lbl" style="font-weight:700;color:#A6192E">0 bps</span> change from each deal's current exit cap</div>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--g5);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Cost Adjustment</div>
+            <input type="range" id="ins-cost" min="-15" max="15" step="1" value="0" style="width:100%" oninput="rInsightsWhatIf()">
+            <div style="font-size:12px;color:var(--g6);margin-top:4px"><span id="ins-cost-lbl" style="font-weight:700;color:#A6192E">0%</span> change to total project costs</div>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--g5);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Rent Adjustment</div>
+            <input type="range" id="ins-rent" min="-15" max="15" step="1" value="0" style="width:100%" oninput="rInsightsWhatIf()">
+            <div style="font-size:12px;color:var(--g6);margin-top:4px"><span id="ins-rent-lbl" style="font-weight:700;color:#A6192E">0%</span> change to annual NOI</div>
+          </div>
+        </div>
+        <div class="g4" id="ins-whatif"></div>
+      </div>
+    </div>
+
     <div id="page-dash" class="page on">
       <div id="d-alerts"></div><div id="d-spread"></div>
       <div class="g4" id="d-metrics"></div>
@@ -1074,6 +1128,7 @@ const Fp=n=>n==null?'—':n.toFixed(2)+'%';
 const pct=(a,b)=>b===0?0:Math.round(a/b*1000)/10;
 
 function rAll(){
+  try{rInsights();}catch(e){}
   if(!S.p){rEmpty();saveData();return;}
   const p=S.p,c=C(p);
   rTB(p,c);rPB(p);rBadges(p);
@@ -1796,6 +1851,7 @@ function go(pg,el){
   el.classList.add('on');
   if(pg==='monthly') rMonthly();
   if(pg==='proforma') rProforma();
+  if(pg==='insights') rInsights();
 }
 function om(id){$(id).style.display='flex';}
 function cm(id){$(id).style.display='none';}
@@ -2770,6 +2826,153 @@ function deletePSAAmendment(idx){
   rAll();
 }
 // ── End PSA Timeline ──────────────────────────────────────────────────────
+
+// ── RCP LLC INSIGHTS ─────────────────────────────────────────────────────
+function _insGroup(getKey){
+  const m={};
+  (S.projects||[]).forEach((p,i)=>{
+    const k=(getKey(p)||'').trim()||'— Unassigned';
+    if(!m[k])m[k]={count:0,projects:[],totalBgt:0,totalNOI:0,totalExit:0,totalProfit:0};
+    const c=C(p);
+    m[k].count++;
+    m[k].projects.push({i,name:p.name,tenant:p.tenant});
+    m[k].totalBgt+=c.total||0;
+    m[k].totalNOI+=p.annualRent||0;
+    m[k].totalExit+=c.exitVal||0;
+    m[k].totalProfit+=c.profit||0;
+  });
+  return Object.entries(m).sort((a,b)=>b[1].count-a[1].count);
+}
+function _insBar(rows,total){
+  if(!rows.length)return '<div style="font-size:12px;color:var(--g5);padding:14px 0">No projects yet</div>';
+  return rows.map(([k,v])=>{
+    const pct=total?Math.round(v.count/total*100):0;
+    const names=v.projects.map(x=>`<button class="btn btn-sm" style="font-size:10px;padding:2px 8px" onclick="goToProj(${x.i})">${(x.tenant?x.tenant+' — ':'')+x.name}</button>`).join(' ');
+    return `<div style="padding:10px 0;border-bottom:1px solid var(--g3)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <div style="font-weight:600;font-size:13px;color:var(--g7)">${k}</div>
+        <div style="font-size:11px;color:var(--g5)"><strong style="color:#A6192E;font-size:14px">${v.count}</strong> ${v.count===1?'deal':'deals'} · ${pct}% · ${F(v.totalBgt)} TPC</div>
+      </div>
+      <div class="pb" style="margin-bottom:6px"><div class="pbf" style="width:${pct}%;background:linear-gradient(90deg,#A6192E,#7E1322)"></div></div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">${names}</div>
+    </div>`;
+  }).join('');
+}
+function rInsights(){
+  const projs=S.projects||[];
+  $('ins-asof').textContent='As of '+new Date().toLocaleString();
+  // KPIs
+  let totalBgt=0,totalAct=0,totalNOI=0,totalExit=0,totalProfit=0,spreadSum=0,spreadW=0;
+  projs.forEach(p=>{const c=C(p);totalBgt+=c.total||0;totalAct+=c.totalA||0;totalNOI+=p.annualRent||0;totalExit+=c.exitVal||0;totalProfit+=c.profit||0;if(c.spread!=null){spreadSum+=c.spread*(c.total||1);spreadW+=(c.total||1);}});
+  const avgSpread=spreadW?spreadSum/spreadW:null;
+  $('ins-kpi').innerHTML=`
+    <div class="mc"><div class="l">Total Projects</div><div class="v" style="color:#A6192E">${projs.length}</div><div class="s">Across portfolio</div></div>
+    <div class="mc"><div class="l">Total Project Cost</div><div class="v">${F(totalBgt)}</div><div class="s">Actual to date: ${F(totalAct)}</div></div>
+    <div class="mc"><div class="l">Total Annual NOI</div><div class="v">${F(totalNOI)}</div><div class="s">Combined Year-1 rent</div></div>
+    <div class="mc ${totalProfit>0?'mc-good':totalProfit<0?'mc-danger':''}"><div class="l">Projected Net Profit</div><div class="v">${F(totalProfit)}</div><div class="s">Exit value ${F(totalExit)}${avgSpread!=null?' · Wt spread '+avgSpread.toFixed(0)+' bps':''}</div></div>`;
+  // Segments
+  const total=projs.length;
+  $('ins-state').innerHTML=_insBar(_insGroup(p=>p.state),total);
+  $('ins-director').innerHTML=_insBar(_insGroup(p=>p.director),total);
+  $('ins-entitle').innerHTML=_insBar(_insGroup(p=>p.entitlements),total);
+  $('ins-tenant').innerHTML=_insBar(_insGroup(p=>p.tenant),total);
+  // Deals table
+  if(!projs.length){
+    $('ins-deals').innerHTML='<tbody><tr><td style="padding:20px;text-align:center;color:var(--g5)">No projects yet. Click <strong>+ New Project</strong> in the sidebar to add your first deal.</td></tr></tbody>';
+  }else{
+    const rows=projs.map((p,i)=>{const c=C(p);const phaseLabel=PHASES[PKEYS.indexOf(p.phase)]||p.phase||'—';const sp=c.spread!=null?c.spread.toFixed(0)+' bps':'—';const spColor=c.spread!=null?(c.spread>=c.tc.floor?'var(--green)':'var(--red)'):'var(--g5)';return `<tr style="cursor:pointer" onclick="goToProj(${i})">
+      <td><div style="font-weight:600;color:var(--g7)">${p.name||'Untitled'}</div><div style="font-size:10px;color:var(--g5)">${[p.addr,p.city,p.state].filter(Boolean).join(', ')||'No address'}</div></td>
+      <td>${p.tenant||'—'}</td>
+      <td>${p.state||'—'}</td>
+      <td style="font-size:11px">${p.director||'—'}</td>
+      <td><span class="st st-b">${phaseLabel}</span></td>
+      <td class="r">${F(c.total)}</td>
+      <td class="r">${F(p.annualRent)}</td>
+      <td class="r">${c.bCap?c.bCap.toFixed(2)+'%':'—'}</td>
+      <td class="r">${p.sale?.exitCap?p.sale.exitCap.toFixed(2)+'%':'—'}</td>
+      <td class="r">${F(c.exitVal)}</td>
+      <td class="r" style="color:${c.profit>0?'var(--green)':c.profit<0?'var(--red)':'var(--g6)'};font-weight:700">${F(c.profit)}</td>
+      <td class="r" style="color:${spColor};font-weight:600">${sp}</td>
+    </tr>`;}).join('');
+    $('ins-deals').innerHTML=`<thead><tr><th>Project</th><th>Tenant</th><th>State</th><th>Director</th><th>Phase</th><th class="r">TPC</th><th class="r">Annual NOI</th><th class="r">Build Cap</th><th class="r">Exit Cap</th><th class="r">Exit Value</th><th class="r">Net Profit</th><th class="r">Spread</th></tr></thead><tbody>${rows}</tbody>`;
+  }
+  // Pro-forma uploads
+  if(!projs.length){
+    $('ins-proforma').innerHTML='<div style="font-size:12px;color:var(--g5);padding:10px 0">Add a project first to attach pro-forma files.</div>';
+  }else{
+    $('ins-proforma').innerHTML=projs.map((p,i)=>{
+      const f=p.proformaFile;
+      const has=f&&f.dataUrl;
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--g3);flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <div style="font-weight:600;font-size:12px;color:var(--g7)">${p.name||'Untitled'}</div>
+          <div style="font-size:10px;color:var(--g5)">${p.tenant||'—'} · ${p.state||'—'} · ${PHASES[PKEYS.indexOf(p.phase)]||'—'}</div>
+        </div>
+        <div style="font-size:11px;color:var(--g5);min-width:140px">${has?'📎 '+f.name+' · '+(f.uploadedAt?new Date(f.uploadedAt).toLocaleDateString():''):'<em>No file attached</em>'}</div>
+        ${has?`<a class="btn btn-sm" href="${f.dataUrl}" download="${f.name}"><i class="ti ti-download"></i> Download</a>`:''}
+        <label class="btn btn-sm btn-p" style="margin:0"><i class="ti ti-upload"></i> ${has?'Replace':'Upload'}<input type="file" accept=".pdf,.xlsx,.xls,.csv,.docx,.doc" style="display:none" onchange="uploadProforma(${i},this)"></label>
+        ${has?`<button class="btn btn-sm btn-d" onclick="removeProforma(${i})"><i class="ti ti-trash"></i></button>`:''}
+      </div>`;
+    }).join('');
+  }
+  rInsightsWhatIf();
+}
+function rInsightsWhatIf(){
+  const projs=S.projects||[];
+  const bps=+($('ins-bps')?.value||0);
+  const costPct=+($('ins-cost')?.value||0);
+  const rentPct=+($('ins-rent')?.value||0);
+  if($('ins-bps-lbl'))$('ins-bps-lbl').textContent=(bps>0?'+':'')+bps+' bps';
+  if($('ins-cost-lbl'))$('ins-cost-lbl').textContent=(costPct>0?'+':'')+costPct+'%';
+  if($('ins-rent-lbl'))$('ins-rent-lbl').textContent=(rentPct>0?'+':'')+rentPct+'%';
+  let baseExit=0,baseProfit=0,newExit=0,newProfit=0,baseCost=0,newCost=0;
+  projs.forEach(p=>{
+    const c=C(p);
+    baseCost+=c.total||0;
+    baseExit+=c.exitVal||0;
+    baseProfit+=c.profit||0;
+    const adjCost=(c.total||0)*(1+costPct/100);
+    const adjNOI=(p.annualRent||0)*(1+rentPct/100);
+    const newCap=(p.sale?.exitCap||0)+bps/100;
+    const adjExit=newCap>0&&adjNOI>0?Math.round(adjNOI/(newCap/100)):0;
+    const brokerPct=p.sale?.brokerPct||3,exitFeePct=p.sale?.exitFeePct||1,closingCostPct=p.sale?.closingCostPct||1.25;
+    const fees=adjExit*((brokerPct+exitFeePct+closingCostPct)/100);
+    const adjProfit=adjExit-fees-adjCost;
+    newCost+=adjCost;
+    newExit+=adjExit;
+    newProfit+=adjProfit;
+  });
+  const dExit=newExit-baseExit,dProfit=newProfit-baseProfit,dCost=newCost-baseCost;
+  const goodE=dExit>=0,goodP=dProfit>=0,goodC=dCost<=0;
+  $('ins-whatif').innerHTML=`
+    <div class="mc ${goodC?'mc-good':'mc-danger'}"><div class="l">Adjusted Project Cost</div><div class="v">${F(newCost)}</div><div class="s" style="color:${goodC?'var(--green)':'var(--red)'}">${dCost>=0?'+':''}${F(dCost)} vs current</div></div>
+    <div class="mc ${goodE?'mc-good':'mc-danger'}"><div class="l">Adjusted Exit Value</div><div class="v">${F(newExit)}</div><div class="s" style="color:${goodE?'var(--green)':'var(--red)'}">${dExit>=0?'+':''}${F(dExit)} vs current</div></div>
+    <div class="mc ${goodP?'mc-good':'mc-danger'}"><div class="l">Adjusted Net Profit</div><div class="v">${F(newProfit)}</div><div class="s" style="color:${goodP?'var(--green)':'var(--red)'}">${dProfit>=0?'+':''}${F(dProfit)} vs current</div></div>
+    <div class="mc"><div class="l">Profit Δ % of Cost</div><div class="v">${newCost?((dProfit/newCost)*100).toFixed(2):'0.00'}%</div><div class="s">Margin shift from baseline</div></div>`;
+}
+function goToProj(idx){
+  S.cur=idx;
+  if($('proj-sel'))$('proj-sel').value=idx;
+  rAll();
+  const dashBtn=document.querySelector(".ni[onclick*=\"'dash'\"]");
+  if(dashBtn)go('dash',dashBtn);
+}
+function uploadProforma(idx,inp){
+  const f=inp.files&&inp.files[0];if(!f)return;
+  if(f.size>5*1024*1024){alert('File too large — keep under 5 MB. Larger files should be linked from cloud storage instead.');inp.value='';return;}
+  const r=new FileReader();
+  r.onload=e=>{
+    S.projects[idx].proformaFile={name:f.name,type:f.type,size:f.size,dataUrl:e.target.result,uploadedAt:new Date().toISOString()};
+    rInsights();saveData();
+  };
+  r.readAsDataURL(f);
+}
+function removeProforma(idx){
+  if(!confirm('Remove the attached pro-forma file?'))return;
+  delete S.projects[idx].proformaFile;
+  rInsights();saveData();
+}
+// ── End RCP LLC Insights ─────────────────────────────────────────────────
 </script>
 
 <!-- ===== LOGIN AUTH ===== -->
