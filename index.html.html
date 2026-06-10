@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RCP NNN Deal Tracker — Red Cedar Partners</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -464,6 +465,14 @@ tbody tr:hover td{background:#F8FAFF}
   <div class="mfoot"><button class="btn" onclick="cm('mo-lender-edit')">Cancel</button><button class="btn btn-p" onclick="saveLenderEdit()">✓ Save Changes</button></div>
 </div></div>
 
+<div id="mo-pf-import" class="ov" style="display:none">
+<div class="modal" style="max-width:640px">
+  <div class="mtitle">📥 Pro Forma Import — Preview</div>
+  <div style="font-size:12px;color:var(--g5);margin-bottom:10px">Yeh values aapki Excel file se detect hui hain. Confirm karein to inputs mein apply ho jayengi (purani values overwrite hongi). Jo fields detect na hui hon, woh waise hi rahengi.</div>
+  <div id="pf-import-preview" style="max-height:55vh;overflow-y:auto"></div>
+  <div class="mfoot"><button class="btn" onclick="cm('mo-pf-import')">Cancel</button><button class="btn btn-p" onclick="pfApplyImport()">✓ Apply to Pro Forma</button></div>
+</div></div>
+
 <div id="mo-draw" class="ov" style="display:none">
 <div class="modal">
   <div class="mtitle">🏗️ Submit Construction Draw</div>
@@ -843,6 +852,19 @@ tbody tr:hover td{background:#F8FAFF}
         <div style="display:flex;gap:6px">
           <button class="btn btn-sm" onclick="pfUndo()" id="pf-undo-btn" title="Undo last change">↩ Undo</button>
           <span class="st st-gray" id="pf-revision-label" style="font-size:10px;padding:4px 8px">Rev 1</span>
+        </div>
+      </div>
+
+      <!-- IMPORT FROM EXCEL -->
+      <div class="card" style="border:1px dashed var(--blue);background:var(--blue-light)">
+        <div class="chdr"><div class="ctitle"><i class="ti ti-file-spreadsheet"></i>Start Here — Import from Excel Pro Forma</div></div>
+        <div style="padding:6px 2px;font-size:12px;color:var(--g6);line-height:1.7">
+          Apni standard pro-forma Excel file (<strong>.xlsx / .xls / .csv</strong>) upload karein. Saari fields auto-detect ho kar bhar jayengi — Project Info, Hard Costs, Soft Costs, Contingency, Financing &amp; Fees, aur Exit Assumptions. Upload ke baad ek <strong>preview</strong> milega; confirm karne par hi values apply hongi. Koi item miss ho jaye to har section ke <strong>"Add Line"</strong> button se manually add kar sakte hain.
+          <div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <input type="file" id="pf-import-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="pfImportFile(event)">
+            <button class="btn btn-p btn-sm" onclick="document.getElementById('pf-import-file').click()"><i class="ti ti-upload"></i> Upload Pro Forma</button>
+            <span id="pf-import-status" style="font-size:11px;color:var(--g5)"></span>
+          </div>
         </div>
       </div>
 
@@ -1995,6 +2017,197 @@ function pfGetData(){
   if(!p.proforma.returnsExtra) p.proforma.returnsExtra=[];
   if(!p.proforma.internalExtra) p.proforma.internalExtra=[];
   return p.proforma;
+}
+
+// ── PRO FORMA EXCEL IMPORT ───────────────────────────
+let _pfParsed=null;
+
+// Numeric from a cell that is a pure number / formatted number ("$1,234", "10%", "(500)"). Text with letters → null.
+function pfPureNum(v){
+  if(typeof v==='number') return isFinite(v)?v:null;
+  if(typeof v!=='string') return null;
+  let s=v.trim(); if(!s) return null;
+  if(/[a-zA-Z]/.test(s)) return null;            // has letters → treat as text, not a number
+  const neg=/^\(.*\)$/.test(s)||/^-/.test(s);
+  const c=s.replace(/[(),$%\s]/g,'').replace(/^-/,'');
+  if(c===''||isNaN(+c)) return null;
+  return neg?-(+c):+c;
+}
+function pfCellTxt(v){ return v==null?'':(''+v).trim(); }
+function pfIsText(v){ return typeof v==='string' && /[a-zA-Z]/.test(v.trim()); }
+
+const PF_PCT_KEYS=['intRate','pointsIn','pointsOut','ltc','devFeePct','prefEquityReturn','contPct','exitCap','dispositionPct','salesCommPct','takeoutRate'];
+
+function pfImportFile(ev){
+  const f=ev.target.files&&ev.target.files[0]; if(!f) return;
+  const st=$('pf-import-status'); if(st) st.textContent='Reading '+f.name+' …';
+  if(typeof XLSX==='undefined'){
+    if(st) st.textContent='';
+    alert('Excel reader library load nahi hui. Internet connection check karein aur page reload karke dobara try karein.');
+    return;
+  }
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const rows=[];
+      wb.SheetNames.forEach(name=>{
+        const ws=wb.Sheets[name];
+        const arr=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null,blankrows:true});
+        arr.forEach(r=>rows.push(r||[]));
+        rows.push([]);
+      });
+      _pfParsed=pfParseRows(rows);
+      if(st) st.textContent='Detected from '+f.name;
+      pfShowImportPreview(f.name);
+    }catch(err){
+      if(st) st.textContent='';
+      alert('Excel file read nahi ho saki. Sahi .xlsx/.xls/.csv file hai ya nahi check karein.\n\n'+(err&&err.message||err));
+    }
+  };
+  reader.onerror=()=>{ if(st) st.textContent=''; alert('File read error.'); };
+  reader.readAsArrayBuffer(f);
+  ev.target.value='';   // allow re-uploading the same file
+}
+
+function pfParseRows(rows){
+  const fields={};
+  const valAfter=(ri,ci)=>{
+    const row=rows[ri]||[];
+    for(let c=ci+1;c<row.length;c++){ const n=pfPureNum(row[c]); if(n!=null) return n; }
+    const below=rows[ri+1]||[]; const n=pfPureNum(below[ci]); return n!=null?n:null;
+  };
+  const txtAfter=(ri,ci)=>{
+    const row=rows[ri]||[];
+    for(let c=ci+1;c<row.length;c++){ if(pfIsText(row[c])) return pfCellTxt(row[c]); }
+    const below=rows[ri+1]||[]; return pfIsText(below[ci])?pfCellTxt(below[ci]):'';
+  };
+  const defs=[
+    {k:'buildingSF',t:'num',m:s=>(s.includes('building')&&(s.includes('sf')||s.includes('square')))||s==='sf'||s.includes('rentable sf')||s.includes('gross sf')||s.includes('building size')||s.includes('bldg sf')},
+    {k:'landAcres',t:'num',m:s=>s.includes('acre')||s.includes('land area')||s.includes('site area')||s.includes('site size')},
+    {k:'tenant',t:'txt',m:s=>s.includes('tenant')&&!s.includes('broker')&&!s.includes('improvement')&&!s.includes('ti package')},
+    {k:'lease',t:'txt',m:s=>s.includes('lease type')||s.includes('lease term')||s.includes('lease structure')||s==='lease'},
+    {k:'siteAddress',t:'txt',m:s=>s.includes('site address')||s.includes('property address')||s==='address'||s.includes('property location')},
+    {k:'pursuitBudget',t:'num',m:s=>s.includes('pursuit')},
+    {k:'intRate',t:'num',m:s=>s.includes('interest rate')||s.includes('construction rate')||(s.includes('loan')&&s.includes('rate'))||s.includes('debt rate')},
+    {k:'pointsIn',t:'num',m:s=>s.includes('points in')||s.includes('origination')||s.includes('loan fee')||s.includes('points (in')||s.includes('entry fee')},
+    {k:'pointsOut',t:'num',m:s=>s.includes('points out')||s.includes('exit fee')||s.includes('payoff fee')||s.includes('points (out')},
+    {k:'ltc',t:'num',m:s=>s.includes('ltc')||s.includes('loan to cost')||s.includes('loan-to-cost')},
+    {k:'devFeePct',t:'num',m:s=>s.includes('dev fee')||s.includes('developer fee')||s.includes('development fee')},
+    {k:'prefEquityReturn',t:'num',m:s=>s.includes('pref')&&(s.includes('return')||s.includes('equity'))},
+    {k:'contPct',t:'num',m:s=>s.includes('contingency')},
+    {k:'exitCap',t:'num',m:s=>s.includes('exit cap')||s.includes('exit cap rate')||(s.includes('cap')&&s.includes('rate')&&!s.includes('takeout'))},
+    {k:'targetSpread',t:'num',m:s=>s.includes('spread')},
+    {k:'rentOverride',t:'num',m:s=>s==='noi'||s.includes('net operating income')||s.includes('stabilized noi')||s.includes('annual noi')||s.includes('annual rent')||s.includes('stabilized rent')},
+    {k:'rentStartMonth',t:'num',m:s=>s.includes('rent start')||s.includes('rent commencement')||s.includes('rent comm')},
+    {k:'dispositionPct',t:'num',m:s=>s.includes('disposition')},
+    {k:'salesCommPct',t:'num',m:s=>s.includes('sales comm')||s.includes('sales commission')||s.includes('broker commission')||s.includes('disposition comm')},
+    {k:'holdMonths',t:'num',m:s=>(s.includes('hold')&&s.includes('month'))||s.includes('hold period')},
+    {k:'takeoutRate',t:'num',m:s=>s.includes('takeout')||s.includes('take-out')||s.includes('permanent rate')||s.includes('stabilized cap')||s.includes('refi rate')},
+  ];
+  for(let ri=0;ri<rows.length;ri++){
+    const row=rows[ri]||[];
+    for(let ci=0;ci<row.length;ci++){
+      const label=pfCellTxt(row[ci]).toLowerCase();
+      if(!label) continue;
+      for(const d of defs){
+        if(d.k in fields) continue;
+        if(!d.m(label)) continue;
+        if(d.t==='num'){ const v=valAfter(ri,ci); if(v!=null) fields[d.k]=v; }
+        else { const v=txtAfter(ri,ci); if(v) fields[d.k]=v; }
+      }
+    }
+  }
+  // Normalise percentages (Excel stores 10% as 0.1; LTC 100% as 1)
+  PF_PCT_KEYS.forEach(k=>{ if(fields[k]!=null && fields[k]>0 && fields[k]<1.5) fields[k]=Math.round(fields[k]*1000)/10; });
+  // Target spread → basis points
+  if(fields.targetSpread!=null){
+    let s=fields.targetSpread;
+    if(s>0&&s<1) s=Math.round(s*10000); else if(s<20) s=Math.round(s*100);
+    fields.targetSpread=s;
+  }
+  // Round whole-number fields
+  ['buildingSF','pursuitBudget','rentOverride'].forEach(k=>{ if(fields[k]!=null) fields[k]=Math.round(fields[k]); });
+  ['rentStartMonth','holdMonths'].forEach(k=>{ if(fields[k]!=null) fields[k]=Math.round(fields[k]); });
+
+  const hard=pfExtractSection(rows,['hard cost'],['soft cost','total hard','contingency','total uses','financing','exit']);
+  const soft=pfExtractSection(rows,['soft cost'],['contingency','total soft','financing','exit','uses summary','total uses','returns']);
+  return {fields,hard,soft};
+}
+
+function pfExtractSection(rows,startKeys,stopKeys){
+  let start=-1;
+  for(let i=0;i<rows.length;i++){
+    const joined=(rows[i]||[]).map(c=>pfCellTxt(c).toLowerCase()).join(' ');
+    if(startKeys.some(k=>joined.includes(k))){ start=i; break; }
+  }
+  if(start<0) return [];
+  const items=[]; let blanks=0;
+  for(let i=start+1;i<rows.length;i++){
+    const row=rows[i]||[];
+    const joined=row.map(c=>pfCellTxt(c).toLowerCase()).join(' ').trim();
+    if(joined===''){ if(++blanks>=4) break; continue; }
+    blanks=0;
+    if(stopKeys.some(k=>joined.includes(k))) break;
+    let desc='';
+    for(let c=0;c<row.length;c++){ if(pfIsText(row[c])){ desc=pfCellTxt(row[c]); break; } }
+    if(!desc) continue;
+    if(/^(total|subtotal|sub-total)/i.test(desc.trim())) continue;
+    // amount = largest pure-number cell in the row (total $ >> $/SF, %)
+    let amt=null;
+    for(let c=0;c<row.length;c++){ const n=pfPureNum(row[c]); if(n!=null && (amt==null||n>amt)) amt=n; }
+    if(amt==null) continue;
+    items.push({desc:desc.trim(),amt:Math.round(amt)});
+    if(items.length>80) break;
+  }
+  return items;
+}
+
+const PF_FIELD_LABELS={buildingSF:'Building SF',landAcres:'Land Acres',tenant:'Tenant',lease:'Lease',siteAddress:'Site Address',pursuitBudget:'Pursuit Budget ($)',intRate:'Interest Rate (%)',pointsIn:'Points In (%)',pointsOut:'Points Out (%)',ltc:'LTC (%)',devFeePct:'Dev Fee (%)',prefEquityReturn:'Pref Equity Return (%)',contPct:'Contingency (%)',exitCap:'Exit Cap (%)',targetSpread:'Target Spread (bps)',rentOverride:'NOI / Annual Rent ($)',rentStartMonth:'Rent Start Month',dispositionPct:'Disposition (%)',salesCommPct:'Sales Commission (%)',holdMonths:'Hold (months)',takeoutRate:'Takeout Rate (%)'};
+
+function pfShowImportPreview(fname){
+  const d=_pfParsed; if(!d) return;
+  const fmt=(k,v)=>typeof v==='number'?(k==='pursuitBudget'||k==='rentOverride'?v.toLocaleString():v):v;
+  const fieldKeys=Object.keys(d.fields);
+  let html='';
+  const matchedCount=fieldKeys.length+ (d.hard.length?1:0)+(d.soft.length?1:0);
+  if(matchedCount===0){
+    html='<div class="alert al-a" style="margin:0"><i class="ti ti-alert-triangle"></i>Is file mein koi pehchani jaane wali field nahi mili. File ka format check karein, ya values manually enter karein.</div>';
+    $('pf-import-preview').innerHTML=html;
+    om('mo-pf-import'); return;
+  }
+  html+='<div style="font-size:11px;color:var(--g5);margin-bottom:6px">File: <strong>'+fname+'</strong></div>';
+  if(fieldKeys.length){
+    html+='<div style="font-size:10px;font-weight:700;color:var(--g5);text-transform:uppercase;margin:8px 0 4px">Detected Fields ('+fieldKeys.length+')</div>';
+    html+='<table style="width:100%"><tbody>';
+    fieldKeys.forEach(k=>{ html+='<tr><td style="padding:3px 6px;color:var(--g6)">'+(PF_FIELD_LABELS[k]||k)+'</td><td class="r" style="padding:3px 6px;font-weight:600">'+fmt(k,d.fields[k])+'</td></tr>'; });
+    html+='</tbody></table>';
+  }
+  const secTbl=(title,arr)=>{
+    if(!arr.length) return '';
+    let t='<div style="font-size:10px;font-weight:700;color:var(--g5);text-transform:uppercase;margin:12px 0 4px">'+title+' ('+arr.length+' lines, '+arr.reduce((s,x)=>s+x.amt,0).toLocaleString()+')</div>';
+    t+='<table style="width:100%"><tbody>';
+    arr.forEach(x=>{ t+='<tr><td style="padding:2px 6px;color:var(--g6)">'+x.desc+'</td><td class="r" style="padding:2px 6px">'+x.amt.toLocaleString()+'</td></tr>'; });
+    t+='</tbody></table>';
+    return t;
+  };
+  html+=secTbl('Hard Costs',d.hard);
+  html+=secTbl('Soft Costs',d.soft);
+  html+='<div style="font-size:11px;color:var(--g5);margin-top:12px;border-top:1px solid var(--g3);padding-top:8px"><i class="ti ti-info-circle"></i> Percentages aur amounts ko ek nazar dekh lein. Galat lage to apply ke baad us field ko edit kar sakte hain, ya koi missing line "Add Line" se add kar sakte hain.</div>';
+  $('pf-import-preview').innerHTML=html;
+  om('mo-pf-import');
+}
+
+function pfApplyImport(){
+  const pf=pfGetData(); if(!pf||!_pfParsed) return;
+  pfSaveRevision();
+  const d=_pfParsed;
+  Object.keys(d.fields).forEach(k=>{ pf[k]=d.fields[k]; });
+  if(d.hard&&d.hard.length) pf.hard=d.hard.map(x=>({id:uid(),desc:x.desc,amt:x.amt}));
+  if(d.soft&&d.soft.length) pf.soft=d.soft.map(x=>({id:uid(),desc:x.desc,amt:x.amt}));
+  cm('mo-pf-import');
+  const st=$('pf-import-status'); if(st) st.textContent='Imported ✓';
+  rProforma(); saveData();
 }
 
 function pfCalc(pf){
