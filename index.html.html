@@ -395,15 +395,15 @@ tbody tr:hover td{background:#F8FAFF}
     <div class="fr"><div class="fl">Lot Acreage</div><input class="inp" id="np-acres" type="number" step="0.01" placeholder="e.g. 1.15"></div>
     <div class="fr"><div class="fl">Intersection</div><input class="inp" id="np-int" placeholder="e.g. Main St & Oak Ave"></div>
     <div class="fr"><div class="fl">Director of Retail Development</div>
-      <input class="inp" id="np-director" list="dl-directors" placeholder="Select or type name">
+      <input class="inp" id="np-director" list="dl-directors" placeholder="Pick a name or type a new one">
       <datalist id="dl-directors">
         <option value="Nate Fokianos">
         <option value="Matt Warry">
         <option value="Holly Lefever">
       </datalist>
     </div>
-    <div class="fr"><div class="fl">Entitlements Lead</div>
-      <input class="inp" id="np-entitlements" list="dl-entitlements" placeholder="Select or type name">
+    <div class="fr"><div class="fl">Entitlements Manager</div>
+      <input class="inp" id="np-entitlements" list="dl-entitlements" placeholder="Pick a name or type a new one">
       <datalist id="dl-entitlements">
         <option value="Brandon Layman">
         <option value="Beatriz Acosta">
@@ -1214,8 +1214,8 @@ function rProj(p){
     <div class="fr"><div class="fl">Building SF</div><input class="inp" type="number" value="${p.sf||''}" onchange="S.p.sf=+this.value;rAll()"></div>
     <div class="fr"><div class="fl">Lot Acreage</div><input class="inp" type="number" step="0.01" value="${(p.lotAcres!=null?p.lotAcres:p.lotSf)||''}" onchange="S.p.lotAcres=+this.value"></div>
     <div class="fr"><div class="fl">Intersection</div><input class="inp" value="${p.intersection||''}" onchange="S.p.intersection=this.value"></div>
-    <div class="fr"><div class="fl">Director of Retail Development</div><input class="inp" list="dl-directors" value="${p.director||''}" onchange="S.p.director=this.value" placeholder="Select or type name"></div>
-    <div class="fr"><div class="fl">Entitlements Lead</div><input class="inp" list="dl-entitlements" value="${p.entitlements||''}" onchange="S.p.entitlements=this.value" placeholder="Select or type name"></div>
+    <div class="fr"><div class="fl">Director of Retail Development</div><input class="inp" list="dl-directors" value="${p.director||''}" onchange="S.p.director=this.value" placeholder="Pick a name or type a new one"></div>
+    <div class="fr"><div class="fl">Entitlements Manager</div><input class="inp" list="dl-entitlements" value="${p.entitlements||''}" onchange="S.p.entitlements=this.value" placeholder="Pick a name or type a new one"></div>
     <div class="fr"><div class="fl">Annual NOI / Rent Year 1 ($)</div><input class="inp" type="number" value="${p.annualRent||''}" onchange="S.p.annualRent=+this.value;rAll()"></div>
     <div class="fr"><div class="fl">Rent Escalation (%)</div><input class="inp" type="number" step="0.5" value="${p.rentEsc||''}" onchange="S.p.rentEsc=+this.value;rRent(S.p)"></div>
     <div class="fr"><div class="fl">Escalation Period (yrs)</div><input class="inp" type="number" value="${p.escYrs||''}" onchange="S.p.escYrs=+this.value;rRent(S.p)"></div>
