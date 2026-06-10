@@ -376,7 +376,7 @@ tbody tr:hover td{background:#F8FAFF}
   <div class="fg2">
     <div class="fr"><div class="fl">Project Name *</div><input class="inp" id="np-name" placeholder="e.g. Chicago IL — 7-Eleven Clark St"></div>
     <div class="fr"><div class="fl">Tenant *</div>
-      <input class="inp" id="np-tenant" list="dl-tenants" placeholder="Select or type tenant">
+      <input class="inp" id="np-tenant" list="dl-tenants" placeholder="Pick a tenant or type a new one">
       <datalist id="dl-tenants">
         <option value="7-Eleven / Speedway">
         <option value="Panera Bread">
@@ -1205,7 +1205,7 @@ function rDash(p,c){
 function rProj(p){
   $('proj-form').innerHTML=`
     <div class="fr"><div class="fl">Project Name</div><input class="inp" value="${p.name}" onchange="S.p.name=this.value;rAll()"></div>
-    <div class="fr"><div class="fl">Tenant</div><input class="inp" list="dl-tenants" value="${p.tenant||''}" onchange="S.p.tenant=this.value;rAll()" placeholder="Select or type tenant"></div>
+    <div class="fr"><div class="fl">Tenant</div><input class="inp" list="dl-tenants" value="${p.tenant||''}" onchange="S.p.tenant=this.value;rAll()" placeholder="Pick a tenant or type a new one"></div>
     <div class="fr"><div class="fl">Street Address</div><input class="inp" value="${p.addr||''}" onchange="S.p.addr=this.value"></div>
     <div class="fr"><div class="fl">City</div><input class="inp" value="${p.city||''}" onchange="S.p.city=this.value"></div>
     <div class="fr"><div class="fl">State</div><select class="sel" onchange="S.p.state=this.value">
