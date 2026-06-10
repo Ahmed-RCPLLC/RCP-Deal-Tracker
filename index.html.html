@@ -376,7 +376,15 @@ tbody tr:hover td{background:#F8FAFF}
   <div class="fg2">
     <div class="fr"><div class="fl">Project Name *</div><input class="inp" id="np-name" placeholder="e.g. Chicago IL — 7-Eleven Clark St"></div>
     <div class="fr"><div class="fl">Tenant *</div>
-      <select class="sel" id="np-tenant"><option value="">Select tenant...</option><option>7-Eleven</option><option>Speedway</option><option>Panera Bread</option><option>ALDI</option><option>Dollar General</option><option>Bright Path Kids</option><option>Other National</option><option>Custom</option></select>
+      <input class="inp" id="np-tenant" list="dl-tenants" placeholder="Select or type tenant">
+      <datalist id="dl-tenants">
+        <option value="7-Eleven / Speedway">
+        <option value="Panera Bread">
+        <option value="ALDI">
+        <option value="Dollar General">
+        <option value="Bright Path Kids">
+        <option value="Other National">
+      </datalist>
     </div>
     <div class="fr"><div class="fl">Street Address</div><input class="inp" id="np-addr" placeholder="123 Main Street"></div>
     <div class="fr"><div class="fl">City</div><input class="inp" id="np-city" placeholder="City"></div>
@@ -955,6 +963,7 @@ tbody tr:hover td{background:#F8FAFF}
 
 <script>
 const TC={
+  '7-Eleven / Speedway':{floor:112,lo:4.8,hi:5.5},
   '7-Eleven':{floor:112,lo:4.8,hi:5.5},'Speedway':{floor:112,lo:4.8,hi:5.5},
   'Panera Bread':{floor:150,lo:5.0,hi:5.75},'ALDI':{floor:150,lo:4.5,hi:5.25},
   'Dollar General':{floor:150,lo:5.5,hi:6.5},'Bright Path Kids':{floor:175,lo:6.75,hi:7.75},
@@ -1196,9 +1205,7 @@ function rDash(p,c){
 function rProj(p){
   $('proj-form').innerHTML=`
     <div class="fr"><div class="fl">Project Name</div><input class="inp" value="${p.name}" onchange="S.p.name=this.value;rAll()"></div>
-    <div class="fr"><div class="fl">Tenant</div><select class="sel" onchange="S.p.tenant=this.value;rAll()">
-      ${['7-Eleven','Speedway','Panera Bread','ALDI','Dollar General','Bright Path Kids','Other National','Custom'].map(t=>`<option ${p.tenant===t?'selected':''}>${t}</option>`).join('')}
-    </select></div>
+    <div class="fr"><div class="fl">Tenant</div><input class="inp" list="dl-tenants" value="${p.tenant||''}" onchange="S.p.tenant=this.value;rAll()" placeholder="Select or type tenant"></div>
     <div class="fr"><div class="fl">Street Address</div><input class="inp" value="${p.addr||''}" onchange="S.p.addr=this.value"></div>
     <div class="fr"><div class="fl">City</div><input class="inp" value="${p.city||''}" onchange="S.p.city=this.value"></div>
     <div class="fr"><div class="fl">State</div><select class="sel" onchange="S.p.state=this.value">
@@ -2403,7 +2410,7 @@ function parseMonth(s){
   if(ok){refSel();rAll();}
   else{
 // ── DEMO DATA (Toledo Speedway) — shown only first time ──
-const demo=newP({name:'Toledo OH — Speedway Airport & Bernath',tenant:'Speedway',addr:'1322 Bernath Pkwy',city:'Toledo',state:'OH',sf:4853,acres:5.30,int:'Airport Hwy & Bernath Pkwy',director:'Nate Fokianos',entitlements:'Brandon Layman',noi:548435,esc:7.5,escy:5,term:20,opts:3,optsyrs:5,oz:'0'});
+const demo=newP({name:'Toledo OH — Speedway Airport & Bernath',tenant:'7-Eleven / Speedway',addr:'1322 Bernath Pkwy',city:'Toledo',state:'OH',sf:4853,acres:5.30,int:'Airport Hwy & Bernath Pkwy',director:'Nate Fokianos',entitlements:'Brandon Layman',noi:548435,esc:7.5,escy:5,term:20,opts:3,optsyrs:5,oz:'0'});
 const fi=(d,v)=>{const l=demo.budgetLines.find(x=>x.desc===d);if(l)l.bgt=v;};
 fi('Land Purchase Price',1975000);fi('Environmental Phase 1 & 2',25000);fi('Geotechnical / Soil Investigation',20000);
 fi('Demolition',100000);fi('Building Construction',2300000);fi('On-Site Construction',1110000);
