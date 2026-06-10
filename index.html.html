@@ -384,16 +384,22 @@ tbody tr:hover td{background:#F8FAFF}
       <select class="sel" id="np-state"><option>IL</option><option>OH</option><option>IN</option><option>MI</option><option>AR</option><option>CT</option><option>WI</option><option>MN</option><option>Other</option></select>
     </div>
     <div class="fr"><div class="fl">Building SF</div><input class="inp" id="np-sf" type="number" placeholder="e.g. 3500"></div>
-    <div class="fr"><div class="fl">Lot SF</div><input class="inp" id="np-lotsf" type="number" placeholder="e.g. 50000"></div>
+    <div class="fr"><div class="fl">Lot Acreage</div><input class="inp" id="np-acres" type="number" step="0.01" placeholder="e.g. 1.15"></div>
     <div class="fr"><div class="fl">Intersection</div><input class="inp" id="np-int" placeholder="e.g. Main St & Oak Ave"></div>
-    <div class="fr"><div class="fl">Annual Rent / NOI — Year 1 ($)</div><input class="inp" id="np-noi" type="number" placeholder="Annual NOI Year 1 ($)"></div>
-    <div class="fr"><div class="fl">Rent Escalation (%)</div><input class="inp" id="np-esc" type="number" step="0.5" placeholder="7.5"></div>
-    <div class="fr"><div class="fl">Escalation Period (years)</div><input class="inp" id="np-escy" type="number" placeholder="5"></div>
-    <div class="fr"><div class="fl">Primary Lease Term (years)</div><input class="inp" id="np-term" type="number" placeholder="20"></div>
-    <div class="fr"><div class="fl">Number of Option Periods</div><input class="inp" id="np-opts" type="number" placeholder="3"></div>
-    <div class="fr"><div class="fl">Years per Option</div><input class="inp" id="np-optsyrs" type="number" placeholder="5"></div>
-    <div class="fr"><div class="fl">OZ Zone?</div>
-      <select class="sel" id="np-oz"><option value="0">No</option><option value="1">Yes — Opportunity Zone</option></select>
+    <div class="fr"><div class="fl">Director of Retail Development</div>
+      <input class="inp" id="np-director" list="dl-directors" placeholder="Select or type name">
+      <datalist id="dl-directors">
+        <option value="Nate Fokianos">
+        <option value="Matt Warry">
+        <option value="Holly Lefever">
+      </datalist>
+    </div>
+    <div class="fr"><div class="fl">Entitlements Lead</div>
+      <input class="inp" id="np-entitlements" list="dl-entitlements" placeholder="Select or type name">
+      <datalist id="dl-entitlements">
+        <option value="Brandon Layman">
+        <option value="Beatriz Acosta">
+      </datalist>
     </div>
   </div>
   <div class="mfoot"><button class="btn" onclick="cm('mo-proj')">Cancel</button><button class="btn btn-p" onclick="createProj()">✓ Create Project</button></div>
@@ -997,7 +1003,8 @@ function defB(){return[
 
 function newP(o={}){return{
   id:uid(),name:o.name||'New Project',tenant:o.tenant||'',addr:o.addr||'',city:o.city||'',state:o.state||'IL',
-  sf:+o.sf||0,lotSf:+o.lotsf||0,intersection:o.int||'',phase:'orig',isOZ:o.oz==='1',
+  sf:+o.sf||0,lotAcres:+o.acres||+o.lotsf||0,intersection:o.int||'',phase:'orig',isOZ:o.oz==='1',
+  director:o.director||'',entitlements:o.entitlements||'',
   annualRent:+o.noi||0,rentEsc:+o.esc||7.5,escYrs:+o.escy||5,leaseTerm:+o.term||20,leaseOpts:+o.opts||3,optYrs:+o.optsyrs||5,
   lenders:[],budgetLines:defB(),
   ddItems:[
@@ -1198,8 +1205,10 @@ function rProj(p){
       ${['IL','OH','IN','MI','AR','CT','WI','MN','Other'].map(s=>`<option ${p.state===s?'selected':''}>${s}</option>`).join('')}
     </select></div>
     <div class="fr"><div class="fl">Building SF</div><input class="inp" type="number" value="${p.sf||''}" onchange="S.p.sf=+this.value;rAll()"></div>
-    <div class="fr"><div class="fl">Lot SF</div><input class="inp" type="number" value="${p.lotSf||''}" onchange="S.p.lotSf=+this.value"></div>
+    <div class="fr"><div class="fl">Lot Acreage</div><input class="inp" type="number" step="0.01" value="${(p.lotAcres!=null?p.lotAcres:p.lotSf)||''}" onchange="S.p.lotAcres=+this.value"></div>
     <div class="fr"><div class="fl">Intersection</div><input class="inp" value="${p.intersection||''}" onchange="S.p.intersection=this.value"></div>
+    <div class="fr"><div class="fl">Director of Retail Development</div><input class="inp" list="dl-directors" value="${p.director||''}" onchange="S.p.director=this.value" placeholder="Select or type name"></div>
+    <div class="fr"><div class="fl">Entitlements Lead</div><input class="inp" list="dl-entitlements" value="${p.entitlements||''}" onchange="S.p.entitlements=this.value" placeholder="Select or type name"></div>
     <div class="fr"><div class="fl">Annual NOI / Rent Year 1 ($)</div><input class="inp" type="number" value="${p.annualRent||''}" onchange="S.p.annualRent=+this.value;rAll()"></div>
     <div class="fr"><div class="fl">Rent Escalation (%)</div><input class="inp" type="number" step="0.5" value="${p.rentEsc||''}" onchange="S.p.rentEsc=+this.value;rRent(S.p)"></div>
     <div class="fr"><div class="fl">Escalation Period (yrs)</div><input class="inp" type="number" value="${p.escYrs||''}" onchange="S.p.escYrs=+this.value;rRent(S.p)"></div>
@@ -1768,7 +1777,7 @@ function importData(input){
 // auto-save is called at end of rAll directly — see below
 
 // ── PROJECT MGMT ──────────────────────────────────────
-function createProj(){const g=id=>$(id).value;const p=newP({name:g('np-name'),tenant:g('np-tenant'),addr:g('np-addr'),city:g('np-city'),state:g('np-state'),sf:g('np-sf'),lotsf:g('np-lotsf'),int:g('np-int'),noi:g('np-noi'),esc:g('np-esc'),escy:g('np-escy'),term:g('np-term'),opts:g('np-opts'),optsyrs:g('np-optsyrs'),oz:g('np-oz')});S.projects.push(p);S.cur=S.projects.length-1;refSel();cm('mo-proj');rAll();}
+function createProj(){const g=id=>$(id).value;const p=newP({name:g('np-name'),tenant:g('np-tenant'),addr:g('np-addr'),city:g('np-city'),state:g('np-state'),sf:g('np-sf'),acres:g('np-acres'),int:g('np-int'),director:g('np-director'),entitlements:g('np-entitlements')});S.projects.push(p);S.cur=S.projects.length-1;refSel();cm('mo-proj');rAll();}
 function switchProj(idx){S.cur=+idx;rAll();}
 function refSel(){const s=$('proj-sel');s.innerHTML=S.projects.map((p,i)=>`<option value="${i}">${p.tenant?p.tenant+' — ':''}${p.name}</option>`).join('');s.value=S.cur;}
 
@@ -2394,7 +2403,7 @@ function parseMonth(s){
   if(ok){refSel();rAll();}
   else{
 // ── DEMO DATA (Toledo Speedway) — shown only first time ──
-const demo=newP({name:'Toledo OH — Speedway Airport & Bernath',tenant:'Speedway',addr:'1322 Bernath Pkwy',city:'Toledo',state:'OH',sf:4853,lotsf:230868,int:'Airport Hwy & Bernath Pkwy',noi:548435,esc:7.5,escy:5,term:20,opts:3,optsyrs:5,oz:'0'});
+const demo=newP({name:'Toledo OH — Speedway Airport & Bernath',tenant:'Speedway',addr:'1322 Bernath Pkwy',city:'Toledo',state:'OH',sf:4853,acres:5.30,int:'Airport Hwy & Bernath Pkwy',director:'Nate Fokianos',entitlements:'Brandon Layman',noi:548435,esc:7.5,escy:5,term:20,opts:3,optsyrs:5,oz:'0'});
 const fi=(d,v)=>{const l=demo.budgetLines.find(x=>x.desc===d);if(l)l.bgt=v;};
 fi('Land Purchase Price',1975000);fi('Environmental Phase 1 & 2',25000);fi('Geotechnical / Soil Investigation',20000);
 fi('Demolition',100000);fi('Building Construction',2300000);fi('On-Site Construction',1110000);
