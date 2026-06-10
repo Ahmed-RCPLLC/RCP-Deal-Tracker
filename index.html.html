@@ -590,10 +590,10 @@ tbody tr:hover td{background:#F8FAFF}
     <button class="ni" onclick="go('insights',this)"><i class="ti ti-building-skyscraper"></i>RCP LLC Insights</button>
     <div class="nsec">Overview</div>
     <button class="ni on" onclick="go('dash',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
-    <div class="nsec">Pro-Forma</div>
-    <button class="ni" onclick="go('proforma',this)"><i class="ti ti-table-options"></i>Deal Pro Forma</button>
     <div class="nsec">Deal Setup</div>
     <button class="ni" onclick="go('proj',this)"><i class="ti ti-settings"></i>Project Info</button>
+    <div class="nsec">Pro-Forma</div>
+    <button class="ni" onclick="go('proforma',this)"><i class="ti ti-table-options"></i>Deal Pro Forma</button>
     <div class="nsec">Execution</div>
     <button class="ni" onclick="go('psa',this)"><i class="ti ti-file-description"></i>PSA Timeline <span class="nbadge nba" id="nb-psa" style="display:none">!</span></button>
     <button class="ni" onclick="go('dd',this)"><i class="ti ti-search"></i>Due Diligence</button>
@@ -1042,8 +1042,8 @@ const TC={
   'Dollar General':{floor:150,lo:5.5,hi:6.5},'Bright Path Kids':{floor:175,lo:6.75,hi:7.75},
   'Other National':{floor:175,lo:6.0,hi:7.5},'Custom':{floor:150,lo:5.0,hi:7.0}
 };
-const PHASES=['Origination','LOI','PSA','Due Diligence','Entitlements','Financing','Land Close','Construction','CO Obtained','Stabilized','Sold'];
-const PKEYS=['orig','loi','psa','dd','entitle','finance','landclose','construction','co','stabil','sold'];
+const PHASES=['LOI','PSA','Preliminary Due Diligence','Lease','Entitlements','Land Closing','Construction','CO Obtained','Sold'];
+const PKEYS=['loi','psa','dd','lease','entitle','landclose','construction','co','sold'];
 const CATS=['Land','Feasibility','Hard Costs','Soft Costs','Dev Fee'];
 const CC={Land:'#8B5CF6',Feasibility:'#06B6D4','Hard Costs':'#F59E0B','Soft Costs':'#3B82F6','Dev Fee':'#10B981'};
 let _id=0; const uid=()=>'u'+(++_id);
@@ -1085,7 +1085,7 @@ function defB(){return[
 
 function newP(o={}){return{
   id:uid(),name:o.name||'New Project',tenant:o.tenant||'',addr:o.addr||'',city:o.city||'',state:o.state||'IL',
-  sf:+o.sf||0,lotAcres:+o.acres||+o.lotsf||0,intersection:o.int||'',phase:'orig',isOZ:o.oz==='1',
+  sf:+o.sf||0,lotAcres:+o.acres||+o.lotsf||0,intersection:o.int||'',phase:'loi',isOZ:o.oz==='1',
   director:o.director||'',entitlements:o.entitlements||'',
   annualRent:+o.noi||0,rentEsc:+o.esc||7.5,escYrs:+o.escy||5,leaseTerm:+o.term||20,leaseOpts:+o.opts||3,optYrs:+o.optsyrs||5,
   lenders:[],budgetLines:defB(),
@@ -1174,10 +1174,9 @@ function rTB(p,c){
   $('tb-sub').textContent=[p.addr,p.city,p.state].filter(Boolean).join(', ')+(p.sf?' | '+p.sf.toLocaleString()+' SF':'')+(p.tenant?' | '+p.tenant:'');
   const phi=PKEYS.indexOf(p.phase);
   const pills=[];
-  if(phi>=6)pills.push(`<span class="pill pill-g">✓ Land Closed</span>`);
-  if(phi===7)pills.push(`<span class="pill pill-b">⚡ Construction</span>`);
-  if(phi>=8)pills.push(`<span class="pill pill-g">✓ CO Obtained</span>`);
-  if(phi>=9)pills.push(`<span class="pill pill-g">✓ Stabilized</span>`);
+  if(phi>=5)pills.push(`<span class="pill pill-g">✓ Land Closed</span>`);
+  if(phi===6)pills.push(`<span class="pill pill-b">⚡ Construction</span>`);
+  if(phi>=7)pills.push(`<span class="pill pill-g">✓ CO Obtained</span>`);
   if(p.isOZ)pills.push(`<span class="pill pill-b">⭐ OZ Zone</span>`);
   if(c.spread!==null){const ok=c.spread>=c.tc.floor;pills.push(`<span class="pill ${ok?'pill-g':'pill-r'}">${ok?'✓':'⚠'} Spread: ${c.spread.toFixed(0)} bps</span>`);}
   if(c.cRem<c.cBgt*.2&&c.cBgt>0)pills.push(`<span class="pill pill-w">⚠ Cont. Low</span>`);
