@@ -590,9 +590,10 @@ tbody tr:hover td{background:#F8FAFF}
     <button class="ni" onclick="go('insights',this)"><i class="ti ti-building-skyscraper"></i>RCP LLC Insights</button>
     <div class="nsec">Overview</div>
     <button class="ni on" onclick="go('dash',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
+    <div class="nsec">Pro-Forma</div>
+    <button class="ni" onclick="go('proforma',this)"><i class="ti ti-table-options"></i>Deal Pro Forma</button>
     <div class="nsec">Deal Setup</div>
     <button class="ni" onclick="go('proj',this)"><i class="ti ti-settings"></i>Project Info</button>
-    <button class="ni" onclick="go('budget',this)"><i class="ti ti-table"></i>Pro-Forma Budget</button>
     <div class="nsec">Execution</div>
     <button class="ni" onclick="go('psa',this)"><i class="ti ti-file-description"></i>PSA Timeline <span class="nbadge nba" id="nb-psa" style="display:none">!</span></button>
     <button class="ni" onclick="go('dd',this)"><i class="ti ti-search"></i>Due Diligence</button>
@@ -607,8 +608,6 @@ tbody tr:hover td{background:#F8FAFF}
     <button class="ni" onclick="go('rent',this)"><i class="ti ti-calendar-stats"></i>Rent Schedule</button>
     <button class="ni" onclick="go('sale',this)"><i class="ti ti-home-dollar"></i>Sale & Exit</button>
     <button class="ni" onclick="go('pnl',this)"><i class="ti ti-report-analytics"></i>P&L Report</button>
-    <div class="nsec">Pro Forma</div>
-    <button class="ni" onclick="go('proforma',this)"><i class="ti ti-table-options"></i>Deal Pro Forma</button>
     <div class="nsec">Tracking</div>
     <button class="ni" onclick="go('monthly',this)"><i class="ti ti-chart-bar"></i>Monthly Tracker</button>
     <div class="nsec">Analytics</div>
@@ -727,13 +726,6 @@ tbody tr:hover td{background:#F8FAFF}
       <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-building-bank"></i>Monthly Interest Carry — Draw Schedule</div><div style="font-size:11px;color:var(--g5)">Edit balance — interest updates live</div></div>
       <table><thead><tr><th>#</th><th>Month</th><th class="r">Draw Amount ($)</th><th class="r">Total Drawn</th><th class="r">Monthly Interest</th><th class="r">Cumulative Interest</th><th>Status</th></tr></thead><tbody id="int-body"></tbody><tfoot id="int-foot"></tfoot></table></div>
       <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-calculator"></i>Reconciliation — Sources vs Uses</div></div><div id="stack-recon"></div></div>
-    </div>
-    <div id="page-budget" class="page">
-      <div class="alert al-b"><i class="ti ti-info-circle"></i><strong>Yellow cells = editable actuals.</strong> Enter amounts as costs come in. Contingency auto-calculates at 5% hard + 5% soft. Dev Fee at 3% hard+soft. Add lines to match your GC's contract exactly.</div>
-      <div class="g4" id="bud-top"></div>
-      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-table"></i>Pro-Forma — Budget vs Actual vs Variance</div>
-        <div style="display:flex;gap:6px"><button class="btn btn-sm" onclick="addBLine()"><i class="ti ti-plus"></i>Add Line</button><button class="btn btn-sm" onclick="autoCalc()"><i class="ti ti-refresh"></i>Recalc Auto</button></div>
-      </div><div style="overflow-x:auto"><table><thead><tr><th>Cat.</th><th>Description</th><th class="r">Budget ($)</th><th class="r">Actual ($)</th><th class="r">Variance</th><th class="r">%</th><th class="r">$/SF</th><th>Notes</th><th></th></tr></thead><tbody id="bud-body"></tbody><tfoot id="bud-foot"></tfoot></table></div></div>
     </div>
     <div id="page-psa" class="page">
       <div class="card">
@@ -1159,7 +1151,7 @@ function rAll(){
   if(!S.p){rEmpty();saveData();return;}
   const p=S.p,c=C(p);
   rTB(p,c);rPB(p);rBadges(p);
-  rDash(p,c);rProj(p);rStack(p,c);rBudget(p,c);
+  rDash(p,c);rProj(p);rStack(p,c);
   rPSA(p);rDD(p);rEnt(p);rPC(p,c);rExp(p);
   rDraws(p,c);rCOR(p,c);rInt(p,c);rRent(p);rSale(p,c);rPnL(p,c);
   rProforma();
