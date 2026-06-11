@@ -1921,7 +1921,14 @@ function go(pg,el){
      !$('ex-tab-inv').classList.contains('btn-p') &&
      !$('ex-tab-mt').classList.contains('btn-p')) exTab('exp');
   if(pg==='proforma') rProforma();
-  if(pg==='insights') rInsights();
+  if(pg==='insights'){
+    $('tb-name').textContent='RCP LLC — Portfolio Insights';
+    $('tb-sub').textContent='Overview of all deals';
+    $('tb-pills').innerHTML='';
+    rInsights();
+  } else if(S.p){
+    try{ rTB(S.p, C(S.p)); }catch(e){}
+  }
 }
 function om(id){$(id).style.display='flex';}
 function cm(id){$(id).style.display='none';}
