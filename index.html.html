@@ -610,6 +610,7 @@ tbody tr:hover td{background:#F8FAFF}
     <button class="ni" onclick="go('pnl',this)"><i class="ti ti-report-analytics"></i>P&L Report</button>
     <div class="nsec">Tracking</div>
     <button class="ni" onclick="go('monthly',this)"><i class="ti ti-chart-bar"></i>Monthly Tracker</button>
+    <button class="ni" onclick="go('files',this)"><i class="ti ti-folder"></i>File Storage</button>
     <div class="nsec">Analytics</div>
     
   </div>
@@ -1028,6 +1029,14 @@ tbody tr:hover td{background:#F8FAFF}
         <div id="mt-table"></div>
       </div>
     </div>
+
+    <!-- FILE STORAGE -->
+    <div id="page-files" class="page">
+      <div class="alert al-b"><i class="ti ti-folder"></i><strong>Deal File Storage</strong> — central document hub for this deal through lease signing. Upload into the right section below; files sync to the whole team via cloud. Max <strong>5 MB per file</strong> — link larger files from SharePoint / Teams instead.</div>
+      <div class="g3" id="df-metrics"></div>
+      <div class="g2" id="df-sections"></div>
+      <input type="file" id="df-file-input" multiple style="display:none" onchange="dfFile(event)">
+    </div>
     </div>
 
   </div>
@@ -1085,7 +1094,7 @@ function defB(){return[
 
 function newP(o={}){return{
   id:uid(),name:o.name||'New Project',tenant:o.tenant||'',addr:o.addr||'',city:o.city||'',state:o.state||'IL',
-  sf:+o.sf||0,lotAcres:+o.acres||+o.lotsf||0,intersection:o.int||'',phase:'loi',isOZ:o.oz==='1',
+  sf:+o.sf||0,lotAcres:+o.acres||+o.lotsf||0,intersection:o.int||'',phase:'loi',isOZ:o.oz==='1',dealFiles:[],
   director:o.director||'',entitlements:o.entitlements||'',
   annualRent:+o.noi||0,rentEsc:+o.esc||7.5,escYrs:+o.escy||5,leaseTerm:+o.term||20,leaseOpts:+o.opts||3,optYrs:+o.optsyrs||5,
   lenders:[],budgetLines:defB(),
@@ -1153,7 +1162,7 @@ function rAll(){
   rTB(p,c);rPB(p);rBadges(p);
   rDash(p,c);rProj(p);rStack(p,c);
   rPSA(p);rDD(p);rEnt(p);rPC(p,c);rExp(p);
-  rDraws(p,c);rCOR(p,c);rInt(p,c);rRent(p);rSale(p,c);rPnL(p,c);
+  rDraws(p,c);rCOR(p,c);rInt(p,c);rRent(p);rSale(p,c);rPnL(p,c);rFiles(p);
   rProforma();
   rMonthly();
   saveData();
@@ -3208,6 +3217,94 @@ function removeProforma(idx){
   rInsights();saveData();
 }
 // ── End RCP LLC Insights ─────────────────────────────────────────────────
+
+// ── DEAL FILE STORAGE ────────────────────────────────────────────────────
+const FILE_CATS=[
+  {k:'loi',label:'LOI',icon:'ti-file-text'},
+  {k:'proforma',label:'Pro-Forma',icon:'ti-file-spreadsheet'},
+  {k:'psa',label:'PSA',icon:'ti-file-description'},
+  {k:'sir',label:'SIR',icon:'ti-report'},
+  {k:'lease',label:'Lease',icon:'ti-file-certificate'},
+  {k:'testfit',label:'Test Fits / Site Plan',icon:'ti-map-2'},
+  {k:'parcel',label:'Parcel Information',icon:'ti-map-pin'},
+  {k:'sellerdd',label:'Seller Due Diligence',icon:'ti-search'},
+  {k:'general',label:'General Documents',icon:'ti-folder'},
+];
+let _dfCat=null;
+function dfEsc(s){return(''+s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function dfSize(b){if(b>=1048576)return(b/1048576).toFixed(1)+' MB';if(b>=1024)return Math.round(b/1024)+' KB';return(b||0)+' B';}
+function dfIcon(f){
+  const n=(f.name||'').toLowerCase();
+  if(n.endsWith('.pdf'))return 'ti-file-type-pdf';
+  if(/\.(xlsx|xls|csv)$/.test(n))return 'ti-file-spreadsheet';
+  if(/\.(doc|docx)$/.test(n))return 'ti-file-type-doc';
+  if(/\.(png|jpe?g|gif|webp)$/.test(n))return 'ti-photo';
+  if(/\.(dwg|dxf)$/.test(n))return 'ti-ruler';
+  return 'ti-file';
+}
+function rFiles(p){
+  if(!$('df-sections'))return;
+  if(!p){$('df-metrics').innerHTML='';$('df-sections').innerHTML='';return;}
+  if(!p.dealFiles)p.dealFiles=[];
+  const files=p.dealFiles;
+  const totSize=files.reduce((s,f)=>s+(f.size||0),0);
+  const big=totSize>20*1048576;
+  const last=files.length?files.reduce((a,b)=>(a.uploadedAt||'')>(b.uploadedAt||'')?a:b):null;
+  $('df-metrics').innerHTML=`
+    <div class="mc"><div class="l">Total Files</div><div class="v">${files.length}</div><div class="s">Across ${FILE_CATS.filter(c=>files.some(f=>f.cat===c.k)).length} of ${FILE_CATS.length} sections</div></div>
+    <div class="mc ${big?'mc-warn':''}"><div class="l">Storage Used</div><div class="v" style="${big?'color:var(--amber)':''}">${dfSize(totSize)}</div><div class="s">${big?'Getting large — remove old versions':'Synced to team via cloud'}</div></div>
+    <div class="mc"><div class="l">Last Upload</div><div class="v" style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${last?dfEsc(last.name):'—'}</div><div class="s">${last?new Date(last.uploadedAt).toLocaleDateString():'No files yet'}</div></div>`;
+  $('df-sections').innerHTML=FILE_CATS.map(c=>{
+    const fl=files.filter(f=>f.cat===c.k);
+    return `<div class="card">
+      <div class="chdr">
+        <div class="ctitle"><i class="ti ${c.icon}"></i>${c.label}${fl.length?` <span class="st st-gray" style="margin-left:6px">${fl.length}</span>`:''}</div>
+        <button class="btn btn-p btn-sm" onclick="dfUpload('${c.k}')"><i class="ti ti-upload"></i>Upload</button>
+      </div>
+      ${fl.length?fl.map(f=>`
+        <div style="display:flex;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid var(--g2);font-size:12px">
+          <i class="ti ${dfIcon(f)}" style="font-size:17px;color:var(--g4);flex-shrink:0"></i>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${dfEsc(f.name)}">${dfEsc(f.name)}</div>
+            <div style="font-size:10px;color:var(--g5)">${dfSize(f.size)} · ${f.uploadedAt?new Date(f.uploadedAt).toLocaleDateString():''}</div>
+          </div>
+          <button class="btn btn-sm" onclick="dfDownload('${f.id}')" title="Download"><i class="ti ti-download"></i></button>
+          <button class="btn btn-d btn-xs" onclick="dfRemove('${f.id}')" title="Delete"><i class="ti ti-trash"></i></button>
+        </div>`).join('')
+      :`<div style="padding:16px 4px;text-align:center;color:var(--g4);font-size:11px">No files yet — click Upload</div>`}
+    </div>`;
+  }).join('');
+}
+function dfUpload(cat){if(!S.p){alert('Pehle koi project select karein.');return;}_dfCat=cat;$('df-file-input').click();}
+function dfFile(ev){
+  const p=S.p;if(!p||!_dfCat)return;
+  if(!p.dealFiles)p.dealFiles=[];
+  const list=Array.from(ev.target.files||[]);
+  ev.target.value='';
+  if(!list.length)return;
+  let pending=list.length;
+  const done=()=>{if(--pending===0){rFiles(p);saveData();}};
+  list.forEach(f=>{
+    if(f.size>5*1024*1024){alert('"'+f.name+'" is over 5 MB — link large files from SharePoint / Teams instead.');done();return;}
+    const r=new FileReader();
+    r.onload=e=>{p.dealFiles.push({id:uid(),cat:_dfCat,name:f.name,type:f.type,size:f.size,dataUrl:e.target.result,uploadedAt:new Date().toISOString()});done();};
+    r.onerror=done;
+    r.readAsDataURL(f);
+  });
+}
+function dfDownload(id){
+  const p=S.p;if(!p)return;
+  const f=(p.dealFiles||[]).find(x=>x.id===id);if(!f)return;
+  const a=document.createElement('a');a.href=f.dataUrl;a.download=f.name;document.body.appendChild(a);a.click();a.remove();
+}
+function dfRemove(id){
+  const p=S.p;if(!p)return;
+  const f=(p.dealFiles||[]).find(x=>x.id===id);if(!f)return;
+  if(!confirm('Delete "'+f.name+'"? This removes it for the whole team.'))return;
+  p.dealFiles=p.dealFiles.filter(x=>x.id!==id);
+  rFiles(p);saveData();
+}
+// ── End Deal File Storage ────────────────────────────────────────────────
 </script>
 
 <!-- ===== LOGIN AUTH ===== -->
