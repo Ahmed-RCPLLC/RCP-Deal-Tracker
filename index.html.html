@@ -3425,51 +3425,48 @@ function schNormalize(sheets){
   // sanitize: deep-clone, drop `data` (force rebuild from celldata), filter
   // null/incomplete cells, and ensure every required field has a sane default.
   try{ sheets=JSON.parse(JSON.stringify(sheets)); }catch(e){}
-  (sheets||[]).forEach((s,i)=>{
-    if(!s) return;
-    delete s.data;                                // force rebuild from celldata
-    if(!Array.isArray(s.celldata)) s.celldata=[];
-    // Drop any cell entry that is malformed
-    s.celldata=s.celldata.filter(c=>c && c.r!=null && c.c!=null && c.v!=null);
-    // Ensure each cell value is an object {v, m, ...}
-    s.celldata.forEach(c=>{
+  // WHITELIST rebuild: keep only the fields Luckysheet reliably renders
+  // (cells, merges, sizes, borders). Strip images, charts, calcChain,
+  // dataVerification, frozen panes etc. — any of these, when malformed from
+  // LuckyExcel, hang the loader forever ("Loading…" stuck).
+  return (sheets||[]).map((s,i)=>{
+    s=s||{};
+    let celldata=Array.isArray(s.celldata)?s.celldata:[];
+    celldata=celldata.filter(c=>c && Number.isInteger(c.r) && Number.isInteger(c.c) && c.r>=0 && c.c>=0 && c.v!=null);
+    celldata.forEach(c=>{
       if(typeof c.v!=='object' || c.v===null){
-        const raw=c.v;
-        c.v={v:raw, m:raw==null?'':String(raw)};
+        const raw=c.v; c.v={v:raw, m:raw==null?'':String(raw)};
       } else {
         if(c.v.m==null) c.v.m=c.v.v!=null?String(c.v.v):'';
+        delete c.v.f;          // drop formulas — keep cached values (broken refs hang the loader)
       }
     });
-    // Required dimensions
     let maxR=99,maxC=25;
-    s.celldata.forEach(c=>{ if(c.r>maxR)maxR=c.r; if(c.c>maxC)maxC=c.c; });
-    s.row=Math.max(s.row||0,maxR+1,100);
-    s.column=Math.max(s.column||0,maxC+1,26);
-    // Config defaults — empty objects/arrays so Luckysheet finds them
-    if(!s.config||typeof s.config!=='object') s.config={};
-    s.config.merge=s.config.merge||{};
-    s.config.borderInfo=Array.isArray(s.config.borderInfo)?s.config.borderInfo:[];
-    s.config.rowlen=s.config.rowlen||{};
-    s.config.columnlen=s.config.columnlen||{};
-    s.config.rowhidden=s.config.rowhidden||{};
-    s.config.colhidden=s.config.colhidden||{};
-    s.config.authority=s.config.authority||{};
-    // Remove frozen-pane info that often arrives malformed
-    delete s.frozen;
-    // Identifiers / metadata
-    if(!s.name) s.name='Sheet'+(i+1);
-    s.order=i;
-    s.status=i===0?1:0;
-    if(!s.index) s.index='sheet_'+i;
-    // Other arrays Luckysheet expects to exist
-    if(!Array.isArray(s.calcChain)) s.calcChain=[];
-    if(!Array.isArray(s.dataVerification)) s.dataVerification=[];
-    if(!Array.isArray(s.hyperlink)) s.hyperlink=[];
-    if(!Array.isArray(s.filter_select)) s.filter_select=[];
-    if(!Array.isArray(s.luckysheet_conditionformat_save)) s.luckysheet_conditionformat_save=[];
-    if(!Array.isArray(s.luckysheet_alternateformat_save)) s.luckysheet_alternateformat_save=[];
+    celldata.forEach(c=>{ if(c.r>maxR)maxR=c.r; if(c.c>maxC)maxC=c.c; });
+    const cfg=(s.config&&typeof s.config==='object')?s.config:{};
+    const cleanCfg={
+      merge:(cfg.merge&&typeof cfg.merge==='object')?cfg.merge:{},
+      rowlen:(cfg.rowlen&&typeof cfg.rowlen==='object')?cfg.rowlen:{},
+      columnlen:(cfg.columnlen&&typeof cfg.columnlen==='object')?cfg.columnlen:{},
+      rowhidden:(cfg.rowhidden&&typeof cfg.rowhidden==='object')?cfg.rowhidden:{},
+      colhidden:(cfg.colhidden&&typeof cfg.colhidden==='object')?cfg.colhidden:{},
+      borderInfo:Array.isArray(cfg.borderInfo)?cfg.borderInfo:[],
+    };
+    return {
+      name:s.name||('Sheet'+(i+1)),
+      index:s.index||('sheet_'+i),
+      order:i,
+      status:i===0?1:0,
+      row:Math.max(+s.row||0,maxR+1,100),
+      column:Math.max(+s.column||0,maxC+1,26),
+      celldata:celldata,
+      config:cleanCfg,
+      defaultRowHeight:+s.defaultRowHeight||19,
+      defaultColWidth:+s.defaultColWidth||73,
+      showGridLines:s.showGridLines!=null?s.showGridLines:1,
+      zoomRatio:+s.zoomRatio||1,
+    };
   });
-  return sheets||[];
 }
 function schMount(sheets,fileName,fromSaved){
   if(typeof luckysheet==='undefined'){
@@ -3501,6 +3498,12 @@ function schMount(sheets,fileName,fromSaved){
     _schInit=true;
     schToggleButtons(true);
     schStatus(fromSaved?'Loaded — '+(fileName||'schedule'):'Imported — '+(fileName||'file'),true);
+    // Watchdog: if the grid hasn't rendered within 8s the loader is stuck
+    setTimeout(()=>{
+      if(_schInit && !document.getElementById('luckysheet-cell-main')){
+        schStatus('Render stuck — press Ctrl+Shift+R and re-open this tab. If it persists, send the console (F12) output.');
+      }
+    },8000);
   }catch(err){
     console.error('[Schedule Tracker] Luckysheet render error:',err,'sheets:',cleanSheets);
     schStatus('Could not render: '+(err&&err.message||err)+'  (check browser console for details)');
