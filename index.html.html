@@ -3408,11 +3408,34 @@ function schToggleButtons(loaded){
   if(r)r.style.display=loaded?'':'none';
   if(u)u.innerHTML=loaded?'<i class="ti ti-upload"></i> Replace':'<i class="ti ti-upload"></i> Upload Excel';
 }
+function schNormalize(sheets){
+  // LuckyExcel sometimes leaves `data` null while populating `celldata`.
+  // Luckysheet crashes ("Cannot read properties of null (reading 'empty')")
+  // unless we either remove `data` (force rebuild from celldata) or fill it.
+  (sheets||[]).forEach((s,i)=>{
+    if(!s) return;
+    if(s.data===null||s.data===undefined) delete s.data;
+    if(!s.celldata) s.celldata=[];
+    if(s.row==null) s.row=Math.max(100, ...s.celldata.map(c=>(c.r||0)+1));
+    if(s.column==null) s.column=Math.max(26, ...s.celldata.map(c=>(c.c||0)+1));
+    if(s.config==null) s.config={};
+    if(s.order==null) s.order=i;
+    if(s.status==null) s.status=i===0?1:0;
+    if(!s.name) s.name='Sheet'+(i+1);
+  });
+  // Ensure exactly one sheet is active
+  if(sheets && sheets.length){
+    const anyActive=sheets.some(s=>s&&s.status===1);
+    if(!anyActive) sheets[0].status=1;
+  }
+  return sheets;
+}
 function schMount(sheets,fileName,fromSaved){
   if(typeof luckysheet==='undefined'){
     schStatus('Spreadsheet library load nahi hui — internet check karke page reload karein.'); return;
   }
   schDestroy();
+  schNormalize(sheets);
   const c=$('luckysheet-container'),e=$('sch-empty');
   if(e)e.style.display='none';
   if(c)c.style.display='';
