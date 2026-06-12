@@ -1124,7 +1124,15 @@ const PKEYS=['loi','psa','dd','lease','entitle','landclose','construction','co',
 const CATS=['Land','Feasibility','Hard Costs','Soft Costs','Dev Fee'];
 const CC={Land:'#8B5CF6',Feasibility:'#06B6D4','Hard Costs':'#F59E0B','Soft Costs':'#3B82F6','Dev Fee':'#10B981'};
 let _id=0; const uid=()=>'u'+(++_id);
-const $=id=>document.getElementById(id);
+// App helper: $('elementId') → getElementById. BUT Luckysheet (Schedule Tracker)
+// resolves the global `$` expecting jQuery (from plugin.js) — this const shadows it
+// and was breaking luckysheet.create() ("Cannot read properties of null (reading 'empty')").
+// So: plain id strings → getElementById (app usage); selectors/elements/anything else → jQuery.
+const $=x=>{
+  if(typeof x==='string' && /^[A-Za-z0-9_-]+$/.test(x) && !/^(body|html|head)$/i.test(x))
+    return document.getElementById(x);
+  return window.jQuery ? window.jQuery(x) : (typeof x==='string' ? document.querySelector(x) : x);
+};
 const S={projects:[],cur:0,get p(){return this.projects[this.cur]||null}};
 
 function defB(){return[
