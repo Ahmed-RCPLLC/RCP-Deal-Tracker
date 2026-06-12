@@ -3409,33 +3409,63 @@ function schToggleButtons(loaded){
   if(u)u.innerHTML=loaded?'<i class="ti ti-upload"></i> Replace':'<i class="ti ti-upload"></i> Upload Excel';
 }
 function schNormalize(sheets){
-  // LuckyExcel sometimes leaves `data` null while populating `celldata`.
-  // Luckysheet crashes ("Cannot read properties of null (reading 'empty')")
-  // unless we either remove `data` (force rebuild from celldata) or fill it.
+  // LuckyExcel's output frequently produces structures that crash Luckysheet
+  // ("Cannot read properties of null (reading 'empty')"). We aggressively
+  // sanitize: deep-clone, drop `data` (force rebuild from celldata), filter
+  // null/incomplete cells, and ensure every required field has a sane default.
+  try{ sheets=JSON.parse(JSON.stringify(sheets)); }catch(e){}
   (sheets||[]).forEach((s,i)=>{
     if(!s) return;
-    if(s.data===null||s.data===undefined) delete s.data;
-    if(!s.celldata) s.celldata=[];
-    if(s.row==null) s.row=Math.max(100, ...s.celldata.map(c=>(c.r||0)+1));
-    if(s.column==null) s.column=Math.max(26, ...s.celldata.map(c=>(c.c||0)+1));
-    if(s.config==null) s.config={};
-    if(s.order==null) s.order=i;
-    if(s.status==null) s.status=i===0?1:0;
+    delete s.data;                                // force rebuild from celldata
+    if(!Array.isArray(s.celldata)) s.celldata=[];
+    // Drop any cell entry that is malformed
+    s.celldata=s.celldata.filter(c=>c && c.r!=null && c.c!=null && c.v!=null);
+    // Ensure each cell value is an object {v, m, ...}
+    s.celldata.forEach(c=>{
+      if(typeof c.v!=='object' || c.v===null){
+        const raw=c.v;
+        c.v={v:raw, m:raw==null?'':String(raw)};
+      } else {
+        if(c.v.m==null) c.v.m=c.v.v!=null?String(c.v.v):'';
+      }
+    });
+    // Required dimensions
+    let maxR=99,maxC=25;
+    s.celldata.forEach(c=>{ if(c.r>maxR)maxR=c.r; if(c.c>maxC)maxC=c.c; });
+    s.row=Math.max(s.row||0,maxR+1,100);
+    s.column=Math.max(s.column||0,maxC+1,26);
+    // Config defaults — empty objects/arrays so Luckysheet finds them
+    if(!s.config||typeof s.config!=='object') s.config={};
+    s.config.merge=s.config.merge||{};
+    s.config.borderInfo=Array.isArray(s.config.borderInfo)?s.config.borderInfo:[];
+    s.config.rowlen=s.config.rowlen||{};
+    s.config.columnlen=s.config.columnlen||{};
+    s.config.rowhidden=s.config.rowhidden||{};
+    s.config.colhidden=s.config.colhidden||{};
+    s.config.authority=s.config.authority||{};
+    // Remove frozen-pane info that often arrives malformed
+    delete s.frozen;
+    // Identifiers / metadata
     if(!s.name) s.name='Sheet'+(i+1);
+    s.order=i;
+    s.status=i===0?1:0;
+    if(!s.index) s.index='sheet_'+i;
+    // Other arrays Luckysheet expects to exist
+    if(!Array.isArray(s.calcChain)) s.calcChain=[];
+    if(!Array.isArray(s.dataVerification)) s.dataVerification=[];
+    if(!Array.isArray(s.hyperlink)) s.hyperlink=[];
+    if(!Array.isArray(s.filter_select)) s.filter_select=[];
+    if(!Array.isArray(s.luckysheet_conditionformat_save)) s.luckysheet_conditionformat_save=[];
+    if(!Array.isArray(s.luckysheet_alternateformat_save)) s.luckysheet_alternateformat_save=[];
   });
-  // Ensure exactly one sheet is active
-  if(sheets && sheets.length){
-    const anyActive=sheets.some(s=>s&&s.status===1);
-    if(!anyActive) sheets[0].status=1;
-  }
-  return sheets;
+  return sheets||[];
 }
 function schMount(sheets,fileName,fromSaved){
   if(typeof luckysheet==='undefined'){
     schStatus('Spreadsheet library load nahi hui — internet check karke page reload karein.'); return;
   }
   schDestroy();
-  schNormalize(sheets);
+  const cleanSheets=schNormalize(sheets);
   const c=$('luckysheet-container'),e=$('sch-empty');
   if(e)e.style.display='none';
   if(c)c.style.display='';
@@ -3443,7 +3473,7 @@ function schMount(sheets,fileName,fromSaved){
     luckysheet.create({
       container:'luckysheet-container',
       lang:'en',
-      data:sheets,
+      data:cleanSheets,
       title:fileName||'Schedule',
       showinfobar:false,
       allowUpdate:true,
@@ -3461,7 +3491,8 @@ function schMount(sheets,fileName,fromSaved){
     schToggleButtons(true);
     schStatus(fromSaved?'Loaded — '+(fileName||'schedule'):'Imported — '+(fileName||'file'),true);
   }catch(err){
-    schStatus('Could not render: '+(err&&err.message||err));
+    console.error('[Schedule Tracker] Luckysheet render error:',err,'sheets:',cleanSheets);
+    schStatus('Could not render: '+(err&&err.message||err)+'  (check browser console for details)');
   }
 }
 function schScheduleSave(){
