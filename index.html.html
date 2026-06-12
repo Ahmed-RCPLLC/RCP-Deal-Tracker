@@ -625,9 +625,8 @@ tbody tr:hover td{background:#F8FAFF}
     <div class="nsec">Pro-Forma</div>
     <button class="ni" onclick="go('proforma',this)"><i class="ti ti-table-options"></i>Deal Pro Forma</button>
     <div class="nsec">Execution</div>
-    <button class="ni" onclick="go('dd',this)"><i class="ti ti-search"></i>Due Diligence</button>
     <button class="ni" onclick="go('schedule',this)"><i class="ti ti-calendar-time"></i>Schedule Tracker</button>
-    <button class="ni" onclick="go('entitle',this)"><i class="ti ti-certificate"></i>Entitlements</button>
+    <button class="ni" onclick="go('dd',this)"><i class="ti ti-search"></i>Due Diligence & Entitlements</button>
     <button class="ni" onclick="go('preclose',this)"><i class="ti ti-users"></i>Pre-Close Equity <span class="nbadge nba" id="nb-eq" style="display:none">0</span></button>
     <button class="ni" onclick="go('expenses',this)"><i class="ti ti-receipt"></i>Expenses</button>
     <div class="nsec">Construction</div>
@@ -822,12 +821,21 @@ tbody tr:hover td{background:#F8FAFF}
     </div>
 
     <div id="page-dd" class="page">
-      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-search"></i>Due Diligence Checklist</div><button class="btn btn-sm" onclick="addDD()"><i class="ti ti-plus"></i>Add Item</button></div>
-      <table><thead><tr><th>Item</th><th>Vendor</th><th class="r">Budget</th><th class="r">Actual</th><th>Status</th><th>Due Date</th><th>Completed</th><th>Notes</th><th></th></tr></thead><tbody id="dd-body"></tbody></table></div>
-    </div>
-    <div id="page-entitle" class="page">
-      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-certificate"></i>Entitlements & Permits</div><button class="btn btn-sm" onclick="addEnt()"><i class="ti ti-plus"></i>Add Item</button></div>
-      <table><thead><tr><th>Type / Approval</th><th>Submitted</th><th>Hearing Date</th><th>Approved Date</th><th>Status</th><th>Notes</th><th></th></tr></thead><tbody id="ent-body"></tbody></table></div>
+      <!-- SUB-TABS -->
+      <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+        <button class="btn btn-sm btn-p" id="dd-tab-dd" onclick="ddTab('dd')">🔍 Due Diligence</button>
+        <button class="btn btn-sm" id="dd-tab-ent" onclick="ddTab('ent')">📜 Entitlements</button>
+      </div>
+      <!-- DUE DILIGENCE PANE -->
+      <div id="dd-pane-dd">
+        <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-search"></i>Due Diligence Checklist</div><button class="btn btn-sm" onclick="addDD()"><i class="ti ti-plus"></i>Add Item</button></div>
+        <table><thead><tr><th>Item</th><th>Vendor</th><th class="r">Budget</th><th class="r">Actual</th><th>Status</th><th>Due Date</th><th>Completed</th><th>Notes</th><th></th></tr></thead><tbody id="dd-body"></tbody></table></div>
+      </div>
+      <!-- ENTITLEMENTS PANE -->
+      <div id="dd-pane-ent" style="display:none">
+        <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-certificate"></i>Entitlements & Permits</div><button class="btn btn-sm" onclick="addEnt()"><i class="ti ti-plus"></i>Add Item</button></div>
+        <table><thead><tr><th>Type / Approval</th><th>Submitted</th><th>Hearing Date</th><th>Approved Date</th><th>Status</th><th>Notes</th><th></th></tr></thead><tbody id="ent-body"></tbody></table></div>
+      </div>
     </div>
     <div id="page-preclose" class="page">
       <div class="alert al-b"><i class="ti ti-info-circle"></i>Track every dollar an equity investor puts in before land closing. At closing, all these amounts get reimbursed from lender proceeds. Preferred return accrues from the funding date.</div>
@@ -3604,6 +3612,13 @@ function rSchedule(p){
 // ── End Schedule Tracker ─────────────────────────────────────────────────
 
 // ── EXPENSES PAGE SUB-TABS + INVOICES ────────────────────────────────────
+function ddTab(t){
+  ['dd','ent'].forEach(k=>{
+    const pane=$('dd-pane-'+k); if(pane) pane.style.display=k===t?'block':'none';
+    const btn=$('dd-tab-'+k); if(btn) btn.className='btn btn-sm'+(k===t?' btn-p':'');
+  });
+}
+
 function exTab(t){
   ['exp','inv','mt'].forEach(k=>{
     const pane=$('ex-pane-'+k); if(pane) pane.style.display=k===t?'block':'none';
