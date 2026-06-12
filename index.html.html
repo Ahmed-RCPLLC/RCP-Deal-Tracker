@@ -570,11 +570,8 @@ tbody tr:hover td{background:#F8FAFF}
     <div class="fr"><div class="fl">Investor Name</div><input class="inp" id="eq-inv" placeholder="Eric Johnston / E2 CRE"></div>
     <div class="fr"><div class="fl">Description / Purpose</div><input class="inp" id="eq-desc" placeholder="EMD paid to title / Geotech invoice..."></div>
     <div class="fr"><div class="fl">Amount Funded ($)</div><input class="inp" id="eq-amt" type="number" placeholder="25000"></div>
-    <div class="fr"><div class="fl">Pref Return Rate (%)</div><input class="inp" id="eq-rate" type="number" step="0.5" placeholder="25"></div>
-    <div class="fr"><div class="fl">Paid Direct to Vendor?</div>
-      <select class="sel" id="eq-direct"><option value="yes">Yes — paid direct to vendor</option><option value="no">No — to project account</option></select>
-    </div>
   </div>
+  <div style="font-size:11px;color:var(--g5);margin-top:8px"><i class="ti ti-info-circle"></i> Pref return rate is set once at the top of the Pre-Close Equity tab and applies to every entry.</div>
   <div class="mfoot"><button class="btn" onclick="cm('mo-equity')">Cancel</button><button class="btn btn-p" onclick="submitEquity()">✓ Log Funding</button></div>
 </div></div>
 
@@ -627,8 +624,8 @@ tbody tr:hover td{background:#F8FAFF}
     <div class="nsec">Execution</div>
     <button class="ni" onclick="go('schedule',this)"><i class="ti ti-calendar-time"></i>Schedule Tracker</button>
     <button class="ni" onclick="go('dd',this)"><i class="ti ti-search"></i>Due Diligence & Entitlements</button>
-    <button class="ni" onclick="go('preclose',this)"><i class="ti ti-users"></i>Pre-Close Equity <span class="nbadge nba" id="nb-eq" style="display:none">0</span></button>
-    <button class="ni" onclick="go('expenses',this)"><i class="ti ti-receipt"></i>Expenses</button>
+    <div class="nsec">Expenses</div>
+    <button class="ni" onclick="go('expenses',this)"><i class="ti ti-receipt"></i>Deal Equity & Expenses <span class="nbadge nba" id="nb-eq" style="display:none">0</span></button>
     <div class="nsec">Construction</div>
     <button class="ni" onclick="go('stack',this)"><i class="ti ti-coin"></i>Capital Stack</button>
     <button class="ni" onclick="go('draws',this)"><i class="ti ti-crane"></i>Draws <span class="nbadge nbg" id="nb-dr" style="display:none">0</span></button>
@@ -835,22 +832,33 @@ tbody tr:hover td{background:#F8FAFF}
         <table><thead><tr><th>Type / Approval</th><th>Submitted</th><th>Hearing Date</th><th>Approved Date</th><th>Status</th><th>Notes</th><th></th></tr></thead><tbody id="ent-body"></tbody></table></div>
       </div>
     </div>
-    <div id="page-preclose" class="page">
-      <div class="alert al-b"><i class="ti ti-info-circle"></i>Track every dollar an equity investor puts in before land closing. At closing, all these amounts get reimbursed from lender proceeds. Preferred return accrues from the funding date.</div>
-      <div class="g3" id="eq-metrics"></div>
-      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-users"></i>Pre-Close Equity Funding Log</div><button class="btn btn-p btn-sm" onclick="om('mo-equity')"><i class="ti ti-plus"></i>Log Funding</button></div><div id="eq-list"></div></div>
-      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-check"></i>Reimbursement at Closing</div></div><div id="eq-reimb"></div></div>
-    </div>
     <div id="page-expenses" class="page">
       <!-- SUB-TABS -->
       <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
-        <button class="btn btn-p btn-sm" id="ex-tab-exp" onclick="exTab('exp')"><i class="ti ti-receipt"></i> Expenses</button>
+        <button class="btn btn-p btn-sm" id="ex-tab-pc" onclick="exTab('pc')"><i class="ti ti-users"></i> Pre-Close Equity</button>
+        <button class="btn btn-sm" id="ex-tab-exp" onclick="exTab('exp')"><i class="ti ti-receipt"></i> Expenses</button>
         <button class="btn btn-sm" id="ex-tab-inv" onclick="exTab('inv')"><i class="ti ti-file-invoice"></i> Invoices</button>
         <button class="btn btn-sm" id="ex-tab-mt" onclick="exTab('mt')"><i class="ti ti-chart-bar"></i> Monthly Tracker</button>
       </div>
 
+      <!-- PRE-CLOSE EQUITY SUB-TAB -->
+      <div id="ex-pane-pc">
+        <div class="alert al-b"><i class="ti ti-info-circle"></i>Track every dollar an equity investor puts in before land closing. At closing, all these amounts get reimbursed from lender proceeds. Preferred return accrues daily from each funding date at the rate set below.</div>
+        <div class="card">
+          <div class="chdr"><div class="ctitle"><i class="ti ti-percentage"></i>Preferred Return Rate (applies to all entries)</div></div>
+          <div style="padding:6px 4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px">
+            <span style="color:var(--g6)">Pref rate %:</span>
+            <input class="inp-y" id="eq-prefrate-val" type="number" step="0.5" placeholder="25" style="width:120px" onchange="pcSetPrefRate(this.value)">
+            <span style="color:var(--g5);font-size:11px">Annual rate. Change anytime — accrued amounts recalculate automatically.</span>
+          </div>
+        </div>
+        <div class="g3" id="eq-metrics"></div>
+        <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-users"></i>Pre-Close Equity Funding Log</div><button class="btn btn-p btn-sm" onclick="om('mo-equity')"><i class="ti ti-plus"></i>Log Funding</button></div><div id="eq-list"></div></div>
+        <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-check"></i>Reimbursement at Closing</div></div><div id="eq-reimb"></div></div>
+      </div>
+
       <!-- EXPENSES SUB-TAB -->
-      <div id="ex-pane-exp">
+      <div id="ex-pane-exp" style="display:none">
         <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-receipt"></i>Expense Log — All Phases</div><button class="btn btn-p btn-sm" onclick="om('mo-exp')"><i class="ti ti-plus"></i>Log Expense</button></div><div id="exp-list"></div></div>
       </div>
 
@@ -1531,22 +1539,23 @@ function rEnt(p){
 }
 
 function rPC(p,c){
+  const rate=+p.prefRate||0;
   const prefAmt=p.equityFundings.reduce((s,e)=>{
     const days=Math.max(0,Math.round((Date.now()-new Date(e.dt).getTime())/864e5));
-    return s+Math.round(+e.amt*(+e.rate/100)/365*days);
+    return s+Math.round(+e.amt*(rate/100)/365*days);
   },0);
+  if(!$('eq-metrics')) return;
   $('eq-metrics').innerHTML=`
     <div class="mc"><div class="l">Total Equity Deployed</div><div class="v">${F(c.eqTot)}</div><div class="s">${p.equityFundings.length} funding(s)</div></div>
-    <div class="mc mc-warn"><div class="l">Pref Return Accrued</div><div class="v" style="color:var(--amber)">${F(prefAmt)}</div><div class="s">To date (daily accrual)</div></div>
+    <div class="mc mc-warn"><div class="l">Pref Return Accrued</div><div class="v" style="color:var(--amber)">${F(prefAmt)}</div><div class="s">@ ${rate||0}% annual · daily accrual</div></div>
     <div class="mc mc-good"><div class="l">Total Reimbursement Due</div><div class="v" style="color:var(--green)">${F(c.eqTot+prefAmt)}</div><div class="s">Principal + pref at close</div></div>`;
-  $('eq-list').innerHTML=p.equityFundings.length?`<table><thead><tr><th>Date</th><th>Investor</th><th>Description</th><th class="r">Amount</th><th>Pref Rate</th><th>Paid Direct?</th><th></th></tr></thead><tbody>`+
+  if($('eq-prefrate-val')){ $('eq-prefrate-val').value=rate||''; }
+  $('eq-list').innerHTML=p.equityFundings.length?`<table><thead><tr><th>Date</th><th>Investor</th><th>Description</th><th class="r">Amount</th><th></th></tr></thead><tbody>`+
     p.equityFundings.map(e=>`<tr>
       <td>${e.dt}</td><td style="font-weight:600">${e.inv}</td><td>${e.desc}</td>
       <td class="r" style="font-weight:700">${F(e.amt)}</td>
-      <td>${e.rate?e.rate+'% pref':'—'}</td>
-      <td><span class="st ${e.direct==='yes'?'st-b':'st-gray'}">${e.direct==='yes'?'Direct to vendor':'To project acct'}</span></td>
       <td><button class="btn btn-d btn-xs" onclick="rmEq('${e.id}')"><i class="ti ti-x"></i></button></td>
-    </tr>`).join('')+`</tbody><tfoot><tr class="tr-tot"><td colspan="3">TOTAL</td><td class="r">${F(c.eqTot)}</td><td colspan="3"></td></tr></tfoot></table>`
+    </tr>`).join('')+`</tbody><tfoot><tr class="tr-tot"><td colspan="3">TOTAL</td><td class="r">${F(c.eqTot)}</td><td></td></tr></tfoot></table>`
   :'<div class="empty"><i class="ti ti-users"></i>No pre-close equity fundings logged yet.</div>';
   $('eq-reimb').innerHTML=c.eqTot>0?`
     <div class="irow"><span class="ik">Principal to Reimburse</span><span class="iv">${F(c.eqTot)}</span></div>
@@ -1791,7 +1800,20 @@ function addDD(){S.p.ddItems.push({id:uid(),name:'New DD Item',vendor:'',bgt:0,a
 function uEnt(id,f,v){const e=S.p.entItems.find(x=>x.id===id);if(e)e[f]=v;rAll();}
 function rmEnt(id){S.p.entItems=S.p.entItems.filter(x=>x.id!==id);rAll();}
 function addEnt(){S.p.entItems.push({id:uid(),type:'New Permit / Approval',submitted:'',hearing:'',approved:'',status:'pending',notes:''});rAll();}
-function submitEquity(){const p=S.p;if(!p)return;const g=id=>$(id).value;p.equityFundings.push({id:uid(),dt:g('eq-dt')||'—',inv:g('eq-inv')||'—',desc:g('eq-desc')||'—',amt:+g('eq-amt')||0,rate:+g('eq-rate')||0,direct:g('eq-direct')});cm('mo-equity');['eq-dt','eq-inv','eq-desc','eq-amt','eq-rate'].forEach(id=>{$(id).value='';});rAll();}
+function submitEquity(){
+  const p=S.p;if(!p)return;
+  if(p.prefRate==null||p.prefRate===''){
+    const r=prompt('Set the project Preferred Return Rate (% annual). This rate applies to every equity entry — you can change it later in the Pre-Close Equity tab.','25');
+    if(r==null) return;
+    p.prefRate=+r||0;
+  }
+  const g=id=>$(id).value;
+  p.equityFundings.push({id:uid(),dt:g('eq-dt')||'—',inv:g('eq-inv')||'—',desc:g('eq-desc')||'—',amt:+g('eq-amt')||0});
+  cm('mo-equity');
+  ['eq-dt','eq-inv','eq-desc','eq-amt'].forEach(id=>{$(id).value='';});
+  rAll();
+}
+function pcSetPrefRate(v){ const p=S.p; if(!p)return; p.prefRate=+v||0; rAll(); saveData(); }
 function rmEq(id){S.p.equityFundings=S.p.equityFundings.filter(e=>e.id!==id);rAll();}
 function submitDraw(){const p=S.p;if(!p)return;const g=id=>$(id).value;p.draws.push({id:uid(),mo:g('dr-mo')||'—',lend:g('dr-lend'),vend:g('dr-vend')||'—',desc:g('dr-desc')||'—',hard:+g('dr-hard')||0,soft:+g('dr-soft')||0,int:+g('dr-int')||0,dev:+g('dr-dev')||0,oth:+g('dr-oth')||0});cm('mo-draw');['dr-mo','dr-lend','dr-vend','dr-desc','dr-hard','dr-soft','dr-int','dr-dev','dr-oth'].forEach(id=>{$(id).value='';});rAll();}
 function rmDr(id){S.p.draws=S.p.draws.filter(d=>d.id!==id);rAll();}
@@ -1999,9 +2021,10 @@ function go(pg,el){
   const pageEl=$('page-'+pg); if(!pageEl) return;
   pageEl.classList.add('on');
   if(el) el.classList.add('on');
-  if(pg==='expenses' && !$('ex-tab-exp').classList.contains('btn-p') &&
+  if(pg==='expenses' && !$('ex-tab-pc').classList.contains('btn-p') &&
+     !$('ex-tab-exp').classList.contains('btn-p') &&
      !$('ex-tab-inv').classList.contains('btn-p') &&
-     !$('ex-tab-mt').classList.contains('btn-p')) exTab('exp');
+     !$('ex-tab-mt').classList.contains('btn-p')) exTab('pc');
   if(pg==='proforma'){
     rProforma();
     // If user previously left the sheet sub-tab active, mount it again
@@ -3823,12 +3846,13 @@ function ddTab(t){
 }
 
 function exTab(t){
-  ['exp','inv','mt'].forEach(k=>{
+  ['pc','exp','inv','mt'].forEach(k=>{
     const pane=$('ex-pane-'+k); if(pane) pane.style.display=k===t?'block':'none';
     const btn=$('ex-tab-'+k); if(btn) btn.className='btn btn-sm'+(k===t?' btn-p':'');
   });
   if(t==='mt') rMonthly();
   if(t==='inv') rInvoices();
+  if(t==='pc' && S.p){ try{ rPC(S.p,C(S.p)); }catch(e){} }
 }
 
 function ivEsc(s){return(''+(s==null?'':s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
