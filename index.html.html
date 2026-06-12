@@ -634,9 +634,7 @@ tbody tr:hover td{background:#F8FAFF}
     <button class="ni" onclick="go('draws',this)"><i class="ti ti-crane"></i>Draws <span class="nbadge nbg" id="nb-dr" style="display:none">0</span></button>
     <button class="ni" onclick="go('cor',this)"><i class="ti ti-git-merge"></i>Change Orders <span class="nbadge nbr" id="nb-cor" style="display:none">0</span></button>
     <div class="nsec">Exit</div>
-    <button class="ni" onclick="go('rent',this)"><i class="ti ti-calendar-stats"></i>Rent Schedule</button>
-    <button class="ni" onclick="go('sale',this)"><i class="ti ti-home-dollar"></i>Sale & Exit</button>
-    <button class="ni" onclick="go('pnl',this)"><i class="ti ti-report-analytics"></i>P&L Report</button>
+    <button class="ni" onclick="go('propsale',this)"><i class="ti ti-home-dollar"></i>Property Sale</button>
     <div class="nsec">Tracking</div>
     <button class="ni" onclick="go('files',this)"><i class="ti ti-folder"></i>File Storage</button>
   </div>
@@ -902,22 +900,26 @@ tbody tr:hover td{background:#F8FAFF}
       <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-git-merge"></i>Change Orders (COR)</div><button class="btn btn-p btn-sm" onclick="om('mo-cor')"><i class="ti ti-plus"></i>Log COR</button></div><div id="cor-list"></div></div>
       <div class="card" id="cor-sum-card" style="display:none"><div class="chdr"><div class="ctitle"><i class="ti ti-calculator"></i>Contingency Impact</div></div><div id="cor-sum"></div></div>
     </div>
-    <div id="page-rent" class="page">
-      <div class="g3" id="rent-top"></div>
-      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-calendar-stats"></i>Rent Schedule with Escalations</div></div>
-      <table><thead><tr><th>Period</th><th>Lease Years</th><th>Escalation</th><th class="r">Annual Rent</th><th class="r">Monthly Rent</th><th class="r">Total Period Rent</th><th>Type</th></tr></thead><tbody id="rent-body"></tbody><tfoot id="rent-foot"></tfoot></table></div>
-    </div>
-    <div id="page-sale" class="page">
-      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-home-dollar"></i>Sale & Exit Details</div></div><div class="fg2" id="sale-form"></div></div>
-      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-chart-line"></i>Exit Model — Live Sliders</div></div>
-        <div class="slider-row"><label>Exit Cap Rate:</label><input type="range" min="4" max="9" step="0.05" id="sl-cap" oninput="calcSale()"><span id="sl-cap-v">—</span></div>
-        <div class="slider-row"><label>Broker Commission:</label><input type="range" min="1" max="5" step="0.25" id="sl-brok" oninput="calcSale()"><span id="sl-brok-v">—</span></div>
-        <div class="slider-row"><label>Annual NOI:</label><input type="range" id="sl-noi" oninput="calcSale()"><span id="sl-noi-v">—</span></div>
-        <div id="sale-result"></div>
+    <!-- PROPERTY SALE (merged Sale & Exit + P&L Report) -->
+    <div id="page-propsale" class="page">
+      <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+        <button class="btn btn-sm btn-p" id="ps-tab-sale" onclick="psTab('sale')">🏠 Sale & Exit</button>
+        <button class="btn btn-sm" id="ps-tab-pnl" onclick="psTab('pnl')">📊 P&L Report</button>
       </div>
-    </div>
-    <div id="page-pnl" class="page">
-      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-report-analytics"></i>Full Project P&L — A to Z</div></div><div id="pnl-body"></div></div>
+      <!-- SALE PANE -->
+      <div id="ps-pane-sale">
+        <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-home-dollar"></i>Sale & Exit Details</div></div><div class="fg2" id="sale-form"></div></div>
+        <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-chart-line"></i>Exit Model — Live Sliders</div></div>
+          <div class="slider-row"><label>Exit Cap Rate:</label><input type="range" min="4" max="9" step="0.05" id="sl-cap" oninput="calcSale()"><span id="sl-cap-v">—</span></div>
+          <div class="slider-row"><label>Broker Commission:</label><input type="range" min="1" max="5" step="0.25" id="sl-brok" oninput="calcSale()"><span id="sl-brok-v">—</span></div>
+          <div class="slider-row"><label>Annual NOI:</label><input type="range" id="sl-noi" oninput="calcSale()"><span id="sl-noi-v">—</span></div>
+          <div id="sale-result"></div>
+        </div>
+      </div>
+      <!-- P&L PANE -->
+      <div id="ps-pane-pnl" style="display:none">
+        <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-report-analytics"></i>Full Project P&L — A to Z</div></div><div id="pnl-body"></div></div>
+      </div>
     </div>
 
     <!-- DEAL PRO FORMA -->
@@ -945,8 +947,29 @@ tbody tr:hover td{background:#F8FAFF}
 
       <!-- TABS -->
       <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
-        <button class="btn btn-p btn-sm" id="pf-tab-inputs" onclick="pfTab('inputs')">📋 Inputs & Summary</button>
+        <button class="btn btn-p btn-sm" id="pf-tab-sheet" onclick="pfTab('sheet')">📄 Pro Forma</button>
+        <button class="btn btn-sm" id="pf-tab-inputs" onclick="pfTab('inputs')">📋 Inputs & Summary</button>
         <button class="btn btn-sm" id="pf-tab-sensitivity" onclick="pfTab('sensitivity')">📊 Sensitivity Analysis</button>
+      </div>
+
+      <!-- PRO FORMA EXCEL SHEET TAB -->
+      <div id="pf-sheet">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+          <div class="alert al-b" style="margin:0;flex:1;min-width:260px"><i class="ti ti-file-spreadsheet"></i><strong>Pro Forma Spreadsheet</strong> — upload your underwriting Excel; it opens here as a live, editable spreadsheet. Changes auto-save and sync to the whole team. Download anytime as .xlsx. Max <strong>5 MB</strong>.</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <input type="file" id="pfs-file-input" accept=".xlsx,.xls" style="display:none" onchange="pfsUpload(event)">
+            <button class="btn btn-p btn-sm" id="pfs-btn-upload" onclick="document.getElementById('pfs-file-input').click()"><i class="ti ti-upload"></i> Upload Excel</button>
+            <button class="btn btn-sm" id="pfs-btn-download" onclick="pfsDownload()" style="display:none"><i class="ti ti-download"></i> Download</button>
+            <button class="btn btn-d btn-xs" id="pfs-btn-remove" onclick="pfsRemove()" style="display:none"><i class="ti ti-trash"></i> Remove</button>
+          </div>
+        </div>
+        <div id="pfs-status" style="font-size:11px;color:var(--g5);margin-bottom:6px"></div>
+        <div id="pfs-empty" class="card" style="text-align:center;padding:60px 20px;color:var(--g4)">
+          <i class="ti ti-file-spreadsheet" style="font-size:48px;display:block;margin-bottom:10px"></i>
+          <div style="font-size:13px;font-weight:600;color:var(--g6);margin-bottom:6px">No pro-forma uploaded yet</div>
+          <div style="font-size:11px">Click <strong>Upload Excel</strong> above to load your pro-forma. It will appear here just like Excel — fully editable.</div>
+        </div>
+        <div id="pfs-container" style="position:relative;width:100%;height:78vh;display:none;border:1px solid var(--g3);border-radius:6px;overflow:hidden"></div>
       </div>
 
       <!-- INPUTS TAB -->
@@ -1048,6 +1071,14 @@ tbody tr:hover td{background:#F8FAFF}
               <tfoot id="pf-draw-sched-foot"></tfoot></table>
             </div>
           </div>
+        </div>
+
+        <!-- RENT SCHEDULE (moved from sidebar) -->
+        <div class="g3" id="rent-top" style="margin-top:0"></div>
+        <div class="card">
+          <div class="chdr"><div class="ctitle"><i class="ti ti-calendar-stats"></i>Rent Schedule with Escalations</div></div>
+          <table><thead><tr><th>Period</th><th>Lease Years</th><th>Escalation</th><th class="r">Annual Rent</th><th class="r">Monthly Rent</th><th class="r">Total Period Rent</th><th>Type</th></tr></thead>
+          <tbody id="rent-body"></tbody><tfoot id="rent-foot"></tfoot></table>
         </div>
       </div>
 
@@ -1250,6 +1281,9 @@ function rAll(){
   rDash(p,c);rProj(p);rStack(p,c);
   rPSA(p);rDD(p);rEnt(p);rPC(p,c);rExp(p);
   rDraws(p,c);rCOR(p,c);rInt(p,c);rRent(p);rSale(p,c);rPnL(p,c);rFiles(p);rSchedule(p);rInvoices();
+  // If user is currently on Deal Pro Forma → Pro Forma sub-tab and project switched, remount
+  const pfSheetActive=$('pf-tab-sheet')&&$('pf-tab-sheet').classList.contains('btn-p')&&$('page-proforma')&&$('page-proforma').classList.contains('on');
+  if(pfSheetActive) rPfSheet(p); else if(_pfsInit && (!p||_pfsCurProjId!==p.id)){ pfsDestroy(); _pfsCurProjId=null; }
   rProforma();
   rMonthly();
   saveData();
@@ -1968,7 +2002,15 @@ function go(pg,el){
   if(pg==='expenses' && !$('ex-tab-exp').classList.contains('btn-p') &&
      !$('ex-tab-inv').classList.contains('btn-p') &&
      !$('ex-tab-mt').classList.contains('btn-p')) exTab('exp');
-  if(pg==='proforma') rProforma();
+  if(pg==='proforma'){
+    rProforma();
+    // If user previously left the sheet sub-tab active, mount it again
+    const sheetActive=$('pf-tab-sheet')&&$('pf-tab-sheet').classList.contains('btn-p');
+    if(sheetActive) rPfSheet(S.p);
+  } else {
+    // Leaving Deal Pro Forma — tear down the sheet's Luckysheet
+    try{ pfsLeave(); }catch(e){}
+  }
   if(pg==='schedule') rSchedule(S.p);
   if(pg==='insights'){
     $('tb-name').textContent='RCP LLC — Portfolio Insights';
@@ -2373,11 +2415,13 @@ function pfCalc(pf){
 }
 
 function pfTab(tab){
-  $('pf-inputs').style.display=tab==='inputs'?'block':'none';
-  $('pf-sensitivity').style.display=tab==='sensitivity'?'block':'none';
-  $('pf-tab-inputs').className='btn btn-sm'+(tab==='inputs'?' btn-p':'');
-  $('pf-tab-sensitivity').className='btn btn-sm'+(tab==='sensitivity'?' btn-p':'');
+  ['sheet','inputs','sensitivity'].forEach(k=>{
+    const pane=$('pf-'+k); if(pane) pane.style.display=k===tab?'block':'none';
+    const btn=$('pf-tab-'+k); if(btn) btn.className='btn btn-sm'+(k===tab?' btn-p':'');
+  });
   if(tab==='sensitivity') rPfSensitivity();
+  if(tab==='sheet') rPfSheet(S.p);
+  else { try{ pfsLeave(); }catch(e){} }
 }
 
 function inpY(val,key,step,ph,w){
@@ -3418,6 +3462,7 @@ function schStatus(msg,muted){
 function schDestroy(){
   try{ if(window.luckysheet&&typeof luckysheet.destroy==='function') luckysheet.destroy(); }catch(e){}
   _schInit=false;
+  if(typeof _pfsInit!=='undefined') _pfsInit=false;   // global destroy clears Pro Forma sheet too
   const c=$('luckysheet-container'); if(c){ c.innerHTML=''; c.style.display='none'; }
   const e=$('sch-empty'); if(e) e.style.display='';
 }
@@ -3611,7 +3656,165 @@ function rSchedule(p){
 }
 // ── End Schedule Tracker ─────────────────────────────────────────────────
 
+// ── PRO FORMA SHEET (Luckysheet in Deal Pro Forma → Pro Forma sub-tab) ────
+// Shares the global Luckysheet instance with Schedule Tracker — we destroy
+// whichever sheet was mounted before mounting the other.
+let _pfsInit=false;
+let _pfsCurProjId=null;
+let _pfsSaveTimer=null;
+let _pfsSaving=false;
+
+function pfsStatus(msg,muted){
+  const el=$('pfs-status'); if(!el)return;
+  el.textContent=msg||''; el.style.color=muted?'var(--g5)':'var(--g6)';
+}
+function pfsDestroy(){
+  try{ if(window.luckysheet&&typeof luckysheet.destroy==='function') luckysheet.destroy(); }catch(e){}
+  _pfsInit=false; _schInit=false;   // global destroy clears both
+  const c=$('pfs-container'); if(c){ c.innerHTML=''; c.style.display='none'; }
+  const e=$('pfs-empty'); if(e) e.style.display='';
+}
+function pfsLeave(){
+  // Called when user navigates AWAY from the Pro Forma sub-tab
+  if(_pfsInit){ pfsPersist(true); pfsDestroy(); _pfsCurProjId=null; }
+}
+function pfsToggleButtons(loaded){
+  const d=$('pfs-btn-download'),r=$('pfs-btn-remove'),u=$('pfs-btn-upload');
+  if(d)d.style.display=loaded?'':'none';
+  if(r)r.style.display=loaded?'':'none';
+  if(u)u.innerHTML=loaded?'<i class="ti ti-upload"></i> Replace':'<i class="ti ti-upload"></i> Upload Excel';
+}
+function pfsMount(sheets,fileName,fromSaved){
+  if(typeof luckysheet==='undefined'){ pfsStatus('Spreadsheet library load nahi hui — internet check karke page reload karein.'); return; }
+  // Tear down ANY current Luckysheet (Schedule Tracker may have it)
+  try{ if(window.luckysheet&&typeof luckysheet.destroy==='function') luckysheet.destroy(); }catch(e){}
+  _schInit=false;
+  const cleanSheets=schNormalize(sheets);   // reuse the same normalizer
+  const c=$('pfs-container'),e=$('pfs-empty');
+  if(e)e.style.display='none';
+  if(c)c.style.display='';
+  try{
+    luckysheet.create({
+      container:'pfs-container',
+      lang:'en',
+      data:cleanSheets,
+      title:fileName||'Pro Forma',
+      showinfobar:false,
+      allowUpdate:true,
+      enableAddRow:true,
+      enableAddBackTop:false,
+      hook:{
+        updated:()=>pfsScheduleSave(),
+        rangePasteAfter:()=>pfsScheduleSave(),
+        cellUpdated:()=>pfsScheduleSave(),
+        sheetActivate:()=>pfsScheduleSave(),
+      }
+    });
+    _pfsInit=true;
+    pfsToggleButtons(true);
+    pfsStatus(fromSaved?'Loaded — '+(fileName||'pro-forma'):'Imported — '+(fileName||'file'),true);
+    setTimeout(()=>{
+      if(_pfsInit && !document.getElementById('luckysheet-cell-main')){
+        pfsStatus('Render stuck — press Ctrl+Shift+R and re-open this tab.');
+      }
+    },8000);
+  }catch(err){
+    console.error('[Pro Forma Sheet] Luckysheet render error:',err,'sheets:',cleanSheets);
+    pfsStatus('Could not render: '+(err&&err.message||err)+'  (check browser console for details)');
+  }
+}
+function pfsScheduleSave(){
+  if(!_pfsInit) return;
+  clearTimeout(_pfsSaveTimer);
+  _pfsSaveTimer=setTimeout(pfsPersist,1200);
+}
+function pfsPersist(silent){
+  const p=S.p; if(!p||!_pfsInit||_pfsSaving) return;
+  try{
+    _pfsSaving=true;
+    const data=luckysheet.getAllSheets();
+    if(!p.proformaSheet) p.proformaSheet={};
+    p.proformaSheet.sheets=data;
+    p.proformaSheet.updatedAt=new Date().toISOString();
+    if(!silent) pfsStatus('Saving…',true);
+    saveData();
+    if(!silent) setTimeout(()=>pfsStatus('Saved · '+(p.proformaSheet.name||'pro-forma')+' · '+new Date().toLocaleTimeString(),true),50);
+  }catch(e){
+    pfsStatus('Save error: '+(e&&e.message||e));
+  } finally { _pfsSaving=false; }
+}
+function pfsUpload(ev){
+  const f=ev.target.files&&ev.target.files[0]; ev.target.value=''; if(!f) return;
+  const p=S.p; if(!p){ alert('Pehle koi project select karein.'); return; }
+  if(f.size>5*1024*1024){ alert('File too large — keep under 5 MB.'); return; }
+  if(typeof LuckyExcel==='undefined'){ alert('Excel reader library load nahi hui. Internet check karke page reload karein.'); return; }
+  pfsStatus('Reading '+f.name+'…',true);
+  LuckyExcel.transformExcelToLucky(f,(exportJson)=>{
+    if(!exportJson || !exportJson.sheets || !exportJson.sheets.length){ pfsStatus('Could not parse '+f.name); return; }
+    if(!p.proformaSheet) p.proformaSheet={};
+    p.proformaSheet.name=f.name;
+    p.proformaSheet.sheets=exportJson.sheets;
+    p.proformaSheet.uploadedAt=new Date().toISOString();
+    p.proformaSheet.updatedAt=p.proformaSheet.uploadedAt;
+    _pfsCurProjId=p.id;
+    pfsMount(exportJson.sheets,f.name,false);
+    saveData();
+  },(err)=>{ pfsStatus('Excel read error: '+(err&&err.message||err)); });
+}
+function pfsDownload(){
+  const p=S.p; if(!p||!_pfsInit) return;
+  if(typeof luckysheet==='undefined'||typeof XLSX==='undefined') return;
+  try{
+    const sheets=luckysheet.getAllSheets();
+    const wb=XLSX.utils.book_new();
+    sheets.forEach(sh=>{
+      const rows=[]; const data=sh.data||sh.celldata||[];
+      if(Array.isArray(sh.data)){
+        sh.data.forEach((row,ri)=>{
+          rows[ri]=[];
+          (row||[]).forEach((cell,ci)=>{ rows[ri][ci]=cell? (cell.v!=null?cell.v:cell.m||'') : ''; });
+        });
+      } else if(sh.celldata){
+        sh.celldata.forEach(c=>{ if(!rows[c.r]) rows[c.r]=[]; rows[c.r][c.c]=c.v? (c.v.v!=null?c.v.v:c.v.m||'') : ''; });
+      }
+      const ws=XLSX.utils.aoa_to_sheet(rows);
+      XLSX.utils.book_append_sheet(wb,ws,(sh.name||'Sheet').substring(0,31));
+    });
+    const fn=(p.proformaSheet&&p.proformaSheet.name)||'pro-forma.xlsx';
+    XLSX.writeFile(wb,fn);
+  }catch(e){ alert('Download failed: '+(e&&e.message||e)); }
+}
+function pfsRemove(){
+  const p=S.p; if(!p) return;
+  if(!confirm('Remove the pro-forma spreadsheet for this project? This deletes it for the whole team.')) return;
+  pfsDestroy();
+  delete p.proformaSheet;
+  _pfsCurProjId=null;
+  pfsToggleButtons(false);
+  pfsStatus('');
+  saveData();
+}
+function rPfSheet(p){
+  if(!$('pfs-container')) return;
+  if(!p){ pfsDestroy(); pfsToggleButtons(false); pfsStatus(''); _pfsCurProjId=null; return; }
+  const st=p.proformaSheet;
+  if(!st || !st.sheets || !st.sheets.length){
+    pfsDestroy(); pfsToggleButtons(false); pfsStatus(''); _pfsCurProjId=null; return;
+  }
+  if(_pfsInit && _pfsCurProjId===p.id) return;
+  _pfsCurProjId=p.id;
+  pfsMount(st.sheets,st.name,true);
+}
+// ── End Pro Forma Sheet ──────────────────────────────────────────────────
+
 // ── EXPENSES PAGE SUB-TABS + INVOICES ────────────────────────────────────
+function psTab(t){
+  ['sale','pnl'].forEach(k=>{
+    const pane=$('ps-pane-'+k); if(pane) pane.style.display=k===t?'block':'none';
+    const btn=$('ps-tab-'+k); if(btn) btn.className='btn btn-sm'+(k===t?' btn-p':'');
+  });
+}
+
 function ddTab(t){
   ['dd','ent'].forEach(k=>{
     const pane=$('dd-pane-'+k); if(pane) pane.style.display=k===t?'block':'none';
