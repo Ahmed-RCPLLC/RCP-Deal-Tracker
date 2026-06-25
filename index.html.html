@@ -425,7 +425,7 @@ tbody tr:hover td{background:#F8FAFF}
 <div id="mo-lender" class="ov" style="display:none">
 <div class="modal">
   <div class="mtitle">💰 Add Capital Provider</div>
-  <div class="fr"><div class="fl">Institution / Name *</div><input class="inp" id="ml-name" placeholder="e.g. Stablewood, NASB, Eric Johnston, Alliance USA..."></div>
+  <div class="fr"><div class="fl">Institution / Name *</div><input class="inp" id="ml-name" placeholder="e.g. Stablewood, NASB, Alliance USA, E2 Pref Equity..."></div>
   <div class="fg2">
     <div class="fr"><div class="fl">Role / Type</div>
       <select class="sel" id="ml-role">
@@ -528,7 +528,7 @@ tbody tr:hover td{background:#F8FAFF}
     <div class="fr"><div class="fl">Payee / Vendor</div><input class="inp" id="ex-pay" placeholder="CESO Engineering"></div>
     <div class="fr"><div class="fl">Category</div><input class="inp" id="ex-cat" placeholder="Geotech / Legal / Environmental..."></div>
     <div class="fr"><div class="fl">Amount ($)</div><input class="inp" id="ex-amt" type="number" placeholder="5000"></div>
-    <div class="fr"><div class="fl">Paid By</div><input class="inp" id="ex-by" placeholder="Project LLC / Eric / Sponsor"></div>
+    <div class="fr"><div class="fl">Paid By</div><input class="inp" id="ex-by" placeholder="Project LLC / Sponsor / E2 Pref Equity"></div>
     <div class="fr"><div class="fl">Budget Line</div><input class="inp" id="ex-line" placeholder="Geotech / Entitlements / Legal"></div>
     <div class="fr"><div class="fl">Phase</div>
       <select class="sel" id="ex-phase"><option>Pre-LOI</option><option>Due Diligence</option><option>Entitlements</option><option>Pre-Close</option><option>Construction</option><option>Post-Close</option></select>
@@ -567,7 +567,7 @@ tbody tr:hover td{background:#F8FAFF}
   <div class="mtitle">👤 Log Pre-Close Equity Funding</div>
   <div class="fg2">
     <div class="fr"><div class="fl">Date</div><input class="inp" id="eq-dt" placeholder="Aug 15, 2025"></div>
-    <div class="fr"><div class="fl">Investor Name</div><input class="inp" id="eq-inv" placeholder="Eric Johnston / E2 CRE"></div>
+    <div class="fr"><div class="fl">Investor Name</div><input class="inp" id="eq-inv" value="E2 Pref Equity" placeholder="E2 Pref Equity"></div>
     <div class="fr"><div class="fl">Description / Purpose</div><input class="inp" id="eq-desc" placeholder="EMD paid to title / Geotech invoice..."></div>
     <div class="fr"><div class="fl">Amount Funded ($)</div><input class="inp" id="eq-amt" type="number" placeholder="25000"></div>
   </div>
@@ -1877,6 +1877,21 @@ async function saveToSupabase(){
   }finally{_isSaving=false;}
 }
 
+function scrubEricNames(){
+  // Hide investor identity — replace any "Eric" mentions in saved data with the public-facing "E2 Pref Equity" name
+  const re=/eric(?:\s+johnston)?|e2\s*cre.*\beric\b/i;
+  (S.projects||[]).forEach(p=>{
+    (p.equityFundings||[]).forEach(e=>{
+      if(e.inv && re.test(e.inv)) e.inv='E2 Pref Equity';
+    });
+    (p.expenses||[]).forEach(e=>{
+      if(e.by && /\beric\b/i.test(e.by)) e.by=e.by.replace(/\beric(?:\s+johnston)?\b/gi,'E2 Pref Equity').replace(/\s+/g,' ').trim();
+    });
+    (p.lenders||[]).forEach(l=>{
+      if(l.name && /\beric\b/i.test(l.name)) l.name=l.name.replace(/\beric(?:\s+johnston)?\b/gi,'E2 Pref Equity').replace(/\s+/g,' ').trim();
+    });
+  });
+}
 async function loadData(){
   showSaveToast('⏳ Loading from cloud...',true);
   try{
@@ -1888,6 +1903,7 @@ async function loadData(){
       if(rows&&rows.length&&rows[0].payload&&rows[0].payload.projects&&rows[0].payload.projects.length){
         S.projects=rows[0].payload.projects;
         S.cur=rows[0].payload.cur||0;
+        scrubEricNames();
         // Also update localStorage backup
         try{localStorage.setItem(SAVE_KEY,JSON.stringify({projects:S.projects,cur:S.cur}));}catch(e){}
         showSaveToast('☁️ Loaded from cloud');
@@ -1903,6 +1919,7 @@ async function loadData(){
       if(d&&d.projects&&d.projects.length){
         S.projects=d.projects;
         S.cur=d.cur||0;
+        scrubEricNames();
         showSaveToast('💾 Loaded from local backup');
         return true;
       }
@@ -2447,17 +2464,67 @@ function pfTab(tab){
   else { try{ pfsLeave(); }catch(e){} }
 }
 
-function inpY(val,key,step,ph,w){
-  step=step||'1';ph=ph||'0';w=w||'120px';
-  return `<input class="inp-y" type="number" step="${step}" value="${val||''}" placeholder="${ph}" style="width:${w}" onchange="pfSet('${key}',this.value)">`;
+function pfHasVal(v){ return v!=null && v!=='' && !(typeof v==='number' && isNaN(v)); }
+function pfFmtMoney(v){
+  if(!pfHasVal(v)) return '';
+  const n=+v; if(isNaN(n)) return '';
+  return '$'+Math.round(n).toLocaleString('en-US');
 }
-function inpYLine(type,id,field,val,step,ph,w){
-  step=step||'1';ph=ph||'0';w=w||'120px';
-  return `<input class="inp-y" type="number" step="${step}" value="${val||''}" placeholder="${ph}" style="width:${w}" onchange="pfUpdLine('${type}','${id}','${field}',this.value)">`;
+function pfFmtNum(v){
+  if(!pfHasVal(v)) return '';
+  const n=+v; if(isNaN(n)) return '';
+  return n.toLocaleString('en-US',{maximumFractionDigits:4});
+}
+function pfParseNum(s){
+  if(s==null) return 0;
+  const c=String(s).replace(/[^0-9.\-]/g,'');
+  if(c===''||c==='-'||c==='.') return 0;
+  return +c;
+}
+// Numeric input — full-width, right-aligned. step <1 → decimal mode; otherwise integer mode.
+// Display formatted (with commas / $ if money=true). On focus shows raw editable number.
+function inpY(val,key,step,ph,w,money){
+  step=step||'1';ph=ph||'0';
+  const display=money?pfFmtMoney(val):pfFmtNum(val);
+  const raw=pfHasVal(val)?(+val):'';
+  return `<input class="inp-y" type="text" inputmode="decimal" data-raw="${raw}" data-money="${money?1:0}" `+
+    `value="${display}" placeholder="${ph}" `+
+    `onfocus="pfInputFocus(this)" onblur="pfInputBlur(this)" `+
+    `onchange="pfSet('${key}',pfParseNum(this.value))">`;
+}
+function inpYLine(type,id,field,val,step,ph,w,money){
+  step=step||'1';ph=ph||'0';
+  // Default money=true for line-item amounts (Hard/Soft) — they're dollars
+  money = money===undefined ? true : money;
+  const display=money?pfFmtMoney(val):pfFmtNum(val);
+  const raw=pfHasVal(val)?(+val):'';
+  return `<input class="inp-y" type="text" inputmode="decimal" data-raw="${raw}" data-money="${money?1:0}" `+
+    `value="${display}" placeholder="${ph}" `+
+    `onfocus="pfInputFocus(this)" onblur="pfInputBlur(this)" `+
+    `onchange="pfUpdLine('${type}','${id}','${field}',pfParseNum(this.value))">`;
 }
 function inpText(val,key,ph){
-  return `<input class="inp" style="font-size:11px;padding:2px 6px" value="${val||''}" placeholder="${ph||''}" onchange="pfSet('${key}',this.value)">`;
+  return `<input class="inp" style="font-size:11px;padding:2px 6px;width:100%;text-align:left" value="${(val==null?'':val).toString().replace(/"/g,'&quot;')}" placeholder="${ph||''}" onchange="pfSet('${key}',this.value)">`;
 }
+// Focus / blur handlers — swap formatted display for raw editable, and back
+function pfInputFocus(el){
+  const raw=el.getAttribute('data-raw');
+  el.value=raw==null||raw==='null'?'':raw;
+  setTimeout(()=>el.select(),0);
+}
+function pfInputBlur(el){
+  const money=el.getAttribute('data-money')==='1';
+  const v=pfParseNum(el.value);
+  el.setAttribute('data-raw',v||'');
+  el.value=el.value===''?'':(money?pfFmtMoney(v):pfFmtNum(v));
+}
+// Generic numeric input for "Add Row" extras (finExtra, exitExtra, usesExtra, returnsExtra, internalExtra)
+function inpExtra(arrKey,id,field,val,money){
+  const display=money?pfFmtMoney(val):pfFmtNum(val);
+  const raw=pfHasVal(val)?(+val):'';
+  return `<input class="inp-y" type="text" inputmode="decimal" data-raw="${raw}" data-money="${money?1:0}" value="${display}" placeholder="0" onfocus="pfInputFocus(this)" onblur="pfInputBlur(this)" onchange="pfUpdExtra('${arrKey}','${id}','${field}',pfParseNum(this.value))">`;
+}
+function pfEscAttr(s){ return (s==null?'':s).toString().replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
 function rProforma(){
   const pf=pfGetData(); if(!pf)return;
@@ -2466,31 +2533,37 @@ function rProforma(){
 
   // ── Project Info ──
   const projF=[
-    {l:'As of Date',key:'asOfDate',type:'text',ph:'Apr 26, 2026'},
-    {l:'Site Address',key:'siteAddress',type:'text',ph:'123 Anystreet, Anytown USA'},
-    {l:'Tenant',key:'tenant',type:'text',ph:'Corporate Credit Tenant'},
-    {l:'Lease',key:'lease',type:'text',ph:'15 Year NNN BTS'},
-    {l:'Land Size (Acres)',key:'landAcres',type:'number',ph:'1.5'},
-    {l:'Building SF',key:'buildingSF',type:'number',ph:'3500'},
-    {l:'Pursuit Capital Budget ($)',key:'pursuitBudget',type:'number',ph:'100000'},
+    {l:'As of Date',key:'asOfDate',mode:'text',ph:'Apr 26, 2026'},
+    {l:'Site Address',key:'siteAddress',mode:'text',ph:'123 Anystreet, Anytown USA'},
+    {l:'Tenant',key:'tenant',mode:'text',ph:'Corporate Credit Tenant'},
+    {l:'Lease',key:'lease',mode:'text',ph:'15 Year NNN BTS'},
+    {l:'Land Size (Acres)',key:'landAcres',mode:'num',ph:'1.5',step:'0.01'},
+    {l:'Building SF',key:'buildingSF',mode:'num',ph:'3500',step:'1'},
+    {l:'Pursuit Capital Budget ($)',key:'pursuitBudget',mode:'money',ph:'100000',step:'1000'},
   ];
-  $('pf-project-rows').innerHTML=projF.map(f=>`<tr>
-    <td style="color:var(--g5)">${f.l}</td>
-    <td class="r"><input class="inp-y" type="${f.type}" value="${pf[f.key]||''}" placeholder="${f.ph}" style="width:150px" onchange="pfSet('${f.key}',this.value)"></td>
-  </tr>`).join('');
+  $('pf-project-rows').innerHTML=projF.map(f=>{
+    let inp;
+    if(f.mode==='text')      inp=inpText(pf[f.key],f.key,f.ph);
+    else if(f.mode==='money')inp=inpY(pf[f.key],f.key,f.step,f.ph,null,true);
+    else                     inp=inpY(pf[f.key],f.key,f.step,f.ph,null,false);
+    return `<tr>
+      <td style="color:var(--g5)">${f.l}</td>
+      <td class="r">${inp}</td>
+    </tr>`;
+  }).join('');
 
   // ── Hard Costs ──
   $('pf-hard-rows').innerHTML=pf.hard.map(l=>`<tr>
-    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:100%" value="${l.desc}" onchange="pfUpdLine('hard','${l.id}','desc',this.value)"></td>
-    <td class="r">${inpYLine('hard',l.id,'amt',l.amt,'1','0','120px')}</td>
+    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:100%" value="${pfEscAttr(l.desc)}" onchange="pfUpdLine('hard','${l.id}','desc',this.value)"></td>
+    <td class="r">${inpYLine('hard',l.id,'amt',l.amt,'1','0',null,true)}</td>
     <td><button class="btn btn-d btn-xs" onclick="pfRmLine('hard','${l.id}')"><i class="ti ti-x"></i></button></td>
   </tr>`).join('');
   $('pf-hard-foot').innerHTML=`<tr class="tr-tot"><td>Total Hard Costs</td><td class="r">${F(c.hardTotal)}</td><td></td></tr>`;
 
   // ── Soft Costs ──
   $('pf-soft-rows').innerHTML=pf.soft.map(l=>`<tr>
-    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:100%" value="${l.desc}" onchange="pfUpdLine('soft','${l.id}','desc',this.value)"></td>
-    <td class="r">${inpYLine('soft',l.id,'amt',l.amt,'1','0','120px')}</td>
+    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:100%" value="${pfEscAttr(l.desc)}" onchange="pfUpdLine('soft','${l.id}','desc',this.value)"></td>
+    <td class="r">${inpYLine('soft',l.id,'amt',l.amt,'1','0',null,true)}</td>
     <td><button class="btn btn-d btn-xs" onclick="pfRmLine('soft','${l.id}')"><i class="ti ti-x"></i></button></td>
   </tr>`).join('');
   $('pf-soft-foot').innerHTML=`<tr class="tr-tot"><td>Total Soft Costs</td><td class="r">${F(c.softTotal)}</td><td></td></tr>`;
@@ -2518,18 +2591,20 @@ function rProforma(){
     <td class="r">${inpY(pf[f.key],f.key,f.step,f.ph)}</td>
     <td></td>
   </tr>`).join('');
-  finRows+=(pf.finExtra||[]).map(r=>`<tr>
-    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:100%" value="${r.label}" onchange="pfUpdExtra('finExtra','${r.id}','label',this.value)"></td>
-    <td class="r"><input class="inp-y" type="number" step="0.01" value="${r.val||''}" placeholder="0" style="width:120px" onchange="pfUpdExtra('finExtra','${r.id}','val',this.value)"></td>
+  finRows+=(pf.finExtra||[]).map(r=>{
+    const dispVal=pfFmtNum(r.val); const rawVal=pfHasVal(r.val)?(+r.val):'';
+    return `<tr>
+    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:100%" value="${(r.label||'').replace(/"/g,'&quot;')}" onchange="pfUpdExtra('finExtra','${r.id}','label',this.value)"></td>
+    <td class="r"><input class="inp-y" type="text" inputmode="decimal" data-raw="${rawVal}" data-money="0" value="${dispVal}" placeholder="0" onfocus="pfInputFocus(this)" onblur="pfInputBlur(this)" onchange="pfUpdExtra('finExtra','${r.id}','val',pfParseNum(this.value))"></td>
     <td><button class="btn btn-d btn-xs" onclick="pfRmExtra('finExtra','${r.id}')"><i class="ti ti-x"></i></button></td>
-  </tr>`).join('');
+  </tr>`;}).join('');
   $('pf-fin-rows').innerHTML=finRows;
 
   // ── Exit Assumptions (Market Exit Cap → Takeout Rate + Hold Period + Pursuit Treatment) ──
   const exitCore=[
     {l:'Market Exit Cap Rate (%)',key:'exitCap',step:'0.05',ph:'6.0'},
     {l:'Target Spread (bps)',key:'targetSpread',step:'25',ph:'150'},
-    {l:'Rent Override — Annual NOI ($)',key:'rentOverride',step:'1000',ph:'0 = auto-calc'},
+    {l:'Rent Override — Annual NOI ($)',key:'rentOverride',step:'1000',ph:'0 = auto-calc',money:true},
     {l:'Disposition Cost incl. Broker (%)',key:'dispositionPct',step:'0.25',ph:'5.0'},
     {l:'RCP Sales Rep Commission (%)',key:'salesCommPct',step:'0.5',ph:'10.0'},
     {l:'Hold Period (Months)',key:'holdMonths',step:'1',ph:'13'},
@@ -2537,7 +2612,7 @@ function rProforma(){
   ];
   let exitRows=exitCore.map(f=>`<tr>
     <td style="color:var(--g5)">${f.l}</td>
-    <td class="r">${inpY(pf[f.key],f.key,f.step,f.ph)}</td>
+    <td class="r">${inpY(pf[f.key],f.key,f.step,f.ph,null,!!f.money)}</td>
     <td></td>
   </tr>`).join('');
   // Pursuit Treatment as dropdown
@@ -2556,8 +2631,8 @@ function rProforma(){
     <tr><td style="color:var(--g5)">A Factor (Rate × SumD / 12)</td><td class="r" style="color:var(--g4)">${(aFactor*100).toFixed(4)}%</td><td></td></tr>
     <tr><td style="color:var(--g5)">Rent NOI for Offset (auto-calc)</td><td class="r" style="color:var(--g4)">${F(rentNOIOffset)}</td><td></td></tr>`;
   exitRows+=(pf.exitExtra||[]).map(r=>`<tr>
-    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:100%" value="${r.label}" onchange="pfUpdExtra('exitExtra','${r.id}','label',this.value)"></td>
-    <td class="r"><input class="inp-y" type="number" step="0.01" value="${r.val||''}" placeholder="0" style="width:120px" onchange="pfUpdExtra('exitExtra','${r.id}','val',this.value)"></td>
+    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:100%" value="${pfEscAttr(r.label)}" onchange="pfUpdExtra('exitExtra','${r.id}','label',this.value)"></td>
+    <td class="r">${inpExtra('exitExtra',r.id,'val',r.val,false)}</td>
     <td><button class="btn btn-d btn-xs" onclick="pfRmExtra('exitExtra','${r.id}')"><i class="ti ti-x"></i></button></td>
   </tr>`).join('');
   $('pf-exit-rows').innerHTML=exitRows;
@@ -2584,8 +2659,8 @@ function rProforma(){
     <td></td>
   </tr>`).join('');
   usesRows+=(pf.usesExtra||[]).map(r=>`<tr>
-    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:100%" value="${r.label}" onchange="pfUpdExtra('usesExtra','${r.id}','label',this.value)"></td>
-    <td class="r"><input class="inp-y" type="number" value="${r.amt||''}" placeholder="0" style="width:110px" onchange="pfUpdExtra('usesExtra','${r.id}','amt',this.value)"></td>
+    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:100%" value="${pfEscAttr(r.label)}" onchange="pfUpdExtra('usesExtra','${r.id}','label',this.value)"></td>
+    <td class="r">${inpExtra('usesExtra',r.id,'amt',r.amt,true)}</td>
     <td class="r" style="color:var(--g4)">${r.amt&&c.sf?'$'+(r.amt/c.sf).toFixed(2):'—'}</td>
     <td><button class="btn btn-d btn-xs" onclick="pfRmExtra('usesExtra','${r.id}')"><i class="ti ti-x"></i></button></td>
   </tr>`).join('');
@@ -2612,8 +2687,8 @@ function rProforma(){
     <tr><td style="color:var(--g5)">Profit</td><td class="r" style="font-weight:600;color:${c.profit>0?'var(--green)':'var(--red)'}">${F(c.profit)}</td><td></td></tr>
     <tr><td style="color:var(--g5)">Return on Cost</td><td class="r">${(c.returnOnCost*100).toFixed(2)}%</td><td></td></tr>`;
   retRows+=(pf.returnsExtra||[]).map(r=>`<tr>
-    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:100%" value="${r.label}" onchange="pfUpdExtra('returnsExtra','${r.id}','label',this.value)"></td>
-    <td class="r"><input class="inp-y" type="number" value="${r.val||''}" placeholder="0" style="width:120px" onchange="pfUpdExtra('returnsExtra','${r.id}','val',this.value)"></td>
+    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:100%" value="${pfEscAttr(r.label)}" onchange="pfUpdExtra('returnsExtra','${r.id}','label',this.value)"></td>
+    <td class="r">${inpExtra('returnsExtra',r.id,'val',r.val,false)}</td>
     <td><button class="btn btn-d btn-xs" onclick="pfRmExtra('returnsExtra','${r.id}')"><i class="ti ti-x"></i></button></td>
   </tr>`).join('');
   $('pf-returns-rows').innerHTML=retRows;
@@ -2632,8 +2707,8 @@ function rProforma(){
       <td></td>
     </tr>`;
   intRows+=(pf.internalExtra||[]).map(r=>`<tr>
-    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:100%" value="${r.label}" onchange="pfUpdExtra('internalExtra','${r.id}','label',this.value)"></td>
-    <td class="r"><input class="inp-y" type="number" value="${r.val||''}" placeholder="0" style="width:120px" onchange="pfUpdExtra('internalExtra','${r.id}','val',this.value)"></td>
+    <td><input class="inp" style="font-size:11px;padding:2px 6px;width:100%" value="${pfEscAttr(r.label)}" onchange="pfUpdExtra('internalExtra','${r.id}','label',this.value)"></td>
+    <td class="r">${inpExtra('internalExtra',r.id,'val',r.val,false)}</td>
     <td><button class="btn btn-d btn-xs" onclick="pfRmExtra('internalExtra','${r.id}')"><i class="ti ti-x"></i></button></td>
   </tr>`).join('');
   $('pf-internal-rows').innerHTML=intRows;
@@ -2864,10 +2939,10 @@ fi('Loan Origination / Capital Costs',110000);fi('Interest Reserve / Debt Servic
 demo.phase='dd';
 demo.sale.exitCap=5.75;demo.sale.brokerPct=3;demo.sale.exitFeePct=1;demo.sale.closingCostPct=1.25;
 demo.lenders.push({id:uid(),name:'Stablewood',role:'Construction Lender (1st)',amt:8124963,rate:10.5,orig:1.33,fundedAtClose:2193739,holdback:5931224,pref:0,term:18,exitFee:1,notes:'100% project financing at 10.5%. Monthly draws against approved budget. 18-month term.'});
-demo.equityFundings.push({id:uid(),dt:'Aug 15, 2025',inv:'E2 CRE (Eric)',desc:'EMD paid direct to Chicago Title',amt:25000,rate:25,direct:'yes'});
-demo.equityFundings.push({id:uid(),dt:'Aug 18, 2025',inv:'E2 CRE (Eric)',desc:'August general pre-close funds',amt:5000,rate:25,direct:'no'});
-demo.equityFundings.push({id:uid(),dt:'Nov 15, 2025',inv:'E2 CRE (Eric)',desc:'November funds',amt:5000,rate:25,direct:'no'});
-demo.equityFundings.push({id:uid(),dt:'Jan 20, 2026',inv:'E2 CRE (Eric)',desc:'January funds',amt:20000,rate:25,direct:'no'});
+demo.equityFundings.push({id:uid(),dt:'Aug 15, 2025',inv:'E2 Pref Equity',desc:'EMD paid direct to Chicago Title',amt:25000,rate:25,direct:'yes'});
+demo.equityFundings.push({id:uid(),dt:'Aug 18, 2025',inv:'E2 Pref Equity',desc:'August general pre-close funds',amt:5000,rate:25,direct:'no'});
+demo.equityFundings.push({id:uid(),dt:'Nov 15, 2025',inv:'E2 Pref Equity',desc:'November funds',amt:5000,rate:25,direct:'no'});
+demo.equityFundings.push({id:uid(),dt:'Jan 20, 2026',inv:'E2 Pref Equity',desc:'January funds',amt:20000,rate:25,direct:'no'});
 demo.expenses.push({id:uid(),dt:'Aug 13, 2025',pay:'Levick Legal',cat:'Legal',amt:25000,by:'E2 CRE',line:'Legal',phase:'Due Diligence',reimb:'pending'});
 demo.expenses.push({id:uid(),dt:'Nov 15, 2025',pay:'CESO Engineering',cat:'Geotechnical',amt:3075,by:'Project LLC',line:'Geotech',phase:'Due Diligence',reimb:'pending'});
 demo.expenses.push({id:uid(),dt:'Jan 20, 2026',pay:'BABL Studio',cat:'Entitlements',amt:645,by:'Project LLC',line:'Entitlements / Zoning',phase:'Entitlements',reimb:'pending'});
