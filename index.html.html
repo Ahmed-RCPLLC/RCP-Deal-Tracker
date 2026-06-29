@@ -628,8 +628,7 @@ tbody tr:hover td{background:#F8FAFF}
     <button class="ni" onclick="go('expenses',this)"><i class="ti ti-receipt"></i>Deal Equity & Expenses <span class="nbadge nba" id="nb-eq" style="display:none">0</span></button>
     <button class="ni" onclick="go('stack',this)"><i class="ti ti-coin"></i>Capital Stack</button>
     <div class="nsec">Construction</div>
-    <button class="ni" onclick="go('draws',this)"><i class="ti ti-crane"></i>Draws <span class="nbadge nbg" id="nb-dr" style="display:none">0</span></button>
-    <button class="ni" onclick="go('cor',this)"><i class="ti ti-git-merge"></i>Change Orders <span class="nbadge nbr" id="nb-cor" style="display:none">0</span></button>
+    <button class="ni" onclick="go('cor',this)"><i class="ti ti-crane"></i>Draws and Change Orders <span class="nbadge nbg" id="nb-dr" style="display:none">0</span></button>
     <div class="nsec">Exit</div>
     <button class="ni" onclick="go('propsale',this)"><i class="ti ti-home-dollar"></i>Property Sale</button>
     <div class="nsec">Tracking</div>
@@ -899,32 +898,24 @@ tbody tr:hover td{background:#F8FAFF}
       </div>
       <input type="file" id="inv-file-input" accept=".pdf,.jpg,.jpeg,.png,.xlsx,.xls,.doc,.docx" style="display:none" onchange="invFile(event)">
     </div>
-    <div id="page-draws" class="page">
-      <div class="g4" id="dr-top"></div>
-      <div class="card"><div class="chdr"><div class="ctitle"><i class="ti ti-crane"></i>Construction Draw Log</div><button class="btn btn-p btn-sm" onclick="om('mo-draw')"><i class="ti ti-plus"></i>New Draw</button></div><div id="draws-list"></div></div>
-    </div>
     <div id="page-cor" class="page">
-      <div class="alert al-b"><i class="ti ti-info-circle"></i><strong>Schedule of Values</strong> — every monthly construction draw shown alongside any change orders processed that period. Edit the <strong>Original Contract Amount</strong> below; everything else auto-calculates. Log new draws / COs via the buttons.</div>
+      <div class="alert al-b"><i class="ti ti-info-circle"></i><strong>Draws &amp; Change Orders</strong> — fully editable. Set the <strong>Original Contract Amount</strong>, then add a row for every monthly construction draw and any change order. Cumulative columns and Revised Contract update automatically.</div>
       <div class="card">
-        <div class="chdr"><div class="ctitle"><i class="ti ti-receipt-tax"></i>Summary</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <button class="btn btn-p btn-sm" onclick="om('mo-draw')"><i class="ti ti-crane"></i>New Draw</button>
-            <button class="btn btn-p btn-sm" onclick="om('mo-cor')"><i class="ti ti-git-merge"></i>Log Change Order</button>
-          </div>
-        </div>
+        <div class="chdr"><div class="ctitle"><i class="ti ti-receipt-tax"></i>Summary</div></div>
         <div id="sov-summary"></div>
       </div>
       <div class="card">
-        <div class="chdr"><div class="ctitle"><i class="ti ti-table"></i>Construction Draws & Change Orders</div></div>
+        <div class="chdr"><div class="ctitle"><i class="ti ti-table"></i>Construction Draws &amp; Change Orders</div>
+          <button class="btn btn-p btn-sm" onclick="sovAddRow()"><i class="ti ti-plus"></i>Add Row</button>
+        </div>
         <div style="overflow-x:auto"><table id="sov-table"><thead><tr>
-          <th>#</th><th>Month</th><th>Description</th>
-          <th class="r">Draw $</th><th class="r">Cum Draw</th>
-          <th class="r">CO $</th><th>CO #</th><th>CO Date</th>
-          <th class="r">Cum CO</th><th class="r">Revised Contract</th>
-          <th>Notes</th><th></th>
+          <th style="min-width:60px">Draw #</th><th style="min-width:110px">Date</th><th style="min-width:180px">Description</th>
+          <th class="r" style="min-width:120px">Draw $</th><th class="r" style="min-width:120px">Cum Draw</th>
+          <th class="r" style="min-width:120px">CO $</th><th style="min-width:90px">CO #</th><th style="min-width:110px">CO Date</th>
+          <th class="r" style="min-width:120px">Cum CO</th><th class="r" style="min-width:140px">Revised Contract</th>
+          <th></th>
         </tr></thead><tbody id="sov-body"></tbody><tfoot id="sov-foot"></tfoot></table></div>
       </div>
-      <div class="card" id="cor-sum-card" style="display:none"><div class="chdr"><div class="ctitle"><i class="ti ti-calculator"></i>Contingency Impact</div></div><div id="cor-sum"></div></div>
     </div>
     <!-- PROPERTY SALE (merged Sale & Exit + P&L Report) -->
     <div id="page-propsale" class="page">
@@ -1278,7 +1269,9 @@ function C(p){
   const hbA=L.filter(l=>l.cat==='Hard Costs'&&!l.auto).reduce((s,l)=>s+(+l.act||0),0);
   const sbA=L.filter(l=>l.cat==='Soft Costs'&&!l.auto).reduce((s,l)=>s+(+l.act||0),0);
   const cBgt=hcont+scont,cUsed=p.corFromCont||0,cRem=cBgt-cUsed;
-  const drawn=p.draws.reduce((s,d)=>s+(+d.hard||0)+(+d.soft||0)+(+d.int||0)+(+d.dev||0)+(+d.oth||0),0);
+  const drawn=Array.isArray(p.sov)
+    ? p.sov.reduce((s,r)=>s+(+r.drawAmt||0),0)
+    : p.draws.reduce((s,d)=>s+(+d.hard||0)+(+d.soft||0)+(+d.int||0)+(+d.dev||0)+(+d.oth||0),0);
   const remain=total-drawn;
   const src=p.lenders.reduce((s,l)=>s+(+l.amt||0),0);
   const bCap=total>0&&p.annualRent>0?p.annualRent/total*100:0;
@@ -1306,7 +1299,7 @@ function rAll(){
   rTB(p,c);rPB(p);rBadges(p);
   rDash(p,c);rProj(p);rStack(p,c);
   rPSA(p);rDD(p);rEnt(p);rPC(p,c);rExp(p);
-  rDraws(p,c);rCOR(p,c);rInt(p,c);rRent(p);rSale(p,c);rPnL(p,c);rFiles(p);rSchedule(p);rInvoices();
+  rSOV(p);rInt(p,c);rRent(p);rSale(p,c);rPnL(p,c);rFiles(p);rSchedule(p);rInvoices();
   // If user is currently on Deal Pro Forma → Pro Forma sub-tab and project switched, remount
   const pfSheetActive=$('pf-tab-sheet')&&$('pf-tab-sheet').classList.contains('btn-p')&&$('page-proforma')&&$('page-proforma').classList.contains('on');
   if(pfSheetActive) rPfSheet(p); else if(_pfsInit && (!p||_pfsCurProjId!==p.id)){ pfsDestroy(); _pfsCurProjId=null; }
@@ -1349,9 +1342,10 @@ function rPB(p){
 
 function rBadges(p){
   const dr=$('nb-dr'),co=$('nb-cor'),eq=$('nb-eq');
-  p.draws.length?(dr.style.display='inline',dr.textContent=p.draws.length):dr.style.display='none';
-  p.cors.length?(co.style.display='inline',co.textContent=p.cors.length):co.style.display='none';
-  p.equityFundings.length?(eq.style.display='inline',eq.textContent=p.equityFundings.length):eq.style.display='none';
+  const sovCount=Array.isArray(p.sov)?p.sov.length:(p.draws||[]).length;
+  if(dr) (sovCount?(dr.style.display='inline',dr.textContent=sovCount):dr.style.display='none');
+  if(co) (p.cors&&p.cors.length?(co.style.display='inline',co.textContent=p.cors.length):co.style.display='none');
+  if(eq) (p.equityFundings.length?(eq.style.display='inline',eq.textContent=p.equityFundings.length):eq.style.display='none');
 }
 
 function rDash(p,c){
@@ -1595,159 +1589,159 @@ function rExp(p){
   :'<div class="empty"><i class="ti ti-receipt"></i>No expenses logged yet.<br>Track all pre-close invoices, soft cost payments, and reimbursements here.</div>';
 }
 
-function rDraws(p,c){
-  $('dr-top').innerHTML=`
-    <div class="mc"><div class="l">Total Draws Submitted</div><div class="v">${p.draws.length}</div></div>
-    <div class="mc"><div class="l">Hard Costs Drawn</div><div class="v">${F(p.draws.reduce((s,d)=>s+(+d.hard||0),0))}</div></div>
-    <div class="mc"><div class="l">Interest Drawn</div><div class="v" style="color:var(--red)">${F(p.draws.reduce((s,d)=>s+(+d.int||0),0))}</div></div>
-    <div class="mc ${c.remain<0?'mc-danger':''}"><div class="l">Remaining to Draw</div><div class="v">${F(c.remain)}</div><div class="s">From lender holdback</div></div>`;
-  $('draws-list').innerHTML=p.draws.length?`<table><thead><tr><th>#</th><th>Month</th><th>Lender</th><th>Contractor</th><th>Description</th><th class="r">Hard</th><th class="r">Soft</th><th class="r">Interest</th><th class="r">Dev Fee</th><th class="r">Other</th><th class="r">Total</th><th></th></tr></thead><tbody>`+
-    p.draws.map((d,i)=>{
-      const tot=(+d.hard||0)+(+d.soft||0)+(+d.int||0)+(+d.dev||0)+(+d.oth||0);
-      return `<tr><td style="color:var(--g4);font-weight:600">${i+1}</td><td>${d.mo}</td><td>${d.lend||'—'}</td><td>${d.vend}</td><td>${d.desc}</td>
-        <td class="r">${d.hard>0?F(d.hard):'—'}</td><td class="r">${d.soft>0?F(d.soft):'—'}</td>
-        <td class="r" style="color:var(--red)">${d.int>0?F(d.int):'—'}</td><td class="r">${d.dev>0?F(d.dev):'—'}</td><td class="r">${d.oth>0?F(d.oth):'—'}</td>
-        <td class="r" style="font-weight:700">${F(tot)}</td>
-        <td><button class="btn btn-d btn-xs" onclick="rmDr('${d.id}')"><i class="ti ti-x"></i></button></td></tr>`;
-    }).join('')+`</tbody><tfoot><tr class="tr-tot"><td colspan="5">TOTAL</td>
-      <td class="r">${F(p.draws.reduce((s,d)=>s+(+d.hard||0),0))}</td>
-      <td class="r">${F(p.draws.reduce((s,d)=>s+(+d.soft||0),0))}</td>
-      <td class="r">${F(p.draws.reduce((s,d)=>s+(+d.int||0),0))}</td>
-      <td class="r">${F(p.draws.reduce((s,d)=>s+(+d.dev||0),0))}</td>
-      <td class="r">${F(p.draws.reduce((s,d)=>s+(+d.oth||0),0))}</td>
-      <td class="r">${F(c.drawn)}</td><td></td></tr></tfoot></table>`
-  :'<div class="empty"><i class="ti ti-crane"></i>No draws submitted yet.<br>Click "New Draw" to log the first construction draw.</div>';
-}
-
-// ── Schedule of Values (Draws + COs combined view) ───────────────────────
+// ── DRAWS & CHANGE ORDERS (fully editable Schedule of Values grid) ────────
+function sovDrawTotalLegacy(d){ return (+d.hard||0)+(+d.soft||0)+(+d.int||0)+(+d.dev||0)+(+d.oth||0); }
 function sovParseDate(s){
   if(!s) return 0;
   if(s instanceof Date) return s.getTime();
   const t=Date.parse(String(s));
   return isNaN(t)?0:t;
 }
-function sovDrawTotal(d){ return (+d.hard||0)+(+d.soft||0)+(+d.int||0)+(+d.dev||0)+(+d.oth||0); }
+// Lazy-init the editable rows array; migrate legacy p.draws / p.cors once.
+function sovGet(p){
+  if(!p) return [];
+  if(!Array.isArray(p.sov)){
+    const draws=(p.draws||[]).slice().sort((a,b)=>sovParseDate(a.mo)-sovParseDate(b.mo));
+    const cors=(p.cors||[]).slice().sort((a,b)=>sovParseDate(a.dt)-sovParseDate(b.dt));
+    const n=Math.max(draws.length,cors.length);
+    const rows=[];
+    for(let i=0;i<n;i++){
+      const d=draws[i],r=cors[i];
+      rows.push({
+        id:uid(),
+        drawNo:d?String(i+1):'',
+        date:d?(d.mo||''):'',
+        desc:d?(d.desc||d.vend||''):'',
+        drawAmt:d?sovDrawTotalLegacy(d):0,
+        coAmt:r?(+r.amt||0):0,
+        coNo:r?(r.cono||('CO '+(i+1))):'',
+        coDate:r?(r.dt||''):''
+      });
+    }
+    p.sov=rows;
+  }
+  return p.sov;
+}
 function sovOriginalContract(p){
   if(p.originalContract!=null && p.originalContract!=='') return +p.originalContract||0;
-  // Default fallback: pro-forma hard total (construction is usually GC contract = hard costs)
   if(p.proforma && Array.isArray(p.proforma.hard))
     return p.proforma.hard.reduce((s,l)=>s+(+l.amt||0),0);
   return 0;
 }
-function sovSetOriginal(v){
+function sovTotals(p){
+  const rows=sovGet(p);
+  const drawTot=rows.reduce((s,r)=>s+(+r.drawAmt||0),0);
+  const coTot=rows.reduce((s,r)=>s+(+r.coAmt||0),0);
+  return {drawTot,coTot};
+}
+function sovSetOriginal(v){ const p=S.p; if(!p) return; p.originalContract=pfParseNum(v); rSOV(p); saveData(); }
+function sovUpd(id,field,val){
   const p=S.p; if(!p) return;
-  p.originalContract=pfParseNum(v);
-  rCOR(p,C(p)); saveData();
+  const r=sovGet(p).find(x=>x.id===id); if(!r) return;
+  r[field]=(field==='drawAmt'||field==='coAmt')?(pfParseNum(val)):val;
+  rSOV(p); saveData();
+}
+function sovAddRow(){
+  const p=S.p; if(!p){ alert('Pehle koi project select karein.'); return; }
+  const rows=sovGet(p);
+  rows.push({id:uid(),drawNo:String(rows.length+1),date:'',desc:'',drawAmt:0,coAmt:0,coNo:'',coDate:''});
+  rSOV(p); saveData();
+}
+function sovDel(id){
+  const p=S.p; if(!p) return;
+  if(!confirm('Remove this row?')) return;
+  p.sov=sovGet(p).filter(x=>x.id!==id);
+  rSOV(p); saveData();
+}
+// editable cell builders
+function sovTextCell(id,field,val,ph,extra){
+  return `<input class="inp" value="${pfEscAttr(val)}" placeholder="${ph||''}" onchange="sovUpd('${id}','${field}',this.value)" style="font-size:11px;padding:3px 6px;width:100%;${extra||''}">`;
+}
+function sovMoneyCell(id,field,val){
+  const raw=pfHasVal(val)?(+val):'';
+  return `<input class="inp-y" type="text" inputmode="decimal" data-raw="${raw}" data-money="0" value="${pfFmtNum(val)}" placeholder="0" onfocus="pfInputFocus(this)" onblur="pfInputBlur(this)" onchange="sovUpd('${id}','${field}',pfParseNum(this.value))" style="width:100%">`;
 }
 
-function rCOR(p,c){
+function rSOV(p){
   if(!$('sov-summary')) return;
+  if(!p){ $('sov-summary').innerHTML=''; $('sov-body').innerHTML=''; $('sov-foot').innerHTML=''; return; }
+  const rows=sovGet(p);
   const original=sovOriginalContract(p);
-  const draws=(p.draws||[]).slice().sort((a,b)=>sovParseDate(a.mo)-sovParseDate(b.mo));
-  const cors=(p.cors||[]).slice().sort((a,b)=>sovParseDate(a.dt)-sovParseDate(b.dt));
-  const drawTot=draws.reduce((s,d)=>s+sovDrawTotal(d),0);
-  const coTot=cors.reduce((s,r)=>s+(+r.amt||0),0);
+  const {drawTot,coTot}=sovTotals(p);
   const revised=original+coTot;
-  const remaining=revised-drawTot;
-  const pctDone=revised>0?Math.round(drawTot/revised*100):0;
+  const remaining=original-drawTot;            // per spec: Original − Total Drawn
+  const pctDone=original>0?Math.round(drawTot/original*100):0;
+  const origRaw=pfHasVal(original)?original:'';
 
-  // Summary block — five tiles, first one editable
-  const origInputRaw=pfHasVal(original)?original:'';
   $('sov-summary').innerHTML=`
     <div class="g3" style="margin-top:8px">
       <div class="mc"><div class="l">Original Contract Amount</div>
-        <div class="v" style="display:flex;align-items:center;gap:4px;font-size:16px">
-          <span style="color:var(--g6);font-weight:600">$</span>
-          <input class="inp-y" type="text" inputmode="decimal" data-raw="${origInputRaw}" data-money="0"
+        <div class="v" style="display:flex;align-items:center;gap:4px">
+          <span style="color:var(--g6);font-weight:700">$</span>
+          <input class="inp-y" type="text" inputmode="decimal" data-raw="${origRaw}" data-money="0"
             value="${pfFmtNum(original)}" placeholder="0"
-            onfocus="pfInputFocus(this)" onblur="pfInputBlur(this)"
-            onchange="sovSetOriginal(this.value)"
-            style="font-size:14px;font-weight:700">
+            onfocus="pfInputFocus(this)" onblur="pfInputBlur(this)" onchange="sovSetOriginal(this.value)"
+            style="font-size:15px;font-weight:700;text-align:left">
         </div>
-        <div class="s">${p.originalContract!=null?'GC contract — yellow editable':'Auto from pro-forma hard total'}</div>
+        <div class="s">${p.originalContract!=null?'Editable — proposed construction cost':'Auto from pro-forma hard total — click to set'}</div>
       </div>
       <div class="mc ${coTot>original*0.05&&original>0?'mc-warn':''}">
         <div class="l">Total Change Orders</div>
         <div class="v" style="color:${coTot>0?'var(--amber)':''}">${F(coTot)}</div>
-        <div class="s">${cors.length} CO${cors.length===1?'':'s'} logged${original>0?' · '+pct(coTot,original)+'% of original':''}</div>
+        <div class="s">Sum of all CO $${original>0?' · '+pct(coTot,original)+'% of original':''}</div>
       </div>
       <div class="mc"><div class="l">Revised Contract Amount</div>
         <div class="v" style="font-weight:700">${F(revised)}</div>
-        <div class="s">Original + Total COs</div>
+        <div class="s">Original + Total Change Orders</div>
       </div>
       <div class="mc"><div class="l">Total Drawn to Date</div>
         <div class="v">${F(drawTot)}</div>
-        <div class="s">${draws.length} draw${draws.length===1?'':'s'} · ${pctDone}% of revised</div>
+        <div class="s">Sum of all draws · ${pctDone}% of original</div>
       </div>
       <div class="mc ${remaining<0?'mc-danger':'mc-good'}">
         <div class="l">Remaining to Draw</div>
         <div class="v" style="color:${remaining<0?'var(--red)':'var(--green)'}">${F(remaining)}</div>
-        <div class="s">${remaining<0?'Over budget':'Available'}</div>
+        <div class="s">Original − Total Drawn</div>
       </div>
     </div>`;
 
-  // Main table — one row per period, draws aligned with COs by index after date sort
-  const rows=Math.max(draws.length,cors.length);
   let cumDraw=0,cumCO=0,html='';
-  if(rows===0){
-    html=`<tr><td colspan="12" style="text-align:center;padding:40px 20px;color:var(--g4)">
-      <i class="ti ti-table-off" style="font-size:28px;display:block;margin-bottom:8px"></i>
-      No draws or change orders yet. Use the buttons above to add them.
+  if(!rows.length){
+    html=`<tr><td colspan="11" style="text-align:center;padding:40px 20px;color:var(--g4)">
+      <i class="ti ti-table-plus" style="font-size:28px;display:block;margin-bottom:8px"></i>
+      No rows yet. Click <strong>Add Row</strong> to log your first draw / change order.
     </td></tr>`;
   } else {
-    for(let i=0;i<rows;i++){
-      const d=draws[i],r=cors[i];
-      const drawAmt=d?sovDrawTotal(d):0;
-      const coAmt=r?(+r.amt||0):0;
-      cumDraw+=drawAmt;
-      cumCO+=coAmt;
+    rows.forEach(r=>{
+      cumDraw+=(+r.drawAmt||0);
+      cumCO+=(+r.coAmt||0);
       const rev=original+cumCO;
-      const moTxt=d?(d.mo||'—'):'';
-      const descTxt=d?(d.desc||d.vend||''):(r?`(CO only) ${r.desc||''}`:'');
-      const coNum=r?`COR-${String(i+1).padStart(3,'0')}`:'';
-      const coDt=r?(r.dt||''):'';
-      const notesTxt=d?(d.lend||''):(r?(r.by||''):'');
-      const drawCell=d?`<a href="#" onclick="rmDraw('${d.id}');return false;" title="Remove draw" style="color:inherit;text-decoration:none">${F(drawAmt)}</a>`:'<span style="color:var(--g4)">—</span>';
       html+=`<tr>
-        <td style="font-weight:700;color:var(--blue)">${d?(i+1):''}</td>
-        <td>${moTxt}</td>
-        <td>${descTxt}</td>
-        <td class="r" style="font-weight:600">${drawCell}</td>
-        <td class="r" style="color:var(--g6)">${F(cumDraw)}</td>
-        <td class="r" style="color:${coAmt>0?'var(--amber)':'var(--g4)'};font-weight:${coAmt>0?'700':'400'}">${coAmt>0?F(coAmt):'—'}</td>
-        <td style="color:${r?'var(--red)':'var(--g4)'};font-weight:600">${coNum||'—'}</td>
-        <td>${coDt||'<span style=\"color:var(--g4)\">—</span>'}</td>
-        <td class="r" style="color:var(--g6)">${F(cumCO)}</td>
-        <td class="r" style="font-weight:600">${F(rev)}</td>
-        <td>${notesTxt}</td>
-        <td>${r?`<button class="btn btn-d btn-xs" onclick="rmCOR('${r.id}')" title="Remove this CO"><i class="ti ti-x"></i></button>`:''}</td>
+        <td>${sovTextCell(r.id,'drawNo',r.drawNo,'#')}</td>
+        <td>${sovTextCell(r.id,'date',r.date,'1/31/26')}</td>
+        <td>${sovTextCell(r.id,'desc',r.desc,'Construction Draw')}</td>
+        <td class="r">${sovMoneyCell(r.id,'drawAmt',r.drawAmt)}</td>
+        <td class="r" style="color:var(--g6);font-weight:600">${F(cumDraw)}</td>
+        <td class="r">${sovMoneyCell(r.id,'coAmt',r.coAmt)}</td>
+        <td>${sovTextCell(r.id,'coNo',r.coNo,'CO 1')}</td>
+        <td>${sovTextCell(r.id,'coDate',r.coDate,'3/16/26')}</td>
+        <td class="r" style="color:var(--g6);font-weight:600">${F(cumCO)}</td>
+        <td class="r" style="font-weight:700">${F(rev)}</td>
+        <td><button class="btn btn-d btn-xs" onclick="sovDel('${r.id}')" title="Remove row"><i class="ti ti-x"></i></button></td>
       </tr>`;
-    }
+    });
   }
   $('sov-body').innerHTML=html;
-  if(rows>0){
-    $('sov-foot').innerHTML=`<tr class="tr-tot">
-      <td colspan="3" class="r" style="font-weight:700">TOTALS</td>
-      <td class="r">${F(drawTot)}</td><td></td>
-      <td class="r" style="color:var(--amber)">${F(coTot)}</td>
-      <td colspan="2"></td>
-      <td class="r" style="color:var(--g6)">${F(coTot)}</td>
-      <td class="r" style="font-weight:700">${F(revised)}</td>
-      <td colspan="2"></td>
-    </tr>`;
-  } else $('sov-foot').innerHTML='';
-
-  // Contingency impact (bottom card) — still useful for owners tracking contingency
-  const cs=$('cor-sum-card');
-  if(cs){
-    cs.style.display=p.cors.length&&c.cBgt>0?'block':'none';
-    if(p.cors.length&&c.cBgt>0){
-      $('cor-sum').innerHTML=`
-        <div class="irow"><span class="ik">Original Contingency Budget</span><span class="iv">${F(c.cBgt)}</span></div>
-        <div class="irow"><span class="ik">COR Total (from contingency)</span><span class="iv" style="color:var(--red)">–${F(c.cUsed)}</span></div>
-        <div class="irow" style="font-weight:700"><span class="ik">Contingency Remaining</span><span class="iv" style="font-size:15px;color:${c.cRem<0?'var(--red)':c.cRem<c.cBgt*.2?'var(--amber)':'var(--green)'}">${F(c.cRem)}</span></div>`;
-    }
-  }
+  $('sov-foot').innerHTML=rows.length?`<tr class="tr-tot">
+    <td colspan="3" class="r" style="font-weight:700">TOTALS</td>
+    <td class="r">${F(drawTot)}</td>
+    <td class="r" style="color:var(--g6)">${F(drawTot)}</td>
+    <td class="r" style="color:var(--amber)">${F(coTot)}</td>
+    <td colspan="2"></td>
+    <td class="r" style="color:var(--g6)">${F(coTot)}</td>
+    <td class="r" style="font-weight:700">${F(revised)}</td>
+    <td></td>
+  </tr>`:'';
 }
 
 function rInt(p,c){
