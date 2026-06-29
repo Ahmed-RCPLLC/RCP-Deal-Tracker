@@ -1136,10 +1136,30 @@ tbody tr:hover td{background:#F8FAFF}
 
     <!-- FILE STORAGE -->
     <div id="page-files" class="page">
-      <div class="alert al-b"><i class="ti ti-folder"></i><strong>Deal File Storage</strong> — central document hub for this deal through lease signing. Upload into the right section below; files sync to the whole team via cloud. Max <strong>5 MB per file</strong> — link larger files from SharePoint / Teams instead.</div>
-      <div class="g3" id="df-metrics"></div>
-      <div class="g2" id="df-sections"></div>
-      <input type="file" id="df-file-input" multiple style="display:none" onchange="dfFile(event)">
+      <div class="alert al-b"><i class="ti ti-folder"></i><strong>Deal File Storage</strong> — mirrors the standard project folder structure. Open folders, upload files, and create / rename / move / copy / delete — just like Teams. Files sync to the whole team. Max <strong>5 MB per file</strong>.</div>
+      <div class="g3" id="fs-metrics"></div>
+      <div class="card">
+        <div class="chdr" style="flex-wrap:wrap;gap:8px">
+          <div id="fs-breadcrumb" style="font-size:12px;display:flex;align-items:center;gap:5px;flex-wrap:wrap"></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn btn-sm" onclick="fsNewFolder()"><i class="ti ti-folder-plus"></i>New Folder</button>
+            <button class="btn btn-p btn-sm" onclick="fsUploadClick()"><i class="ti ti-upload"></i>Upload</button>
+            <button class="btn btn-sm" onclick="fsResetConfirm()" title="Reset to standard template"><i class="ti ti-refresh"></i>Reset</button>
+          </div>
+        </div>
+        <div id="fs-list"></div>
+      </div>
+      <input type="file" id="fs-file-input" multiple style="display:none" onchange="fsFile(event)">
+    </div>
+
+    <!-- FILE MOVE / COPY DESTINATION PICKER -->
+    <div id="mo-fs-dest" class="ov" style="display:none">
+      <div class="modal" style="max-width:480px">
+        <div class="mtitle" id="fs-dest-title">Move to…</div>
+        <div style="font-size:12px;color:var(--g5);margin-bottom:8px" id="fs-dest-sub">Pick a destination folder, then confirm.</div>
+        <div id="fs-dest-tree" style="max-height:50vh;overflow:auto;border:1px solid var(--g3);border-radius:6px;padding:6px;font-size:12px"></div>
+        <div class="mfoot"><button class="btn" onclick="cm('mo-fs-dest')">Cancel</button><button class="btn btn-p" onclick="fsDestConfirm()" id="fs-dest-go">Move here</button></div>
+      </div>
     </div>
 
     <!-- SCHEDULE TRACKER -->
@@ -3583,90 +3603,267 @@ function removeProforma(idx){
 }
 // ── End RCP LLC Insights ─────────────────────────────────────────────────
 
-// ── DEAL FILE STORAGE ────────────────────────────────────────────────────
-const FILE_CATS=[
-  {k:'loi',label:'LOI',icon:'ti-file-text'},
-  {k:'proforma',label:'Pro-Forma',icon:'ti-file-spreadsheet'},
-  {k:'psa',label:'PSA',icon:'ti-file-description'},
-  {k:'sir',label:'SIR',icon:'ti-report'},
-  {k:'lease',label:'Lease',icon:'ti-file-certificate'},
-  {k:'testfit',label:'Test Fits / Site Plan',icon:'ti-map-2'},
-  {k:'parcel',label:'Parcel Information',icon:'ti-map-pin'},
-  {k:'sellerdd',label:'Seller Due Diligence',icon:'ti-search'},
-  {k:'general',label:'General Documents',icon:'ti-folder'},
+// ── DEAL FILE STORAGE — hierarchical file manager (Teams-style) ───────────
+// Standard project folder template (exact RCP boilerplate). type:'folder' tree.
+const FS_DEFAULT=[
+  {n:'01. Pro Forma'},
+  {n:'02. Real Estate & Legal',c:[
+    {n:'01. LOI'},
+    {n:'02. Title Commitment',c:[{n:'Easements'}]},
+    {n:'03. PSA Purchase Agreement'},
+    {n:'04. Lease Agreement'},
+    {n:'05. Critical Date'},
+    {n:'06. Seller Due Diligence',c:[{n:'Property Tax'}]},
+    {n:'07. Legal Correspondence-Notices'},
+    {n:'08. LLC - EIN Docs'},
+    {n:'09. Property Contact Information'},
+    {n:'10. Contracts',c:[
+      {n:'Legal Contracts'},{n:'Construction Firm'},{n:'Construction Manager'},{n:'3rd Party Contracts'},{n:'Engineering & Architecture Contracts'}
+    ]},
+    {n:'11. SNDA & MOL'},
+  ]},
+  {n:'03. Design',c:[
+    {n:'01. Site Plan- Testfit'},{n:'02. Building'},{n:'03. Signage Package'},{n:'04. Fuel Layout Exhibits'},{n:'05. 7-Eleven Site Plan Approval Materials'}
+  ]},
+  {n:'04. Due Diligence',c:[
+    {n:'01. SIR'},{n:'02. Pre-Application Meeting'},{n:'03. Initial Tracker - Schedule'},{n:'04. ALTA - Topo Survey'},{n:'05. Site Over Survey'},{n:'06. Geotechnical Report'},{n:'07. Environmental Reports'},{n:'08. Asbestos Survey'},{n:'09. Existing Conditions Photos'},{n:'10. Traffic Report'}
+  ]},
+  {n:'05. Entitlements',c:[
+    {n:'01. Rezoning'},{n:'02. SUP - Special Use'},{n:'03. PUD - CPUD'},{n:'04. Site Plan Review'},{n:'05. Traffic Study - Traffic Impact Analysis'},{n:'06. Neighborhood Meeting'},{n:'07. Zoning Board Approvals - ZBA'}
+  ]},
+  {n:'06. Construction Documents',c:[
+    {n:'01. CD kickoff materials'},{n:'02. Progress sets'},{n:'03. Owner review sets'},{n:'04. Owner review comments'},{n:'05. Final permit set'},{n:'06. Revised Drawings'}
+  ]},
+  {n:'07. Permitting',c:[
+    {n:'01. Civil - Engineering Permit'},{n:'03. Stormwater Permit'},{n:'04. DOT - ROW Permit'},{n:'05. Water - Sewer Permit'},{n:'06. Building Permit'},{n:'07. Health Department Permit'},{n:'08. Fire Department - Fire Marshal'},{n:'09. Fuel - Tank Permit'},{n:'10. Sign Permit'},{n:'11. Other Deferred Submittals'}
+  ]},
+  {n:'08. Financing',c:[{n:'Will Serve Letters'},{n:'Bank Documents'}]},
+  {n:'09. Invoices Paid',c:[{n:'EMD'},{n:'Outstanding Invoices'},{n:'Invoices Paid'},{n:'Invoices Paid at Land Closing'}]},
+  {n:'10. Land Closing',c:[{n:'Insurance'}]},
+  {n:'11. Construction',c:[
+    {n:'01. Bid Set'},{n:'02. Entitlement approvals - Conditions of approval'},{n:'03. Permit approvals - Permit Card'},{n:'04. Stamped - Approved plans'},{n:'05. For Construction Set'},{n:'06. Construction transfer package'},{n:'07. Schedules'},{n:'08. Pre-construction meeting notes'},{n:'09. Requests for Information'},{n:'10. Site Observation'},{n:'11. Testing'},{n:'12. Utilities'},{n:'13. Punchlist'},{n:'14. Closeout items'},{n:'15. Warranty'},{n:'16. CO'}
+  ]},
+  {n:'12. Property Sale',c:[{n:'01. LOI'},{n:'02. PSA'},{n:'03. Brokers'},{n:'04. Due Dillignece'}]},
+  {n:'General Documents'},
 ];
-let _dfCat=null;
-function dfEsc(s){return(''+s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function dfSize(b){if(b>=1048576)return(b/1048576).toFixed(1)+' MB';if(b>=1024)return Math.round(b/1024)+' KB';return(b||0)+' B';}
-function dfIcon(f){
-  const n=(f.name||'').toLowerCase();
+let _fsPath=[];        // array of folder ids (breadcrumb)
+let _fsProj=null;      // current project id mounted
+let _fsAction={};      // {mode:'move'|'copy', id}
+let _fsDest=null;
+
+function fsEsc(s){return(''+(s==null?'':s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fsSize(b){if(b>=1048576)return(b/1048576).toFixed(1)+' MB';if(b>=1024)return Math.round(b/1024)+' KB';return(b||0)+' B';}
+function fsIcon(name){
+  const n=(name||'').toLowerCase();
   if(n.endsWith('.pdf'))return 'ti-file-type-pdf';
   if(/\.(xlsx|xls|csv)$/.test(n))return 'ti-file-spreadsheet';
-  if(/\.(doc|docx)$/.test(n))return 'ti-file-type-doc';
-  if(/\.(png|jpe?g|gif|webp)$/.test(n))return 'ti-photo';
+  if(/\.(docx?|rtf)$/.test(n))return 'ti-file-type-doc';
+  if(/\.(png|jpe?g|gif|webp|heic)$/.test(n))return 'ti-photo';
   if(/\.(dwg|dxf)$/.test(n))return 'ti-ruler';
+  if(/\.(zip|rar|7z)$/.test(n))return 'ti-file-zip';
   return 'ti-file';
 }
-function rFiles(p){
-  if(!$('df-sections'))return;
-  if(!p){$('df-metrics').innerHTML='';$('df-sections').innerHTML='';return;}
-  if(!p.dealFiles)p.dealFiles=[];
-  const files=p.dealFiles;
-  const totSize=files.reduce((s,f)=>s+(f.size||0),0);
-  const big=totSize>20*1048576;
-  const last=files.length?files.reduce((a,b)=>(a.uploadedAt||'')>(b.uploadedAt||'')?a:b):null;
-  $('df-metrics').innerHTML=`
-    <div class="mc"><div class="l">Total Files</div><div class="v">${files.length}</div><div class="s">Across ${FILE_CATS.filter(c=>files.some(f=>f.cat===c.k)).length} of ${FILE_CATS.length} sections</div></div>
-    <div class="mc ${big?'mc-warn':''}"><div class="l">Storage Used</div><div class="v" style="${big?'color:var(--amber)':''}">${dfSize(totSize)}</div><div class="s">${big?'Getting large — remove old versions':'Synced to team via cloud'}</div></div>
-    <div class="mc"><div class="l">Last Upload</div><div class="v" style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${last?dfEsc(last.name):'—'}</div><div class="s">${last?new Date(last.uploadedAt).toLocaleDateString():'No files yet'}</div></div>`;
-  $('df-sections').innerHTML=FILE_CATS.map(c=>{
-    const fl=files.filter(f=>f.cat===c.k);
-    return `<div class="card">
-      <div class="chdr">
-        <div class="ctitle"><i class="ti ${c.icon}"></i>${c.label}${fl.length?` <span class="st st-gray" style="margin-left:6px">${fl.length}</span>`:''}</div>
-        <button class="btn btn-p btn-sm" onclick="dfUpload('${c.k}')"><i class="ti ti-upload"></i>Upload</button>
-      </div>
-      ${fl.length?fl.map(f=>`
-        <div style="display:flex;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid var(--g2);font-size:12px">
-          <i class="ti ${dfIcon(f)}" style="font-size:17px;color:var(--g4);flex-shrink:0"></i>
-          <div style="flex:1;min-width:0">
-            <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${dfEsc(f.name)}">${dfEsc(f.name)}</div>
-            <div style="font-size:10px;color:var(--g5)">${dfSize(f.size)} · ${f.uploadedAt?new Date(f.uploadedAt).toLocaleDateString():''}</div>
-          </div>
-          <button class="btn btn-sm" onclick="dfDownload('${f.id}')" title="Download"><i class="ti ti-download"></i></button>
-          <button class="btn btn-d btn-xs" onclick="dfRemove('${f.id}')" title="Delete"><i class="ti ti-trash"></i></button>
-        </div>`).join('')
-      :`<div style="padding:16px 4px;text-align:center;color:var(--g4);font-size:11px">No files yet — click Upload</div>`}
-    </div>`;
-  }).join('');
+function fsBuild(defs){
+  return defs.map(d=>({id:uid(),type:'folder',name:d.n,children:d.c?fsBuild(d.c):[]}));
 }
-function dfUpload(cat){if(!S.p){alert('Pehle koi project select karein.');return;}_dfCat=cat;$('df-file-input').click();}
-function dfFile(ev){
-  const p=S.p;if(!p||!_dfCat)return;
-  if(!p.dealFiles)p.dealFiles=[];
-  const list=Array.from(ev.target.files||[]);
-  ev.target.value='';
+function fsGet(p){
+  if(!p) return [];
+  if(!Array.isArray(p.fileTree)){
+    p.fileTree=fsBuild(FS_DEFAULT);
+    // migrate any legacy flat dealFiles into General Documents so nothing is lost
+    if(Array.isArray(p.dealFiles)&&p.dealFiles.length){
+      let gd=p.fileTree.find(n=>n.name==='General Documents');
+      if(!gd){gd={id:uid(),type:'folder',name:'General Documents',children:[]};p.fileTree.push(gd);}
+      p.dealFiles.forEach(f=>gd.children.push({id:uid(),type:'file',name:f.name||'file',mime:f.type,size:f.size,dataUrl:f.dataUrl,uploadedAt:f.uploadedAt||new Date().toISOString()}));
+      p.dealFiles=[];
+    }
+  }
+  return p.fileTree;
+}
+// locate a node anywhere in the tree → {node, arr(parent children array), idx}
+function fsLocate(tree,id){
+  for(let i=0;i<tree.length;i++){
+    if(tree[i].id===id) return {node:tree[i],arr:tree,idx:i};
+    if(tree[i].children){const r=fsLocate(tree[i].children,id);if(r)return r;}
+  }
+  return null;
+}
+function fsIsDesc(node,targetId){
+  if(node.id===targetId) return true;
+  return (node.children||[]).some(ch=>fsIsDesc(ch,targetId));
+}
+function fsCountAll(node){
+  let n=0;(node.children||[]).forEach(ch=>{n++;if(ch.type==='folder')n+=fsCountAll(ch);});
+  return n;
+}
+function fsClone(node){
+  const c={...node,id:uid()};
+  if(node.type==='folder') c.children=(node.children||[]).map(fsClone);
+  return c;
+}
+// resolve current folder from _fsPath (revalidates, trims invalid tail)
+function fsCurrent(p){
+  let children=fsGet(p),node=null;const valid=[];
+  for(const id of _fsPath){
+    const f=children.find(n=>n.id===id&&n.type==='folder');
+    if(!f) break;
+    node=f;children=f.children;valid.push(id);
+  }
+  _fsPath=valid;
+  return {node,children};
+}
+function fsOpen(id){_fsPath.push(id);rFiles(S.p);}
+function fsCrumb(i){_fsPath=_fsPath.slice(0,i);rFiles(S.p);}
+
+function rFiles(p){
+  if(!$('fs-list')) return;
+  if(!p){$('fs-list').innerHTML='';$('fs-breadcrumb').innerHTML='';if($('fs-metrics'))$('fs-metrics').innerHTML='';return;}
+  if(p.id!==_fsProj){_fsPath=[];_fsProj=p.id;}
+  const {children}=fsCurrent(p);
+  const tree=fsGet(p);
+  // metrics
+  if($('fs-metrics')){
+    let totFiles=0,totSize=0;
+    (function walk(ns){ns.forEach(n=>{if(n.type==='file'){totFiles++;totSize+=(n.size||0);}else walk(n.children||[]);});})(tree);
+    const big=totSize>20*1048576;
+    $('fs-metrics').innerHTML=`
+      <div class="mc"><div class="l">Top-Level Folders</div><div class="v">${tree.filter(n=>n.type==='folder').length}</div><div class="s">Standard project structure</div></div>
+      <div class="mc"><div class="l">Total Files</div><div class="v">${totFiles}</div><div class="s">Across all folders</div></div>
+      <div class="mc ${big?'mc-warn':''}"><div class="l">Storage Used</div><div class="v" style="${big?'color:var(--amber)':''}">${fsSize(totSize)}</div><div class="s">${big?'Getting large':'Synced to team'}</div></div>`;
+  }
+  // breadcrumb
+  let crumb=`<span onclick="fsCrumb(0)" style="cursor:pointer;color:var(--blue);font-weight:600"><i class="ti ti-home"></i> Deal Files</span>`;
+  let nodes=tree;
+  _fsPath.forEach((id,i)=>{
+    const f=nodes.find(n=>n.id===id);if(!f)return;
+    const last=i===_fsPath.length-1;
+    crumb+=` <span style="color:var(--g4)">/</span> <span onclick="fsCrumb(${i+1})" style="cursor:pointer;color:${last?'var(--g7)':'var(--blue)'};font-weight:${last?'700':'600'}">${fsEsc(f.name)}</span>`;
+    nodes=f.children;
+  });
+  $('fs-breadcrumb').innerHTML=crumb;
+  // listing — folders first (numeric-aware sort), then files
+  const folders=children.filter(n=>n.type==='folder').sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
+  const files=children.filter(n=>n.type==='file').sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
+  let html='';
+  if(!folders.length&&!files.length){
+    html=`<div style="padding:34px;text-align:center;color:var(--g4);font-size:12px"><i class="ti ti-folder-open" style="font-size:34px;display:block;margin-bottom:8px"></i>This folder is empty. Use <strong>New Folder</strong> or <strong>Upload</strong>.</div>`;
+  }
+  const acts=(id)=>`
+    <button class="btn btn-xs" onclick="event.stopPropagation();fsRename('${id}')" title="Rename"><i class="ti ti-pencil"></i></button>
+    <button class="btn btn-xs" onclick="event.stopPropagation();fsMove('${id}')" title="Move"><i class="ti ti-arrows-move"></i></button>
+    <button class="btn btn-xs" onclick="event.stopPropagation();fsCopy('${id}')" title="Copy"><i class="ti ti-copy"></i></button>
+    <button class="btn btn-d btn-xs" onclick="event.stopPropagation();fsDelete('${id}')" title="Delete"><i class="ti ti-trash"></i></button>`;
+  folders.forEach(n=>{
+    const cnt=(n.children||[]).length;
+    html+=`<div style="display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid var(--g2);font-size:12.5px;cursor:pointer" onclick="fsOpen('${n.id}')">
+      <i class="ti ti-folder" style="font-size:18px;color:var(--blue);flex-shrink:0"></i>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${fsEsc(n.name)}</div>
+        <div style="font-size:10px;color:var(--g5)">${cnt} item${cnt===1?'':'s'}</div>
+      </div>${acts(n.id)}</div>`;
+  });
+  files.forEach(n=>{
+    html+=`<div style="display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid var(--g2);font-size:12.5px">
+      <i class="ti ${fsIcon(n.name)}" style="font-size:18px;color:var(--g4);flex-shrink:0"></i>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${fsEsc(n.name)}">${fsEsc(n.name)}</div>
+        <div style="font-size:10px;color:var(--g5)">${fsSize(n.size)} · ${n.uploadedAt?new Date(n.uploadedAt).toLocaleDateString():''}</div>
+      </div>
+      <button class="btn btn-xs" onclick="fsDownload('${n.id}')" title="Download"><i class="ti ti-download"></i></button>${acts(n.id)}</div>`;
+  });
+  $('fs-list').innerHTML=html;
+}
+function fsNewFolder(){
+  const p=S.p; if(!p){alert('Pehle koi project select karein.');return;}
+  const name=prompt('New folder name:'); if(!name||!name.trim())return;
+  fsCurrent(p).children.push({id:uid(),type:'folder',name:name.trim(),children:[]});
+  rFiles(p);saveData();
+}
+function fsUploadClick(){const p=S.p;if(!p){alert('Pehle koi project select karein.');return;}$('fs-file-input').click();}
+function fsFile(ev){
+  const p=S.p;if(!p)return;
+  const list=Array.from(ev.target.files||[]);ev.target.value='';
   if(!list.length)return;
+  const target=fsCurrent(p).children;
   let pending=list.length;
   const done=()=>{if(--pending===0){rFiles(p);saveData();}};
   list.forEach(f=>{
     if(f.size>5*1024*1024){alert('"'+f.name+'" is over 5 MB — link large files from SharePoint / Teams instead.');done();return;}
     const r=new FileReader();
-    r.onload=e=>{p.dealFiles.push({id:uid(),cat:_dfCat,name:f.name,type:f.type,size:f.size,dataUrl:e.target.result,uploadedAt:new Date().toISOString()});done();};
+    r.onload=e=>{target.push({id:uid(),type:'file',name:f.name,mime:f.type,size:f.size,dataUrl:e.target.result,uploadedAt:new Date().toISOString()});done();};
     r.onerror=done;
     r.readAsDataURL(f);
   });
 }
-function dfDownload(id){
+function fsRename(id){
   const p=S.p;if(!p)return;
-  const f=(p.dealFiles||[]).find(x=>x.id===id);if(!f)return;
-  const a=document.createElement('a');a.href=f.dataUrl;a.download=f.name;document.body.appendChild(a);a.click();a.remove();
+  const loc=fsLocate(fsGet(p),id);if(!loc)return;
+  const name=prompt('Rename to:',loc.node.name);if(!name||!name.trim())return;
+  loc.node.name=name.trim();rFiles(p);saveData();
 }
-function dfRemove(id){
+function fsDelete(id){
   const p=S.p;if(!p)return;
-  const f=(p.dealFiles||[]).find(x=>x.id===id);if(!f)return;
-  if(!confirm('Delete "'+f.name+'"? This removes it for the whole team.'))return;
-  p.dealFiles=p.dealFiles.filter(x=>x.id!==id);
+  const loc=fsLocate(fsGet(p),id);if(!loc)return;
+  const isF=loc.node.type==='folder';const cnt=isF?fsCountAll(loc.node):0;
+  if(!confirm('Delete "'+loc.node.name+'"'+(isF&&cnt?(' and its '+cnt+' item(s)'):'')+'? This removes it for the whole team.'))return;
+  loc.arr.splice(loc.idx,1);rFiles(p);saveData();
+}
+function fsDownload(id){
+  const p=S.p;if(!p)return;
+  const loc=fsLocate(fsGet(p),id);if(!loc||loc.node.type!=='file')return;
+  const a=document.createElement('a');a.href=loc.node.dataUrl;a.download=loc.node.name;document.body.appendChild(a);a.click();a.remove();
+}
+function fsMove(id){fsStartAction('move',id);}
+function fsCopy(id){fsStartAction('copy',id);}
+function fsStartAction(mode,id){
+  const p=S.p;if(!p)return;
+  _fsAction={mode,id};_fsDest=null;
+  const loc=fsLocate(fsGet(p),id);
+  $('fs-dest-title').textContent=(mode==='move'?'Move':'Copy')+' "'+(loc?loc.node.name:'')+'" to…';
+  $('fs-dest-go').textContent=(mode==='move'?'Move here':'Copy here');
+  $('fs-dest-tree').innerHTML=fsDestTreeHtml(p);
+  om('mo-fs-dest');
+}
+function fsDestTreeHtml(p){
+  const movingNode=fsLocate(fsGet(p),_fsAction.id)?.node;
+  let html=`<div class="fs-dest-opt" onclick="fsDestPick('ROOT',this)" data-id="ROOT" style="padding:5px 8px;cursor:pointer;border-radius:4px"><i class="ti ti-home" style="color:var(--blue)"></i> Deal Files (top level)</div>`;
+  (function walk(nodes,depth){
+    nodes.filter(n=>n.type==='folder').sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true})).forEach(n=>{
+      const blocked=_fsAction.mode==='move'&&movingNode&&fsIsDesc(movingNode,n.id);
+      html+=`<div class="fs-dest-opt" ${blocked?'':`onclick="fsDestPick('${n.id}',this)"`} data-id="${n.id}" style="padding:5px 8px;padding-left:${10+depth*16}px;cursor:${blocked?'not-allowed':'pointer'};border-radius:4px;color:${blocked?'var(--g4)':'inherit'}"><i class="ti ti-folder" style="color:${blocked?'var(--g4)':'var(--blue)'}"></i> ${fsEsc(n.name)}</div>`;
+      walk(n.children||[],depth+1);
+    });
+  })(fsGet(p),0);
+  return html;
+}
+function fsDestPick(id,el){
+  _fsDest=id;
+  document.querySelectorAll('#fs-dest-tree .fs-dest-opt').forEach(x=>{x.style.background='';});
+  if(el)el.style.background='var(--blue-light)';
+}
+function fsDestConfirm(){
+  const p=S.p;if(!p||!_fsAction.id){cm('mo-fs-dest');return;}
+  if(!_fsDest){alert('Pick a destination folder first.');return;}
+  const tree=fsGet(p);
+  const loc=fsLocate(tree,_fsAction.id);if(!loc){cm('mo-fs-dest');return;}
+  let destArr;
+  if(_fsDest==='ROOT') destArr=tree;
+  else{const d=fsLocate(tree,_fsDest);if(!d||d.node.type!=='folder'){alert('Invalid destination.');return;}destArr=d.node.children;}
+  if(_fsAction.mode==='move'){
+    if(_fsDest!=='ROOT'&&fsIsDesc(loc.node,_fsDest)){alert('Cannot move a folder into itself or its own subfolder.');return;}
+    if(destArr===loc.arr){cm('mo-fs-dest');_fsAction={};_fsDest=null;return;} // same folder, no-op
+    loc.arr.splice(loc.idx,1);
+    destArr.push(loc.node);
+  }else{
+    destArr.push(fsClone(loc.node));
+  }
+  cm('mo-fs-dest');_fsAction={};_fsDest=null;
+  rFiles(p);saveData();
+}
+function fsResetConfirm(){
+  const p=S.p;if(!p)return;
+  if(!confirm('Reset folder structure to the standard template? This deletes ALL files and folders here for the whole team.'))return;
+  p.fileTree=fsBuild(FS_DEFAULT);p.dealFiles=[];_fsPath=[];
   rFiles(p);saveData();
 }
 // ── End Deal File Storage ────────────────────────────────────────────────
