@@ -1655,6 +1655,16 @@ function sovTotals(p){
   return {drawTot,coTot};
 }
 function sovSetOriginal(v){ const p=S.p; if(!p) return; p.originalContract=pfParseNum(v); rSOV(p); saveData(); }
+function sovContingencyBudget(p){
+  if(p.contingencyBudget!=null && p.contingencyBudget!=='') return +p.contingencyBudget||0;
+  // default from pro-forma: (Hard + Soft) × Contingency %
+  if(p.proforma && Array.isArray(p.proforma.hard) && Array.isArray(p.proforma.soft)){
+    const hs=p.proforma.hard.reduce((s,l)=>s+(+l.amt||0),0)+p.proforma.soft.reduce((s,l)=>s+(+l.amt||0),0);
+    return Math.round(hs*((+p.proforma.contPct||0)/100));
+  }
+  return 0;
+}
+function sovSetContingency(v){ const p=S.p; if(!p) return; p.contingencyBudget=pfParseNum(v); rSOV(p); saveData(); }
 function sovUpd(id,field,val){
   const p=S.p; if(!p) return;
   const r=sovGet(p).find(x=>x.id===id); if(!r) return;
@@ -1692,6 +1702,12 @@ function rSOV(p){
   const remaining=original-drawTot;            // per spec: Original − Total Drawn
   const pctDone=original>0?Math.round(drawTot/original*100):0;
   const origRaw=pfHasVal(original)?original:'';
+  // Contingency — eaten by change orders
+  const contBudget=sovContingencyBudget(p);
+  const contUsed=coTot;                         // every CO draws down contingency
+  const contRem=contBudget-contUsed;
+  const contRaw=pfHasVal(contBudget)?contBudget:'';
+  const contPctLeft=contBudget>0?Math.round(contRem/contBudget*100):0;
 
   $('sov-summary').innerHTML=`
     <div class="g3" style="margin-top:8px">
@@ -1722,6 +1738,26 @@ function rSOV(p){
         <div class="l">Remaining to Draw</div>
         <div class="v" style="color:${remaining<0?'var(--red)':'var(--green)'}">${F(remaining)}</div>
         <div class="s">Original − Total Drawn</div>
+      </div>
+      <div class="mc"><div class="l">Contingency Budget</div>
+        <div class="v" style="display:flex;align-items:center;gap:4px">
+          <span style="color:var(--g6);font-weight:700">$</span>
+          <input class="inp-y" type="text" inputmode="decimal" data-raw="${contRaw}" data-money="0"
+            value="${pfFmtNum(contBudget)}" placeholder="0"
+            onfocus="pfInputFocus(this)" onblur="pfInputBlur(this)" onchange="sovSetContingency(this.value)"
+            style="font-size:15px;font-weight:700;text-align:left">
+        </div>
+        <div class="s">${p.contingencyBudget!=null?'Editable — starting contingency':'Auto from pro-forma — click to set'}</div>
+      </div>
+      <div class="mc ${contUsed>0?'mc-warn':''}">
+        <div class="l">Contingency Used (by COs)</div>
+        <div class="v" style="color:${contUsed>0?'var(--amber)':''}">${F(contUsed)}</div>
+        <div class="s">= Total Change Orders</div>
+      </div>
+      <div class="mc ${contRem<0?'mc-danger':contBudget>0&&contRem<contBudget*0.2?'mc-warn':'mc-good'}">
+        <div class="l">Contingency Remaining</div>
+        <div class="v" style="color:${contRem<0?'var(--red)':contBudget>0&&contRem<contBudget*0.2?'var(--amber)':'var(--green)'}">${F(contRem)}</div>
+        <div class="s">${contBudget>0?contPctLeft+'% left'+(contRem<0?' · OVER budget':''):'Budget − COs used'}</div>
       </div>
     </div>`;
 
